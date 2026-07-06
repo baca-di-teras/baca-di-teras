@@ -6,7 +6,7 @@ images/cache/*
 images/content/*
 images/default/logo.*
 images/default/webicon.*
-files/*
+# files/*
 !files/membercard/*
 repository/*
 config/*
@@ -19,7 +19,7 @@ cache/*
 .vscode
 sysconfig.local.inc.php
 config/sysconfig.local.inc.php
-sysconfig.inc.php
+# sysconfig.inc.php
 slims8_akasia.sublime-project
 slims8_akasia.sublime-workspace
 .env
@@ -49,13 +49,13 @@ $RECYCLE.BIN/
 *.lnk
 
 /vendor/
-composer.lock
-config/database.php
-config/captcha.php
-config/env.php
-config/csp.php
-config/auth.php
+# composer.lock
+# config/database.php
+# config/captcha.php
+# config/env.php
+# config/csp.php
+# config/auth.php
 tarsius
 
 .env
-.htaccess
+# .htaccess
