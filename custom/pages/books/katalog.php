@@ -674,16 +674,12 @@ $totalBooksCount = count($filteredBooks);
                     <?php endif; ?>
                 </div>
 
-                <!-- Pagination (Mock/Statis) -->
-                <nav class="bdt-pagination" aria-label="Navigasi halaman katalog">
-                    <button class="bdt-pagination__item" aria-label="Halaman sebelumnya">&lt;</button>
-                    <button class="bdt-pagination__item bdt-pagination__item--active">1</button>
-                    <button class="bdt-pagination__item">2</button>
-                    <button class="bdt-pagination__item">3</button>
-                    <span style="display: flex; align-items: flex-end; padding: 0 4px; color: #64748b;">...</span>
-                    <button class="bdt-pagination__item">12</button>
-                    <button class="bdt-pagination__item" aria-label="Halaman berikutnya">&gt;</button>
-                </nav>
+                <!-- Pagination -->
+                <?php 
+                $currentPage = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+                $totalPages = 12;
+                include __DIR__ . '/../../components/pagination.php'; 
+                ?>
 
             </main>
         </div>
