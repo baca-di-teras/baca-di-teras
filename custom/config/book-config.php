@@ -12,6 +12,19 @@
 
 $bookList = [
     [
+        'id'          => 'the-architecture-of-growth',
+        'title'       => 'The Architecture of Growth',
+        'author'      => 'Dr. Aris Setiawan',
+        'category'    => 'Pengembangan Diri',
+        'badge'       => null,
+        'image'       => '/custom/assets/images/book-cover-1.png',
+        'href'        => '/custom/pages/books/detail.php?id=the-architecture-of-growth',
+        'status'      => 'tersedia',
+        'status_text' => 'Tersedia (2 eksemplar)',
+        'publisher'   => 'Teras Press',
+        'library'     => 'perpustakaan-utama'
+    ],
+    [
         'id'          => 'digital-teras-navigating-the-web',
         'title'       => 'Digital Teras: Navigating the Web',
         'author'      => 'Dr. Ahmad Santoso',
