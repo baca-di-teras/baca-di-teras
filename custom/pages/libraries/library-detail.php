@@ -12,7 +12,7 @@
  * Data dimuat dari config/library-detail-config.php (metadata per perpus).
  */
 
-define('BASE_URL', '/bacaditeras/baca-di-teras');
+define('BASE_URL', '/baca-di-teras');
 
 // ── Load metadata perpustakaan ────────────────────────────────
 require_once __DIR__ . '/../../config/library-detail-config.php';

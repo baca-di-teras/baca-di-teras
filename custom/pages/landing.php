@@ -11,7 +11,7 @@
  * Koleksi Terbaru, CTA Banner, Berita, Fitur, Tentang, Kontak, Footer.
  */
 
-define('BASE_URL', '/bacaditeras/baca-di-teras');
+define('BASE_URL', '/baca-di-teras');
 
 $activePage  = 'beranda';
 $currentYear = date('Y');
