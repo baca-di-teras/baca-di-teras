@@ -24,457 +24,10 @@ require_once __DIR__ . '/../config/info-config.php';
     <meta name="description" content="Pusat Informasi & Layanan Perpustakaan Desa Teras. Panduan peminjaman, jam operasional, FAQ, tata tertib, dan kontak bantuan.">
     <title>Pusat Informasi & Layanan – Baca Di Teras</title>
     <!-- Fonts -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
     <!-- Main styles -->
     <link rel="stylesheet" href="<?= BASE_URL ?>/custom/assets/css/landing.css">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #fafbfc;
-            color: #101814;
-            margin: 0;
-        }
-
-        .bdt-info-wrapper {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 56px 24px 96px;
-        }
-
-        /* Hero Header */
-        .bdt-info-hero {
-            text-align: center;
-            margin-bottom: 56px;
-        }
-        .bdt-info-hero__title {
-            font-size: 38px;
-            font-weight: 800;
-            color: #0e5e32;
-            margin: 0 0 16px;
-            letter-spacing: -0.02em;
-        }
-        .bdt-info-hero__desc {
-            font-size: 16px;
-            color: #64748b;
-            max-width: 680px;
-            margin: 0 auto;
-            line-height: 1.6;
-        }
-
-        /* Grid Layout */
-        .bdt-info-grid-top {
-            display: grid;
-            grid-template-columns: 1.8fr 1.2fr;
-            gap: 28px;
-            margin-bottom: 28px;
-        }
-        .bdt-info-grid-bottom {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 28px;
-            margin-bottom: 64px;
-        }
-
-        /* Card Styles */
-        .bdt-info-card {
-            background-color: #ffffff;
-            border: 1px solid #eef2ed;
-            border-radius: 16px;
-            padding: 32px;
-            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.01);
-            display: flex;
-            flex-direction: column;
-        }
-        .bdt-info-card__icon-wrap {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            background-color: #f0f9f2;
-            color: #1a6b2f;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 24px;
-        }
-        
-        /* Card Background Modifier */
-        .bdt-info-card--green-bg {
-            background-color: #ecf3ee !important;
-            border-color: #dbe4dd !important;
-        }
-
-        /* Icon Wrap Modifiers */
-        .bdt-info-card__icon-wrap--white {
-            background-color: #ffffff !important;
-            color: #1a6b2f !important;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-        }
-        .bdt-info-card__icon-wrap--amber {
-            background-color: #fef3c7 !important;
-            color: #d97706 !important;
-        }
-        .bdt-info-card__icon-wrap--blue {
-            background-color: #e0f2fe !important;
-            color: #0284c7 !important;
-        }
-        .bdt-info-card__icon-wrap--teal {
-            background-color: #ccfbf1 !important;
-            color: #0d9488 !important;
-        }
-
-        .bdt-info-card__title {
-            font-size: 20px;
-            font-weight: 700;
-            color: #0f172a;
-            margin: 0 0 12px;
-        }
-        .bdt-info-card__desc {
-            font-size: 14px;
-            color: #64748b;
-            line-height: 1.6;
-            margin: 0 0 24px;
-        }
-
-        /* List points for Peminjaman */
-        .bdt-info-card__points {
-            list-style: none;
-            padding: 0;
-            margin: 0 0 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .bdt-info-card__point-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            color: #334155;
-        }
-        .bdt-info-card__point-item svg {
-            color: #1a6b2f;
-            flex-shrink: 0;
-        }
-
-        /* Schedule table for Jam Operasional */
-        .bdt-info-card__schedule {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            margin-bottom: 8px;
-        }
-        .bdt-info-card__schedule-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 14px;
-            border-bottom: 1px solid #f1f5f9;
-            padding-bottom: 8px;
-        }
-        .bdt-info-card__schedule-row:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-        .bdt-info-card__schedule-day {
-            font-weight: 500;
-            color: #475569;
-        }
-        .bdt-info-card__schedule-time {
-            font-weight: 700;
-            color: #0f172a;
-        }
-        .bdt-info-card__schedule-time--highlight {
-            color: #ef4444;
-        }
-
-        /* Action Links & Buttons */
-        .bdt-info-card__action-link {
-            font-size: 14px;
-            font-weight: 700;
-            color: #1a6b2f;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: color 0.2s;
-            margin-top: auto;
-        }
-        .bdt-info-card__action-link:hover {
-            color: #134e22;
-        }
-        .bdt-info-card__action-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #5b6560;
-            color: #ffffff;
-            font-size: 14px;
-            font-weight: 700;
-            text-decoration: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            text-align: center;
-            transition: background-color 0.2s;
-            margin-top: auto;
-        }
-        .bdt-info-card__action-btn:hover {
-            background-color: #434c48;
-        }
-
-        /* Downloads list */
-        .bdt-info-card__downloads {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: auto;
-        }
-        .bdt-info-card__download-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 14px;
-            font-weight: 700;
-            color: #1a6b2f;
-            text-decoration: none;
-        }
-        .bdt-info-card__download-item:hover {
-            text-decoration: underline;
-        }
-        .bdt-info-card__download-item svg {
-            color: #ef4444;
-        }
-
-        /* Badges for Tata Tertib */
-        .bdt-info-card__badges {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-top: auto;
-        }
-        .bdt-info-badge {
-            font-size: 12px;
-            font-weight: 600;
-            color: #475569;
-            background-color: #f1f5f9;
-            padding: 6px 14px;
-            border-radius: 9999px;
-        }
-
-        /* FAQ Section */
-        .bdt-faq-section {
-            background-color: #ffffff;
-            border: 1px solid #eef2ed;
-            border-radius: 20px;
-            padding: 40px;
-            margin-bottom: 56px;
-        }
-        .bdt-faq-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            margin-bottom: 32px;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-        .bdt-faq-header__icon-wrap {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            background-color: #f0f9f2;
-            color: #1a6b2f;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 12px;
-        }
-        .bdt-faq-header__title {
-            font-size: 24px;
-            font-weight: 800;
-            color: #0f172a;
-            margin: 0;
-        }
-        .bdt-faq-header__subtitle {
-            font-size: 14px;
-            color: #64748b;
-            margin: 4px 0 0;
-        }
-        .bdt-faq-search {
-            position: relative;
-            width: 280px;
-        }
-        .bdt-faq-search__icon {
-            position: absolute;
-            right: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #94a3b8;
-            pointer-events: none;
-        }
-        .bdt-faq-search__input {
-            width: 100%;
-            padding: 10px 40px 10px 16px;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 14px;
-            outline: none;
-            background-color: #f8fafc;
-        }
-        .bdt-faq-search__input:focus {
-            border-color: #1a6b2f;
-            background-color: #ffffff;
-        }
-
-        /* FAQ Accordion Grid */
-        .bdt-faq-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 24px;
-        }
-        .bdt-faq-item {
-            background-color: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            overflow: hidden;
-            transition: all 0.2s;
-        }
-        .bdt-faq-item[open] {
-            background-color: #ffffff;
-            border-color: #cbd5e1;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-        }
-        .bdt-faq-item__summary {
-            padding: 20px;
-            font-size: 15px;
-            font-weight: 700;
-            color: #1f2937;
-            cursor: pointer;
-            list-style: none;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            outline: none;
-        }
-        .bdt-faq-item__summary::-webkit-details-marker {
-            display: none;
-        }
-        .bdt-faq-item__summary::after {
-            content: '';
-            width: 10px;
-            height: 6px;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-            background-size: contain;
-            background-repeat: no-repeat;
-            transition: transform 0.2s;
-        }
-        .bdt-faq-item[open] .bdt-faq-item__summary::after {
-            transform: rotate(180deg);
-        }
-        .bdt-faq-item__content {
-            padding: 0 20px 20px;
-            font-size: 14px;
-            line-height: 1.6;
-            color: #475569;
-            border-top: 1px solid #f1f5f9;
-            padding-top: 16px;
-        }
-
-        /* Help CTA Banner */
-        .bdt-help-banner {
-            background-color: #ecf3ee;
-            border-radius: 20px;
-            padding: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 32px;
-        }
-        .bdt-help-banner__info {
-            display: flex;
-            align-items: center;
-            gap: 24px;
-        }
-        .bdt-help-banner__avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 4px solid #ffffff;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-        .bdt-help-banner__title {
-            font-size: 20px;
-            font-weight: 800;
-            color: #0e5e32;
-            margin: 0 0 6px;
-        }
-        .bdt-help-banner__desc {
-            font-size: 14px;
-            color: #475569;
-            margin: 0;
-            max-width: 480px;
-            line-height: 1.5;
-        }
-        .bdt-help-banner__actions {
-            display: flex;
-            gap: 12px;
-            flex-shrink: 0;
-        }
-        .bdt-help-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 14px 24px;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 700;
-            text-decoration: none;
-            transition: all 0.2s;
-        }
-        .bdt-help-btn--green {
-            background-color: #0e5e32;
-            color: #ffffff;
-        }
-        .bdt-help-btn--green:hover {
-            background-color: #0a4625;
-        }
-        .bdt-help-btn--white {
-            background-color: #ffffff;
-            color: #334155;
-            border: 1px solid #e2e8f0;
-        }
-        .bdt-help-btn--white:hover {
-            background-color: #f8fafc;
-        }
-
-        @media (max-width: 980px) {
-            .bdt-info-grid-top {
-                grid-template-columns: 1fr;
-            }
-            .bdt-info-grid-bottom {
-                grid-template-columns: 1fr;
-            }
-            .bdt-faq-grid {
-                grid-template-columns: 1fr;
-            }
-            .bdt-help-banner {
-                flex-direction: column;
-                align-items: flex-start;
-                text-align: left;
-            }
-            .bdt-help-banner__info {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            .bdt-help-banner__actions {
-                width: 100%;
-            }
-            .bdt-help-btn {
-                flex: 1;
-                justify-content: center;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="<?= BASE_URL ?>/custom/assets/css/informasi.css">
 </head>
 <body>
     <?php include __DIR__ . '/../components/navbar.php'; ?>
@@ -492,7 +45,7 @@ require_once __DIR__ . '/../config/info-config.php';
             
             <!-- Card Peminjaman -->
             <?php $peminjaman = $infoServices['peminjaman']; ?>
-            <div class="bdt-info-card">
+            <div class="bdt-info-card bdt-info-card--featured">
                 <div class="bdt-info-card__icon-wrap" aria-hidden="true">
                     <!-- Book Open icon -->
                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -500,29 +53,31 @@ require_once __DIR__ . '/../config/info-config.php';
                         <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
                     </svg>
                 </div>
-                <h2 class="bdt-info-card__title"><?= htmlspecialchars($peminjaman['title']) ?></h2>
-                <p class="bdt-info-card__desc"><?= htmlspecialchars($peminjaman['desc']) ?></p>
-                
-                <ul class="bdt-info-card__points" role="list">
-                    <?php foreach ($peminjaman['points'] as $point) : ?>
-                        <li class="bdt-info-card__point-item">
-                            <!-- Check icon -->
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                            <?= htmlspecialchars($point) ?>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
-                
-                <a href="<?= htmlspecialchars($peminjaman['action_href']) ?>" class="bdt-info-card__action-link">
-                    <?= htmlspecialchars($peminjaman['action_label']) ?> &rarr;
-                </a>
+                <div class="bdt-info-card__content">
+                    <h2 class="bdt-info-card__title"><?= htmlspecialchars($peminjaman['title']) ?></h2>
+                    <p class="bdt-info-card__desc"><?= htmlspecialchars($peminjaman['desc']) ?></p>
+
+                    <ul class="bdt-info-card__points" role="list">
+                        <?php foreach ($peminjaman['points'] as $point) : ?>
+                            <li class="bdt-info-card__point-item">
+                                <!-- Check icon -->
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                                <?= htmlspecialchars($point) ?>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+
+                    <a href="<?= htmlspecialchars($peminjaman['action_href']) ?>" class="bdt-info-card__action-link">
+                        <?= htmlspecialchars($peminjaman['action_label']) ?> &rarr;
+                    </a>
+                </div>
             </div>
 
             <!-- Card Jam Operasional -->
             <?php $jamOp = $infoServices['jam_operasional']; ?>
-            <div class="bdt-info-card bdt-info-card--green-bg">
+            <div class="bdt-info-card bdt-info-card--green-bg bdt-info-card--hours">
                 <div class="bdt-info-card__icon-wrap bdt-info-card__icon-wrap--white" aria-hidden="true">
                     <!-- Clock icon -->
                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -584,12 +139,17 @@ require_once __DIR__ . '/../config/info-config.php';
                 <div class="bdt-info-card__downloads">
                     <?php foreach ($unduhan['files'] as $file) : ?>
                         <a href="<?= htmlspecialchars($file['href']) ?>" class="bdt-info-card__download-item">
-                            <!-- PDF Icon -->
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
+                            <span class="bdt-info-card__download-label">
+                                <!-- PDF Icon -->
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                </svg>
+                                <?= htmlspecialchars($file['label']) ?>
+                            </span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polyline points="9 18 15 12 9 6"></polyline>
                             </svg>
-                            <?= htmlspecialchars($file['label']) ?>
                         </a>
                     <?php endforeach; ?>
                 </div>
@@ -619,7 +179,7 @@ require_once __DIR__ . '/../config/info-config.php';
         <!-- FAQ Section -->
         <section class="bdt-faq-section" aria-label="Pertanyaan Umum">
             <div class="bdt-faq-header">
-                <div>
+                <div class="bdt-faq-header__brand">
                     <div class="bdt-faq-header__icon-wrap" aria-hidden="true">
                         <!-- Help circle icon -->
                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -628,8 +188,10 @@ require_once __DIR__ . '/../config/info-config.php';
                             <line x1="12" y1="17" x2="12.01" y2="17"></line>
                         </svg>
                     </div>
-                    <h2 class="bdt-faq-header__title">Pertanyaan Umum (FAQ)</h2>
-                    <p class="bdt-faq-header__subtitle">Cari jawaban cepat untuk keraguan Anda.</p>
+                    <div>
+                        <h2 class="bdt-faq-header__title">Pertanyaan Umum (FAQ)</h2>
+                        <p class="bdt-faq-header__subtitle">Cari jawaban cepat untuk keraguan Anda.</p>
+                    </div>
                 </div>
                 
                 <!-- Search questions bar -->
@@ -669,12 +231,12 @@ require_once __DIR__ . '/../config/info-config.php';
             </div>
             
             <div class="bdt-help-banner__actions">
-                <a href="https://wa.me/6281234567890" target="_blank" class="bdt-help-btn bdt-help-btn--green">
+                <a href="https://wa.me/6281234567890" target="_blank" rel="noopener noreferrer" class="bdt-help-btn bdt-help-btn--green">
                     <!-- Message icon -->
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                     </svg>
-                    Hubungi via WhatsApp
+                    <span><span>Hubungi via</span><span>WhatsApp</span></span>
                 </a>
                 <a href="<?= BASE_URL ?>/custom/pages/contact.php" class="bdt-help-btn bdt-help-btn--white">
                     <!-- Map/Location icon -->
@@ -683,7 +245,7 @@ require_once __DIR__ . '/../config/info-config.php';
                         <line x1="9" y1="3" x2="9" y2="18"></line>
                         <line x1="15" y1="6" x2="15" y2="21"></line>
                     </svg>
-                    Cari Lokasi Kami
+                    <span><span>Cari Lokasi</span><span>Kami</span></span>
                 </a>
             </div>
         </section>
