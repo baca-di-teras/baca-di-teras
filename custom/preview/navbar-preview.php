@@ -6,7 +6,7 @@
  */
 
 // Simulasi BASE_URL untuk localhost XAMPP
-define('BASE_URL', '/bacaditeras/baca-di-teras');
+define('BASE_URL', '/baca-di-teras');
 
 // Set halaman aktif — bisa di-switch via ?active=nama-menu
 $allowedPages = ['beranda', 'profil-desa', 'perpustakaan', 'berita', 'artikel', 'informasi'];
