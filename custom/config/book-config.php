@@ -6,54 +6,100 @@
  * Project : Baca Di Teras
  * Version : 1.0.0
  *
- * Berisi data statis daftar koleksi buku terbaru
- * yang ditampilkan pada landing page.
+ * Berisi data statis daftar koleksi buku yang
+ * disesuaikan dengan desain Katalog Buku.
  */
 
 $bookList = [
     [
-        'id'       => 'untaian-kisah-lembut',
-        'title'    => 'Untaian Kisah Lembut',
-        'author'   => 'Rina Sari',
-        'category' => 'Fiksi',
-        'badge'    => 'Baru',
-        'image'    => '/custom/assets/images/book-cover-1.png',
-        'href'     => '/katalog/untaian-kisah-lembut',
+        'id'          => 'the-architecture-of-growth',
+        'title'       => 'The Architecture of Growth',
+        'author'      => 'Dr. Aris Setiawan',
+        'category'    => 'Pengembangan Diri',
+        'badge'       => null,
+        'image'       => '/custom/assets/images/book-cover-1.png',
+        'href'        => '/custom/pages/books/detail.php?id=the-architecture-of-growth',
+        'status'      => 'tersedia',
+        'status_text' => 'Tersedia (2 eksemplar)',
+        'publisher'   => 'Teras Press',
+        'library'     => 'perpustakaan-utama'
     ],
     [
-        'id'       => 'koleksi-puisi-nusantara',
-        'title'    => 'Koleksi Puisi Nusantara',
-        'author'   => 'Budi Santoso',
-        'category' => 'Puisi',
-        'badge'    => 'Populer',
-        'image'    => '/custom/assets/images/book-cover-2.png',
-        'href'     => '/katalog/koleksi-puisi-nusantara',
+        'id'          => 'digital-teras-navigating-the-web',
+        'title'       => 'Digital Teras: Navigating the Web',
+        'author'      => 'Dr. Ahmad Santoso',
+        'category'    => 'Teknologi',
+        'badge'       => 'Baru',
+        'image'       => '/custom/assets/images/book-cover-1.png',
+        'href'        => '/custom/pages/books/detail.php?id=digital-teras-navigating-the-web',
+        'status'      => 'tersedia',
+        'status_text' => 'Tersedia (4 eksemplar)',
+        'publisher'   => 'Local Press',
+        'library'     => 'perpustakaan-digital'
     ],
     [
-        'id'       => 'pemikiran-tokoh-bangsa',
-        'title'    => 'Pemikiran Tokoh Bangsa',
-        'author'   => 'Dr. Ahmad Fauzi',
-        'category' => 'Nonfiksi',
-        'badge'    => 'Baru',
-        'image'    => '/custom/assets/images/book-cover-3.png',
-        'href'     => '/katalog/pemikiran-tokoh-bangsa',
+        'id'          => 'modern-farmers-journal-2024',
+        'title'       => "Modern Farmer's Journal 2024",
+        'author'      => 'Teras Agrotech Team',
+        'category'    => 'Pertanian',
+        'badge'       => null,
+        'image'       => '/custom/assets/images/book-cover-2.png',
+        'href'        => '/custom/pages/books/detail.php?id=modern-farmers-journal-2024',
+        'status'      => 'dipinjam',
+        'status_text' => 'Dipinjam',
+        'publisher'   => 'Local Press',
+        'library'     => 'agro-perpustakaan'
     ],
     [
-        'id'       => 'jejak-nusantara',
-        'title'    => 'Jejak Nusantara',
-        'author'   => 'Siti Rahayu',
-        'category' => 'Sejarah',
-        'badge'    => null,
-        'image'    => '/custom/assets/images/book-cover-4.png',
-        'href'     => '/katalog/jejak-nusantara',
+        'id'          => 'folklore-of-the-valley',
+        'title'       => 'Folklore of the Valley',
+        'author'      => 'Maria Sastrawan',
+        'category'    => 'Sastra Anak',
+        'badge'       => null,
+        'image'       => '/custom/assets/images/book-cover-3.png',
+        'href'        => '/custom/pages/books/detail.php?id=folklore-of-the-valley',
+        'status'      => 'dipesan',
+        'status_text' => '2 Dipesan',
+        'publisher'   => 'Bentang Pustaka',
+        'library'     => 'sd-negeri-2-teras'
     ],
     [
-        'id'       => 'dongeng-desa-teras',
-        'title'    => 'Dongeng Desa Teras',
-        'author'   => 'Tim Literasi Teras',
-        'category' => 'Anak',
-        'badge'    => 'Baru',
-        'image'    => '/custom/assets/images/book-cover-5.png',
-        'href'     => '/katalog/dongeng-desa-teras',
+        'id'          => 'global-finance-for-villages',
+        'title'       => 'Global Finance for Villages',
+        'author'      => 'Prof. Hendra Wijaya',
+        'category'    => 'Teknologi',
+        'badge'       => null,
+        'image'       => '/custom/assets/images/book-cover-4.png',
+        'href'        => '/custom/pages/books/detail.php?id=global-finance-for-villages',
+        'status'      => 'tersedia',
+        'status_text' => 'Tersedia (1 eksemplar)',
+        'publisher'   => 'Mizan',
+        'library'     => 'perpustakaan-utama'
     ],
+    [
+        'id'          => 'history-of-teras-settlement',
+        'title'       => 'History of Teras Settlement',
+        'author'      => 'Dr. S. Margono',
+        'category'    => 'Budaya Lokal',
+        'badge'       => null,
+        'image'       => '/custom/assets/images/book-cover-5.png',
+        'href'        => '/custom/pages/books/detail.php?id=history-of-teras-settlement',
+        'status'      => 'tersedia',
+        'status_text' => 'Tersedia (3 eksemplar)',
+        'publisher'   => 'Gramedia',
+        'library'     => 'perpustakaan-utama'
+    ],
+    [
+        'id'          => 'culinary-heritage-of-teras',
+        'title'       => 'Culinary Heritage of Teras',
+        'author'      => 'Ibu Siti Rahayu',
+        'category'    => 'Budaya Lokal',
+        'badge'       => null,
+        'image'       => '/custom/assets/images/book-cover-1.png', // Fallback to cover 1
+        'href'        => '/custom/pages/books/detail.php?id=culinary-heritage-of-teras',
+        'status'      => 'tersedia',
+        'status_text' => 'Tersedia (2 eksemplar)',
+        'publisher'   => 'Gramedia',
+        'library'     => 'teras-south-commons'
+    ]
 ];

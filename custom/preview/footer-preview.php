@@ -5,7 +5,7 @@
  * JANGAN di-deploy ke production.
  */
 
-define('BASE_URL', '/bacaditeras/baca-di-teras');
+define('BASE_URL', '/baca-di-teras');
 ?>
 <!DOCTYPE html>
 <html lang="id">

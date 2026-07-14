@@ -6,6 +6,7 @@
  * Project : Baca Di Teras
  * Version : 1.0.0
  *
+
  * Metadata statis per buku untuk halaman detail.
  * Dirancang agar mudah dipindah ke database:
  *   - books             → id, slug, title, author, category, image, ...

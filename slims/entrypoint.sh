@@ -46,6 +46,7 @@ cat /var/www/html/config/database.php
 # Wait for database to be ready
 echo "Waiting for database to be ready..."
 until php -r "
+mysqli_report(MYSQLI_REPORT_OFF);
 \$conn = new mysqli(getenv('DB_HOST'), getenv('DB_USER'), getenv('DB_PASS'), getenv('DB_NAME'), (int)getenv('DB_PORT'));
 exit(\$conn->connect_error ? 1 : 0);
 " 2>/dev/null; do

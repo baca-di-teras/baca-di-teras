@@ -19,6 +19,7 @@ COPY . /var/www/html
 
 RUN composer install
 
+RUN mkdir -p /var/www/html/files /var/www/html/images /var/www/html/repository
 RUN chown -R www-data:www-data /var/www/html/files
 RUN chown -R www-data:www-data /var/www/html/images
 RUN chown -R www-data:www-data /var/www/html/repository
@@ -26,10 +27,10 @@ RUN rm -rf /var/www/html/install
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+RUN echo "ServerName localhost" > /etc/apache2/conf-available/servername.conf && a2enconf servername
 
 EXPOSE 80
 
 ENTRYPOINT ["/entrypoint.sh"]
 
 CMD ["apache2-foreground"]
-
