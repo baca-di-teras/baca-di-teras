@@ -6,24 +6,33 @@
  * Project : Baca Di Teras
  * Version : 1.0.0
  *
- * Menampilkan detail satu perpustakaan berdasarkan query string:
- *   ?id=perpustakaan-utama
+ * Menampilkan detail satu perpustakaan.
+ * Slug perpustakaan diambil dari parameter URL dinamis:
+ *   /perpustakaan/{slug}  →  $routeParams['slug']
  *
  * Data dimuat dari config/library-detail-config.php (metadata per perpus).
  */
 
-define('BASE_URL', '/baca-di-teras');
+// BASE_URL sudah didefinisikan di index.php (Front Controller).
+// Definisikan hanya jika file ini diakses langsung (tanpa router).
+if (!defined('BASE_URL')) {
+    define('BASE_URL', '/baca-di-teras');
+}
 
 // ── Load metadata perpustakaan ────────────────────────────────
 require_once __DIR__ . '/../../config/library-detail-config.php';
 
-$librarySlug   = $_GET['id'] ?? 'perpustakaan-utama';
+// Ambil slug dari route dinamis (/perpustakaan/{slug})
+// atau fallback ke query string untuk backward-compatibility
+$librarySlug   = $routeParams['slug'] ?? $_GET['id'] ?? 'perpustakaan-utama';
 $libraryDetail = $libraryDetailMap[$librarySlug] ?? null;
 
-// 404-like fallback jika slug tidak ditemukan
+// Jika slug tidak ditemukan → tampilkan halaman 404
 if (!$libraryDetail) {
     http_response_code(404);
-    die('<h1>Perpustakaan tidak ditemukan.</h1>');
+    $baseUrl = defined('BASE_URL') ? BASE_URL : '';
+    require defined('ROOT_PATH') ? ROOT_PATH . '/custom/pages/404.php' : __DIR__ . '/../404.php';
+    exit;
 }
 
 // Shortcut variabel dari metadata

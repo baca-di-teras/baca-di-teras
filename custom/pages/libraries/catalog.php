@@ -13,7 +13,11 @@
  * Data dimuat dari config/catalog-config.php.
  */
 
-define('BASE_URL', '/bacaditeras/baca-di-teras');
+// BASE_URL sudah didefinisikan di index.php (Front Controller).
+// Definisikan hanya jika file ini diakses langsung (tanpa router).
+if (!defined('BASE_URL')) {
+    define('BASE_URL', '/baca-di-teras');
+}
 
 // ── Load config ────────────────────────────────────────────────
 require_once __DIR__ . '/../../config/catalog-config.php';
