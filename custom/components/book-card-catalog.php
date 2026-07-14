@@ -32,20 +32,25 @@ if (!isset($bookData) || !is_array($bookData)) {
     return;
 }
 
-// Destructure dengan default value
+// Destructure — support output BookService + kompatibilitas data lama
 $bookId           = $bookData['id']           ?? 'book';
 $bookTitle        = $bookData['title']        ?? 'Judul Buku';
 $bookAuthor       = $bookData['author']       ?? '';
-$bookCategory     = $bookData['category']     ?? '';
+$bookCategory     = $bookData['category']     ?? 'Fiksi'; // Mock kategori
 $bookBadge        = $bookData['badge']        ?? null;
 $bookImage        = $bookData['image']        ?? '';
 $bookHref         = $bookData['href']         ?? '#';
-$bookPenerbit     = $bookData['penerbit']     ?? '';
+$bookPenerbit     = $bookData['publisher']    ?? $bookData['penerbit'] ?? '';
 $bookPerpustakaan = $bookData['perpustakaan'] ?? '';
 $bookKetersediaan = $bookData['ketersediaan'] ?? 'tersedia';
-$bookStok         = $bookData['stok']         ?? 0;
+$bookStok         = $bookData['stok']         ?? 1;
 $bookAntrian      = $bookData['antrian']      ?? 0;
 $baseUrl          = defined('BASE_URL') ? BASE_URL : '';
+
+// Handle URL gambar yang mungkin sudah lengkap (dari BookService)
+$bookImageSrc = (str_starts_with($bookImage, 'http') || str_starts_with($bookImage, '/'))
+    ? $bookImage
+    : $baseUrl . $bookImage;
 
 // Badge CSS class
 $badgeClass = '';
@@ -94,7 +99,7 @@ $dataAttrs .= ' data-author="' . htmlspecialchars(strtolower($bookAuthor)) . '"'
 
     <!-- Cover -->
     <div class="bdt-catalog-card__cover-wrap">
-        <img src="<?= htmlspecialchars($baseUrl . $bookImage) ?>"
+        <img src="<?= htmlspecialchars($bookImageSrc) ?>"
              alt="Sampul buku <?= htmlspecialchars($bookTitle) ?>"
              class="bdt-catalog-card__cover"
              loading="lazy"

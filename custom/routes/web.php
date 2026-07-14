@@ -77,8 +77,8 @@ $router->get('/artikel/{slug}', 'custom/pages/article/detail.php');
 // INFORMASI & KONTAK
 // ============================================================
 
-$router->get('/informasi', 'custom/pages/information/index.php');
-$router->get('/kontak',    'custom/pages/contact/index.php');
+$router->get('/informasi', 'custom/pages/informasi.php');
+$router->get('/kontak',    'custom/pages/contact.php');
 
 // ============================================================
 // ADMIN — Redirect ke SLiMS Admin

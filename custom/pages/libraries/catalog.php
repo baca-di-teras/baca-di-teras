@@ -19,15 +19,57 @@ if (!defined('BASE_URL')) {
     define('BASE_URL', '/baca-di-teras');
 }
 
-// ── Load config ────────────────────────────────────────────────
-require_once __DIR__ . '/../../config/catalog-config.php';
+// ── Service Layer ──────────────────────────────────────────────
+$libPath = defined('ROOT_PATH') ? ROOT_PATH : __DIR__ . '/../../..';
+require_once $libPath . '/custom/helpers/Database.php';
+require_once $libPath . '/custom/services/BookService.php';
+require_once $libPath . '/custom/services/LibraryService.php';
+
+$bookService    = new BookService();
+$libraryService = new LibraryService();
+
+// Ambil semua buku untuk client-side filtering (max 1000 untuk performa)
+$catalogBookList = $bookService->getCatalog([], 1000, 0);
+
+// Ambil daftar perpustakaan untuk filter
+$libraries = $libraryService->getAllActive();
+$libraryFilterList = [['id' => '', 'label' => 'Semua Perpustakaan']];
+foreach ($libraries as $lib) {
+    $libraryFilterList[] = ['id' => $lib['slug'], 'label' => $lib['name']];
+}
+
+// Daftar Kategori (Mock atau dari DB)
+$categoryList = [
+    ['id' => 'fiksi', 'label' => 'Fiksi'],
+    ['id' => 'non-fiksi', 'label' => 'Non-Fiksi'],
+    ['id' => 'anak', 'label' => 'Anak-anak'],
+    ['id' => 'sains', 'label' => 'Sains'],
+    ['id' => 'sejarah', 'label' => 'Sejarah']
+];
+
+// Daftar Penerbit (Mock atau dari DB)
+$publisherList = [
+    ['id' => 'semua', 'label' => 'Semua Penerbit'],
+    ['id' => 'gramedia', 'label' => 'Gramedia'],
+    ['id' => 'erlangga', 'label' => 'Erlangga'],
+    ['id' => 'mizan', 'label' => 'Mizan'],
+    ['id' => 'bentang', 'label' => 'Bentang Pustaka']
+];
+
+// Opsi Urutan
+$sortOptionList = [
+    ['id' => 'terbaru', 'label' => 'Terbaru'],
+    ['id' => 'terpopuler', 'label' => 'Terpopuler'],
+    ['id' => 'a-z', 'label' => 'A - Z'],
+    ['id' => 'z-a', 'label' => 'Z - A'],
+];
 
 $activePage        = 'perpustakaan';
 $pageTitle         = 'Katalog Buku';
 $pageDescription   = 'Jelajahi ribuan koleksi buku perpustakaan digital Desa Teras. Filter berdasarkan kategori, ketersediaan, penerbit, dan perpustakaan.';
 $itemsPerPage      = 6;
 $totalBuku         = count($catalogBookList);
-$baseUrl           = BASE_URL;
+$baseUrl           = defined('BASE_URL') ? BASE_URL : '';
 
 // Encode data buku ke JSON untuk digunakan JavaScript
 $bookListJson = json_encode(

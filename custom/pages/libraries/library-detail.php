@@ -19,41 +19,90 @@ if (!defined('BASE_URL')) {
     define('BASE_URL', '/baca-di-teras');
 }
 
-// ── Load metadata perpustakaan ────────────────────────────────
-require_once __DIR__ . '/../../config/library-detail-config.php';
+// ── Service Layer ──────────────────────────────────────────────
+$libPath = defined('ROOT_PATH') ? ROOT_PATH : __DIR__ . '/../../..';
+require_once $libPath . '/custom/helpers/Database.php';
+require_once $libPath . '/custom/services/LibraryService.php';
+require_once $libPath . '/custom/services/BookService.php';
+
+$libraryService = new LibraryService();
+$bookService    = new BookService();
 
 // Ambil slug dari route dinamis (/perpustakaan/{slug})
 // atau fallback ke query string untuk backward-compatibility
-$librarySlug   = $routeParams['slug'] ?? $_GET['id'] ?? 'perpustakaan-utama';
-$libraryDetail = $libraryDetailMap[$librarySlug] ?? null;
+$librarySlug = $routeParams['slug'] ?? $_GET['id'] ?? 'perpustakaan-utama';
+
+// Dapatkan detail perpustakaan dari service
+$detail = $libraryService->getDetailBySlug($librarySlug);
 
 // Jika slug tidak ditemukan → tampilkan halaman 404
-if (!$libraryDetail) {
+if (!$detail) {
     http_response_code(404);
     $baseUrl = defined('BASE_URL') ? BASE_URL : '';
-    require defined('ROOT_PATH') ? ROOT_PATH . '/custom/pages/404.php' : __DIR__ . '/../404.php';
+    require defined('ROOT_PATH') ? ROOT_PATH . '/custom/pages/404.php' : __DIR__ . '/../../404.php';
     exit;
 }
 
-// Shortcut variabel dari metadata
+$baseUrl = defined('BASE_URL') ? BASE_URL : '';
+
+// Shortcut variabel
 $activePage     = 'perpustakaan';
-$libName        = $libraryDetail['name'];
-$libBadge       = $libraryDetail['badge'];
-$libDesc        = $libraryDetail['description'];
-$libHeroImage   = $libraryDetail['heroImage'];
-$libMeta        = $libraryDetail['meta'];
+$libName        = $detail['library']['name'];
+$libBadge       = $detail['library']['badge'] ?? '';
+$libDesc        = $detail['library']['description'] ?? '';
+$libHeroImage   = $detail['library']['cover_image'] ?? '';
 
-$facilityList   = $libMeta['fasilitas']       ?? [];
-$statList       = $libMeta['faktaMenarik']     ?? [];
-$hourList       = $libMeta['jamOperasional']   ?? [];
-$isOpen         = $libMeta['statusBuka']       ?? false;
-$hourNote       = $libMeta['catatanJam']       ?? '';
-$eventList      = $libMeta['kegiatan']         ?? [];
-$galleryList    = $libMeta['gallery']          ?? [];
-$bookList       = $libMeta['koleksiBuku']      ?? [];
-$locationData   = $libMeta['lokasi']           ?? [];
+// Format fasilitas
+$facilityList = [];
+foreach ($detail['facilities'] as $fac) {
+    $facilityList[] = $fac['name'];
+}
 
-$baseUrl = BASE_URL;
+// Format fakta menarik (stats)
+$statList = [
+    ['nilai' => number_format((int)$detail['stats']['totalKoleksi'], 0, ',', '.'), 'keterangan' => 'Koleksi Buku'],
+    ['nilai' => number_format((int)$detail['stats']['totalAnggota'], 0, ',', '.'), 'keterangan' => 'Anggota Aktif'],
+    ['nilai' => number_format((int)$detail['stats']['totalEksemplar'], 0, ',', '.'), 'keterangan' => 'Eksemplar Buku'],
+    ['nilai' => number_format((int)$detail['stats']['totalJudul'], 0, ',', '.'), 'keterangan' => 'Judul Buku'],
+];
+
+// Format jam operasional
+$hourList = [];
+$hariIndo = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+for ($i = 0; $i <= 6; $i++) {
+    $jam = $detail['hours'][$i] ?? null;
+    $hourList[] = [
+        'hari'  => $hariIndo[$i],
+        'jam'   => ($jam && $jam['is_open']) ? date('H:i', strtotime($jam['open_time'])) . ' - ' . date('H:i', strtotime($jam['close_time'])) : 'Tutup',
+        'tutup' => (!$jam || !$jam['is_open'])
+    ];
+}
+
+$isOpen = $detail['isOpenNow'];
+$hourNote = $detail['todayHour']['note'] ?? '';
+
+// Galeri
+$galleryList = [];
+foreach ($detail['gallery'] as $img) {
+    $galleryList[] = [
+        'image' => $img['image_path'],
+        'alt'   => $img['alt_text'] ?? 'Galeri Perpustakaan'
+    ];
+}
+
+// Data Lokasi
+$locationData = [
+    'alamat'       => $detail['library']['address'] ?? '',
+    'transportasi' => 'Dapat diakses dengan kendaraan pribadi maupun angkutan umum', // Default
+    'mapsLink'     => '#',
+    'mapsEmbed'    => ''
+];
+
+// Buku terbaru di perpus ini (Gunakan BookService fallback)
+$bookList = $bookService->getLatest(6);
+
+// Kegiatan Mendatang (Belum ada EventService, set array kosong untuk saat ini)
+$eventList = [];
 ?>
 <!DOCTYPE html>
 <html lang="id">
