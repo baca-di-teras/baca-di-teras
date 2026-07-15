@@ -304,7 +304,7 @@ class LibraryService
      * Ambil statistik gabungan untuk ditampilkan di landing page
      * (total seluruh perpustakaan aktif).
      *
-     * @return array  Array berisi totalKoleksi, totalAnggota, totalPerpustakaan
+     * @return array  Array berisi totalKoleksi, totalAnggota, totalPerpustakaan, totalEksemplar
      */
     public function getOverallStats(): array
     {
@@ -319,10 +319,16 @@ class LibraryService
             ['aktif']
         );
 
+        // Hitung total eksemplar dari item SLiMS (lintas semua lokasi)
+        $eksemplar = $this->db->fetchScalar(
+            'SELECT COUNT(*) FROM item WHERE item_status_id NOT IN ("WD", "MIS")'
+        );
+
         return [
             'totalPerpustakaan' => (int) ($row['total_perpustakaan'] ?? 0),
             'totalKoleksi'      => (int) ($row['total_koleksi']      ?? 0),
             'totalAnggota'      => (int) ($row['total_anggota']      ?? 0),
+            'totalEksemplar'    => (int) ($eksemplar                 ?? 0),
         ];
     }
 

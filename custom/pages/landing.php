@@ -380,7 +380,7 @@ $featureList  = $villageService->getFeatures();
             <!-- Featured News -->
             <article class="bdt-news-card--featured" id="bdt-news-featured">
                 <div class="bdt-news-card__image-wrap">
-                    <img src="<?= BASE_URL ?>/custom/assets/images/<?= htmlspecialchars(basename($featuredNews['image'])) ?>"
+                    <img src="<?= htmlspecialchars($featuredNews['image'] ?? BASE_URL . '/custom/assets/images/news-featured.png') ?>"
                          alt="<?= htmlspecialchars($featuredNews['title']) ?>"
                          class="bdt-news-card__image"
                          loading="lazy"
@@ -412,7 +412,7 @@ $featureList  = $villageService->getFeatures();
                             <?php
                                 require_once (defined('ROOT_PATH') ? ROOT_PATH : __DIR__ . '/../..') . '/custom/services/ArticleService.php';
                             ?>
-                            <?= ArticleService::formatDate($featuredNews['publish_date'] ?? null) ?>
+                            <?= ArticleService::formatDate($featuredNews['date'] ?? $featuredNews['publish_date'] ?? null) ?>
                         </span>
                         <span class="bdt-news-card__meta-item">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
@@ -434,7 +434,7 @@ $featureList  = $villageService->getFeatures();
                     <article class="bdt-news-card--small"
                              id="bdt-news-small-<?= $newsIndex + 1 ?>">
                         <div class="bdt-news-card__image-wrap">
-                            <img src="<?= BASE_URL ?>/custom/assets/images/<?= htmlspecialchars(basename($newsItem['image'])) ?>"
+                            <img src="<?= htmlspecialchars($newsItem['image'] ?? BASE_URL . '/custom/assets/images/news-small.png') ?>"
                                  alt="<?= htmlspecialchars($newsItem['title']) ?>"
                                  class="bdt-news-card__image"
                                  loading="lazy"
@@ -463,7 +463,7 @@ $featureList  = $villageService->getFeatures();
                                         <line x1="8" y1="2" x2="8" y2="6"/>
                                         <line x1="3" y1="10" x2="21" y2="10"/>
                                     </svg>
-                                    <?= ArticleService::formatDate($newsItem['publish_date'] ?? null) ?>
+                                    <?= ArticleService::formatDate($newsItem['date'] ?? $newsItem['publish_date'] ?? null) ?>
                                 </span>
                             </div>
                         </div>

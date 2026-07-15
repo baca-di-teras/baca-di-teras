@@ -432,4 +432,55 @@ class BookService
             'inputDate'   => $row['input_date']    ?? '',
         ];
     }
+
+    /**
+     * Ambil daftar kategori/topik buku untuk dropdown filter.
+     * Mengembalikan array dengan format ['id' => ..., 'label' => ...]
+     *
+     * @return array
+     */
+    public function getCategories(): array
+    {
+        $rows = $this->db->fetchAll(
+            'SELECT topic_id AS id, topic AS label 
+             FROM mst_topic 
+             ORDER BY topic ASC 
+             LIMIT 100'
+        );
+        return $rows;
+    }
+
+    /**
+     * Ambil daftar penerbit buku untuk dropdown filter.
+     * Mengembalikan array dengan format ['id' => ..., 'label' => ...]
+     *
+     * @return array
+     */
+    public function getPublishers(): array
+    {
+        $rows = $this->db->fetchAll(
+            'SELECT publisher_id AS id, publisher_name AS label 
+             FROM mst_publisher 
+             ORDER BY publisher_name ASC 
+             LIMIT 100'
+        );
+        return $rows;
+    }
+
+    /**
+     * Ambil daftar penulis buku.
+     * Mengembalikan array dengan format ['id' => ..., 'label' => ...]
+     *
+     * @return array
+     */
+    public function getAuthors(): array
+    {
+        $rows = $this->db->fetchAll(
+            'SELECT author_id AS id, author_name AS label 
+             FROM mst_author 
+             ORDER BY author_name ASC 
+             LIMIT 100'
+        );
+        return $rows;
+    }
 }

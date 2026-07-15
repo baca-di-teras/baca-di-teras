@@ -38,23 +38,13 @@ foreach ($libraries as $lib) {
     $libraryFilterList[] = ['id' => $lib['slug'], 'label' => $lib['name']];
 }
 
-// Daftar Kategori (Mock atau dari DB)
-$categoryList = [
-    ['id' => 'fiksi', 'label' => 'Fiksi'],
-    ['id' => 'non-fiksi', 'label' => 'Non-Fiksi'],
-    ['id' => 'anak', 'label' => 'Anak-anak'],
-    ['id' => 'sains', 'label' => 'Sains'],
-    ['id' => 'sejarah', 'label' => 'Sejarah']
-];
+// Daftar Kategori dari database
+$dbCategories = $bookService->getCategories();
+$categoryList = array_merge([['id' => 'semua', 'label' => 'Semua Kategori']], $dbCategories);
 
-// Daftar Penerbit (Mock atau dari DB)
-$publisherList = [
-    ['id' => 'semua', 'label' => 'Semua Penerbit'],
-    ['id' => 'gramedia', 'label' => 'Gramedia'],
-    ['id' => 'erlangga', 'label' => 'Erlangga'],
-    ['id' => 'mizan', 'label' => 'Mizan'],
-    ['id' => 'bentang', 'label' => 'Bentang Pustaka']
-];
+// Daftar Penerbit dari database
+$dbPublishers = $bookService->getPublishers();
+$publisherList = array_merge([['id' => 'semua', 'label' => 'Semua Penerbit']], $dbPublishers);
 
 // Opsi Urutan
 $sortOptionList = [

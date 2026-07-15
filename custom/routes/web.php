@@ -88,6 +88,9 @@ $router->get('/kontak',    'custom/pages/contact.php');
 // Gunakan path absolut sesuai instalasi SLiMS
 $router->redirect('/admin', BASE_URL . '/slims/admin/', 302);
 
+// /login → redirect ke SLiMS Member Area
+$router->redirect('/login', BASE_URL . '/slims/?p=member', 302);
+
 // ============================================================
 // 404 — Halaman tidak ditemukan
 // ============================================================
