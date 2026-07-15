@@ -47,6 +47,7 @@ class LibraryService
                 library_id,
                 slug,
                 name,
+                slims_location_id,
                 tagline,
                 badge,
                 address,
@@ -324,11 +325,18 @@ class LibraryService
             'SELECT COUNT(*) FROM item WHERE item_status_id NOT IN ("WD", "MIS")'
         );
 
+        $visitorsThisMonth = $this->db->fetchScalar(
+            'SELECT COUNT(*)
+             FROM visitor_count
+             WHERE checkin_date >= DATE_FORMAT(CURDATE(), "%Y-%m-01")'
+        );
+
         return [
             'totalPerpustakaan' => (int) ($row['total_perpustakaan'] ?? 0),
             'totalKoleksi'      => (int) ($row['total_koleksi']      ?? 0),
             'totalAnggota'      => (int) ($row['total_anggota']      ?? 0),
             'totalEksemplar'    => (int) ($eksemplar                 ?? 0),
+            'totalPengunjungBulanIni' => (int) ($visitorsThisMonth   ?? 0),
         ];
     }
 

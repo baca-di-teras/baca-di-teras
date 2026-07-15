@@ -92,6 +92,43 @@ class ArticleService
     }
 
     /**
+     * Ambil daftar artikel published, tidak termasuk kategori berita.
+     *
+     * @param  int $limit
+     * @param  int $offset
+     * @return array
+     */
+    public function getPublishedArticles(int $limit = 10, int $offset = 0): array
+    {
+        return $this->db->fetchAll(
+            'SELECT
+                a.article_id,
+                a.title,
+                a.slug,
+                a.excerpt,
+                a.cover_image,
+                a.category,
+                a.publish_date,
+                a.is_featured,
+                a.is_pinned,
+                a.view_count,
+                l.name AS library_name,
+                l.slug AS library_slug,
+                u.realname AS author_name
+             FROM bdt_article a
+             LEFT JOIN bdt_library l ON a.library_id = l.library_id
+             LEFT JOIN user        u ON a.created_by  = u.user_id
+             WHERE a.status = "published"
+               AND a.category != "berita"
+               AND (a.publish_date IS NULL OR a.publish_date <= NOW())
+             ORDER BY a.is_pinned DESC, a.publish_date DESC
+             LIMIT ? OFFSET ?',
+            'ii',
+            [$limit, $offset]
+        );
+    }
+
+    /**
      * Hitung total artikel published (untuk pagination).
      *
      * @param  string $category  Kosong = semua kategori
@@ -114,6 +151,37 @@ class ArticleService
                 'SELECT COUNT(*)
                  FROM bdt_article
                  WHERE status = "published"
+                   AND (publish_date IS NULL OR publish_date <= NOW())'
+            );
+        }
+
+        return (int) $count;
+    }
+
+    /**
+     * Hitung artikel published, tidak termasuk kategori berita.
+     *
+     * @param  string $category
+     * @return int
+     */
+    public function countPublishedArticles(string $category = ''): int
+    {
+        if ($category !== '' && $category !== 'berita' && in_array($category, self::CATEGORIES, true)) {
+            $count = $this->db->fetchScalar(
+                'SELECT COUNT(*)
+                 FROM bdt_article
+                 WHERE status   = "published"
+                   AND category = ?
+                   AND (publish_date IS NULL OR publish_date <= NOW())',
+                's',
+                [$category]
+            );
+        } else {
+            $count = $this->db->fetchScalar(
+                'SELECT COUNT(*)
+                 FROM bdt_article
+                 WHERE status = "published"
+                   AND category != "berita"
                    AND (publish_date IS NULL OR publish_date <= NOW())'
             );
         }
@@ -160,8 +228,10 @@ class ArticleService
      *
      * @return array|null
      */
-    public function getHeroArticle(): ?array
+    public function getHeroArticle(bool $includeNews = true): ?array
     {
+        $categoryCondition = $includeNews ? '' : 'AND a.category != "berita"';
+
         return $this->db->fetchOne(
             'SELECT
                 a.article_id,
@@ -179,6 +249,7 @@ class ArticleService
              LEFT JOIN user        u ON a.created_by  = u.user_id
              WHERE a.status      = "published"
                AND a.is_featured = 1
+               ' . $categoryCondition . '
                AND (a.publish_date IS NULL OR a.publish_date <= NOW())
              ORDER BY a.is_pinned DESC, a.publish_date DESC
              LIMIT 1'

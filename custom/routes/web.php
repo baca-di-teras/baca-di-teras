@@ -36,6 +36,8 @@ $router->get('/', 'custom/pages/landing.php');
 // ============================================================
 
 $router->get('/profil', 'custom/pages/profile/index.php');
+$router->redirect('/profil-desa', BASE_URL . '/profil', 302);
+$router->redirect('/tentang-kami', BASE_URL . '/profil', 302);
 
 // ============================================================
 // PERPUSTAKAAN
@@ -79,6 +81,12 @@ $router->get('/artikel/{slug}', 'custom/pages/article/detail.php');
 
 $router->get('/informasi', 'custom/pages/informasi.php');
 $router->get('/kontak',    'custom/pages/contact.php');
+$router->redirect('/layanan/peminjaman', BASE_URL . '/informasi', 302);
+$router->redirect('/layanan/digital', BASE_URL . '/informasi', 302);
+$router->redirect('/layanan/acara', BASE_URL . '/informasi', 302);
+$router->redirect('/komunitas', BASE_URL . '/perpustakaan', 302);
+$router->redirect('/syarat-ketentuan', BASE_URL . '/informasi', 302);
+$router->redirect('/daftar', BASE_URL . '/login', 302);
 
 // ============================================================
 // ADMIN — Redirect ke SLiMS Admin

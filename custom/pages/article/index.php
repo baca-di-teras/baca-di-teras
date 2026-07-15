@@ -24,7 +24,12 @@ $articleService = new ArticleService();
 
 // Filter kategori dari query string
 $activeCategory = $_GET['kategori'] ?? '';
-if ($activeCategory && !in_array($activeCategory, ArticleService::CATEGORIES, true)) {
+$articleCategories = array_filter(
+    ArticleService::CATEGORY_LABELS,
+    static fn ($label, $key): bool => $key !== 'berita',
+    ARRAY_FILTER_USE_BOTH
+);
+if ($activeCategory && (!isset($articleCategories[$activeCategory]) || !in_array($activeCategory, ArticleService::CATEGORIES, true))) {
     $activeCategory = '';
 }
 
@@ -32,18 +37,18 @@ if ($activeCategory && !in_array($activeCategory, ArticleService::CATEGORIES, tr
 $perPage  = 9;
 $page     = max(1, (int)($_GET['halaman'] ?? 1));
 $offset   = ($page - 1) * $perPage;
-$total    = $articleService->countPublished($activeCategory);
+$total    = $articleService->countPublishedArticles($activeCategory);
 $maxPage  = (int) ceil($total / $perPage);
 
 // Ambil artikel
 if ($activeCategory) {
     $articles = $articleService->getByCategory($activeCategory, $perPage, $offset);
 } else {
-    $articles = $articleService->getPublished($perPage, $offset);
+    $articles = $articleService->getPublishedArticles($perPage, $offset);
 }
 
 // Ambil artikel hero (featured)
-$heroArticle = $articleService->getHeroArticle();
+$heroArticle = $articleService->getHeroArticle(false);
 
 $baseUrl = defined('BASE_URL') ? BASE_URL : '';
 ?>
@@ -329,7 +334,7 @@ $baseUrl = defined('BASE_URL') ? BASE_URL : '';
             <a href="<?= $baseUrl ?>/artikel"
                class="bdt-category-filter__chip <?= $activeCategory === '' ? 'bdt-category-filter__chip--active' : '' ?>"
                id="bdt-filter-semua">Semua</a>
-            <?php foreach (ArticleService::CATEGORY_LABELS as $key => $label) : ?>
+            <?php foreach ($articleCategories as $key => $label) : ?>
             <a href="<?= $baseUrl ?>/artikel?kategori=<?= urlencode($key) ?>"
                class="bdt-category-filter__chip <?= $activeCategory === $key ? 'bdt-category-filter__chip--active' : '' ?>"
                id="bdt-filter-<?= htmlspecialchars($key) ?>">

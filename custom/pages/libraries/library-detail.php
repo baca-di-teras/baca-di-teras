@@ -91,15 +91,26 @@ foreach ($detail['gallery'] as $img) {
 }
 
 // Data Lokasi
+$mapsQuery = trim($libName . ' ' . ($detail['library']['address'] ?? 'Desa Teras Boyolali'));
+$mapsLink = $detail['library']['google_maps_url']
+    ?: 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($mapsQuery);
+$mapsEmbed = str_contains($mapsLink, '/maps/embed')
+    ? $mapsLink
+    : 'https://maps.google.com/maps?q=' . rawurlencode($mapsQuery) . '&output=embed';
+
 $locationData = [
     'alamat'       => $detail['library']['address'] ?? '',
     'transportasi' => 'Dapat diakses dengan kendaraan pribadi maupun angkutan umum', // Default
-    'mapsLink'     => '#',
-    'mapsEmbed'    => ''
+    'mapsLink'     => $mapsLink,
+    'mapsEmbed'    => $mapsEmbed
 ];
 
-// Buku terbaru di perpus ini (Gunakan BookService fallback)
-$bookList = $bookService->getLatest(6);
+// Buku terbaru di perpustakaan ini
+$bookList = $bookService->getCatalog(
+    ['location' => $detail['library']['slims_location_id'], 'sort' => 'terbaru'],
+    6,
+    0
+);
 
 // Kegiatan Mendatang (Belum ada EventService, set array kosong untuk saat ini)
 $eventList = [];

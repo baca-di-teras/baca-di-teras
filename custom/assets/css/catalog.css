@@ -250,6 +250,8 @@ body { font-family: var(--font-base); color: var(--color-text-body); margin: 0; 
 }
 
 .bdt-filter-pill {
+    display: inline-flex;
+    align-items: center;
     padding: 6px 14px;
     border-radius: 20px;
     font-size: 12.5px;
@@ -262,6 +264,12 @@ body { font-family: var(--font-base); color: var(--color-text-body); margin: 0; 
     transition: background-color var(--transition), border-color var(--transition), color var(--transition);
 }
 
+.bdt-filter-pill input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
 .bdt-filter-pill:hover {
     border-color: var(--color-primary);
     color: var(--color-primary);
@@ -271,6 +279,11 @@ body { font-family: var(--font-base); color: var(--color-text-body); margin: 0; 
     background-color: var(--color-primary);
     border-color: var(--color-primary);
     color: var(--color-white);
+}
+
+.bdt-catalog-filter-submit {
+    width: 100%;
+    border-radius: var(--radius-sm);
 }
 
 /* ── MAIN CONTENT ─────────────────────────────────────────── */

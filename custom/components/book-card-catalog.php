@@ -36,16 +36,35 @@ if (!isset($bookData) || !is_array($bookData)) {
 $bookId           = $bookData['id']           ?? 'book';
 $bookTitle        = $bookData['title']        ?? 'Judul Buku';
 $bookAuthor       = $bookData['author']       ?? '';
-$bookCategory     = $bookData['category']     ?? 'Fiksi'; // Mock kategori
+$bookCategory     = $bookData['category']     ?? '';
 $bookBadge        = $bookData['badge']        ?? null;
 $bookImage        = $bookData['image']        ?? '';
 $bookHref         = $bookData['href']         ?? '#';
 $bookPenerbit     = $bookData['publisher']    ?? $bookData['penerbit'] ?? '';
 $bookPerpustakaan = $bookData['perpustakaan'] ?? '';
 $bookKetersediaan = $bookData['ketersediaan'] ?? 'tersedia';
-$bookStok         = $bookData['stok']         ?? 1;
+$bookStok         = $bookData['stok']         ?? 0;
 $bookAntrian      = $bookData['antrian']      ?? 0;
 $baseUrl          = defined('BASE_URL') ? BASE_URL : '';
+
+if (!function_exists('bdt_catalog_card_url')) {
+    function bdt_catalog_card_url(string $href, string $baseUrl): string
+    {
+        if ($href === '#') {
+            return $href;
+        }
+        if (str_starts_with($href, 'http://') || str_starts_with($href, 'https://')) {
+            return $href;
+        }
+        $baseUrl = rtrim($baseUrl, '/');
+        if ($baseUrl !== '' && ($href === $baseUrl || str_starts_with($href, $baseUrl . '/'))) {
+            return $href;
+        }
+        return $baseUrl . '/' . ltrim($href, '/');
+    }
+}
+
+$bookHrefUrl = bdt_catalog_card_url((string) $bookHref, $baseUrl);
 
 // Handle URL gambar yang mungkin sudah lengkap (dari BookService)
 $bookImageSrc = (str_starts_with($bookImage, 'http') || str_starts_with($bookImage, '/'))
@@ -129,7 +148,7 @@ $dataAttrs .= ' data-author="' . htmlspecialchars(strtolower($bookAuthor)) . '"'
     <!-- Body -->
     <div class="bdt-catalog-card__body">
         <h3 class="bdt-catalog-card__title">
-            <a href="<?= htmlspecialchars($baseUrl . $bookHref) ?>"
+            <a href="<?= htmlspecialchars($bookHrefUrl) ?>"
                id="bdt-catalog-title-<?= htmlspecialchars($bookId) ?>">
                 <?= htmlspecialchars($bookTitle) ?>
             </a>
@@ -150,7 +169,7 @@ $dataAttrs .= ' data-author="' . htmlspecialchars(strtolower($bookAuthor)) . '"'
                     <?= htmlspecialchars($statusInfo['label']) ?>
                 </span>
             </div>
-            <a href="<?= htmlspecialchars($baseUrl . $bookHref) ?>"
+            <a href="<?= htmlspecialchars($bookHrefUrl) ?>"
                id="bdt-catalog-cta-<?= htmlspecialchars($bookId) ?>"
                class="bdt-catalog-card__cta <?= $statusInfo['ctaClass'] ?>">
                 <?= htmlspecialchars($statusInfo['ctaLabel']) ?>

@@ -34,8 +34,27 @@ $cardBadge     = $libraryData['badge']           ?? null;
 $cardTotalBuku = isset($libraryData['total_koleksi'])
     ? number_format((int)$libraryData['total_koleksi'], 0, ',', '.') . ' Koleksi'
     : ($libraryData['totalBuku'] ?? '');
-$cardHref      = $libraryData['href']            ?? BASE_URL . '/perpustakaan/' . $cardId;
+$cardHref      = $libraryData['href']            ?? '/perpustakaan/' . $cardId;
 $baseUrl       = defined('BASE_URL') ? BASE_URL : '';
+
+if (!function_exists('bdt_library_home_card_url')) {
+    function bdt_library_home_card_url(string $href, string $baseUrl): string
+    {
+        if ($href === '#') {
+            return $href;
+        }
+        if (str_starts_with($href, 'http://') || str_starts_with($href, 'https://')) {
+            return $href;
+        }
+        $baseUrl = rtrim($baseUrl, '/');
+        if ($baseUrl !== '' && ($href === $baseUrl || str_starts_with($href, $baseUrl . '/'))) {
+            return $href;
+        }
+        return $baseUrl . '/' . ltrim($href, '/');
+    }
+}
+
+$cardHrefUrl = bdt_library_home_card_url((string) $cardHref, $baseUrl);
 ?>
 
 <article class="bdt-library-card" id="bdt-library-card-<?= htmlspecialchars($cardId) ?>">
@@ -97,7 +116,7 @@ $baseUrl       = defined('BASE_URL') ? BASE_URL : '';
                 </span>
             <?php endif; ?>
 
-            <a href="<?= htmlspecialchars($baseUrl . $cardHref) ?>"
+            <a href="<?= htmlspecialchars($cardHrefUrl) ?>"
                id="bdt-library-link-<?= htmlspecialchars($cardId) ?>"
                class="bdt-library-card__link"
                aria-label="Lihat detail <?= htmlspecialchars($cardName) ?>">

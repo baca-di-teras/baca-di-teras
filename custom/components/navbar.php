@@ -8,7 +8,7 @@
  *
  * Usage   : <?php include 'custom/components/navbar.php'; ?>
  *
- * @param string $activePage  Set active menu. Options: 'beranda', 'profil-desa',
+ * @param string $activePage  Set active menu. Options: 'beranda', 'profil',
  *                            'perpustakaan', 'berita', 'artikel', 'informasi'
  *                            Example: <?php $activePage = 'beranda'; ?>
  */
@@ -22,7 +22,7 @@ $baseUrl = defined('BASE_URL') ? BASE_URL : '';
 // Navigation menu items
 $navItems = [
     ['id' => 'beranda',       'label' => 'Beranda',       'href' => $baseUrl . '/'],
-    ['id' => 'profil-desa',   'label' => 'Profil Desa',   'href' => $baseUrl . '/profil-desa'],
+    ['id' => 'profil',        'label' => 'Profil Desa',   'href' => $baseUrl . '/profil'],
     ['id' => 'perpustakaan',  'label' => 'Perpustakaan',  'href' => $baseUrl . '/perpustakaan'],
     ['id' => 'berita',        'label' => 'Berita',        'href' => $baseUrl . '/berita'],
     ['id' => 'artikel',       'label' => 'Artikel',       'href' => $baseUrl . '/artikel'],

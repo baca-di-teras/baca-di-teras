@@ -26,11 +26,13 @@ require_once $libPath . '/custom/helpers/Database.php';
 require_once $libPath . '/custom/services/LibraryService.php';
 require_once $libPath . '/custom/services/BookService.php';
 require_once $libPath . '/custom/services/NewsService.php';
+require_once $libPath . '/custom/services/ArticleService.php';
 require_once $libPath . '/custom/services/VillageService.php';
 
 $libraryService = new LibraryService();
 $bookService    = new BookService();
 $newsService    = new NewsService();
+$articleService = new ArticleService();
 $villageService = new VillageService();
 
 // Data untuk setiap seksi landing page
@@ -40,6 +42,19 @@ $bookList     = $bookService->getLatest(6);
 $featuredNews = $newsService->getFeaturedNews();
 $newsList     = $newsService->getRecentNews(3, 0);
 $featureList  = $villageService->getFeatures();
+$articleTotal = $articleService->countPublished();
+
+if ($featuredNews === null) {
+    $featuredNews = $newsList[0] ?? [
+        'title' => 'Kegiatan Literasi Desa Teras',
+        'slug' => '',
+        'excerpt' => 'Ikuti perkembangan terbaru seputar kegiatan literasi dan program perpustakaan Desa Teras.',
+        'image' => BASE_URL . '/custom/assets/images/news-featured.png',
+        'category' => 'berita',
+        'date' => null,
+        'author' => 'Admin',
+    ];
+}
 
 ?>
 <!DOCTYPE html>
@@ -190,7 +205,7 @@ $featureList  = $villageService->getFeatures();
                     </svg>
                 </div>
                 <div>
-                    <p class="bdt-stats__number">3.500+</p>
+                    <p class="bdt-stats__number"><?= number_format((int)($stats['totalPengunjungBulanIni'] ?? 0), 0, ',', '.') ?></p>
                     <p class="bdt-stats__label">Pengunjung / Bulan</p>
                 </div>
             </div>
@@ -209,7 +224,7 @@ $featureList  = $villageService->getFeatures();
                     </svg>
                 </div>
                 <div>
-                    <p class="bdt-stats__number">45</p>
+                    <p class="bdt-stats__number"><?= number_format((int)$articleTotal, 0, ',', '.') ?></p>
                     <p class="bdt-stats__label">Artikel &amp; Berita</p>
                 </div>
             </div>

@@ -78,6 +78,28 @@ class InformationService
                 'action_href'  => $extra['action_href'] ?? null,
             ];
         }
+
+        $services['jam_operasional'] ??= [
+            'title' => 'Jam Operasional',
+            'schedule' => [
+                ['day' => 'Senin - Jumat', 'time' => '08:00 - 16:00', 'highlight' => true],
+                ['day' => 'Sabtu', 'time' => '08:00 - 12:00'],
+                ['day' => 'Minggu', 'time' => 'Tutup'],
+            ],
+        ];
+
+        $services['unduhan'] ??= [
+            'title' => 'Unduhan',
+            'files' => $this->getDownloads(),
+        ];
+
+        $rules = $this->getRules();
+        $services['tata_tertib'] ??= [
+            'title' => $rules[0]['title'] ?? 'Tata Tertib',
+            'desc' => $rules[0]['content'] ?? 'Jaga ketenangan ruang baca, rawat koleksi, dan kembalikan buku tepat waktu.',
+            'badges' => ['Jaga Kebersihan', 'Rawat Buku', 'Tepat Waktu'],
+        ];
+
         return $services;
     }
 
@@ -88,11 +110,18 @@ class InformationService
      */
     public function getDownloads(): array
     {
-        return $this->db->fetchAll(
+        $rows = $this->db->fetchAll(
             'SELECT title AS label, content AS href 
              FROM bdt_information 
              WHERE type = "download" AND status = "aktif" 
              ORDER BY sort_order ASC'
         );
+
+        return array_map(static function (array $row): array {
+            return [
+                'label' => $row['label'] ?? 'Dokumen',
+                'href'  => $row['href'] ?: '#',
+            ];
+        }, $rows);
     }
 }
