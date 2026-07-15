@@ -34,7 +34,7 @@ $newsService    = new NewsService();
 $villageService = new VillageService();
 
 // Data untuk setiap seksi landing page
-$libraryList  = $libraryService->getFeatured(3);
+$libraryList  = $libraryService->getFeatured(5);
 $stats        = $libraryService->getOverallStats();
 $bookList     = $bookService->getLatest(6);
 $featuredNews = $newsService->getFeaturedNews();
