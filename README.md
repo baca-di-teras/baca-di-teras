@@ -1,4 +1,4 @@
-# 📚 Baca Di Teras
+# Petunjuk Produk Baca Di Teras
 
 > Portal Literasi & Perpustakaan Digital Desa Teras
 
@@ -6,7 +6,7 @@
 
 ---
 
-## ✨ Fitur Utama
+## Fitur Utama
 
 | Fitur | Deskripsi |
 |-------|-----------|
@@ -22,7 +22,7 @@
 
 ---
 
-## 🏗️ Arsitektur Sistem
+## Arsitektur Sistem
 
 Proyek dibangun menggunakan **SLiMS (Senayan Library Management System)** sebagai engine pengelolaan perpustakaan, dikombinasikan dengan **Custom Layer** untuk portal informasi desa.
 
@@ -45,7 +45,7 @@ Proyek dibangun menggunakan **SLiMS (Senayan Library Management System)** sebaga
 
 ---
 
-## 🛠️ Dibangun Dengan
+## Environment Setup
 
 | Komponen | Teknologi |
 |----------|-----------|
@@ -56,7 +56,7 @@ Proyek dibangun menggunakan **SLiMS (Senayan Library Management System)** sebaga
 
 ---
 
-## 👥 Role & Hak Akses
+## Role & Hak Akses
 
 ### Super Admin
 - Mengelola seluruh sistem, akun admin, profil website, dan konfigurasi
@@ -76,7 +76,7 @@ Proyek dibangun menggunakan **SLiMS (Senayan Library Management System)** sebaga
 
 ---
 
-## 🗺️ Halaman
+## Halaman
 
 | Halaman | Deskripsi |
 |---------|-----------|
@@ -91,13 +91,13 @@ Proyek dibangun menggunakan **SLiMS (Senayan Library Management System)** sebaga
 
 ---
 
-## 📜 Lisensi
+## Lisensi
 
 Proyek ini menggunakan SLiMS yang dilisensikan di bawah [GNU General Public License v3.0](slims/LICENSE).
 
 ---
 
-## 🙏 Acknowledgements
+## Acknowledgements
 
 - [SLiMS (Senayan Library Management System)](https://slims.web.id/) — Open source library management system
 - [Indonesia OneSearch](https://onesearch.id/) — Integrasi katalog nasional
@@ -106,5 +106,5 @@ Proyek ini menggunakan SLiMS yang dilisensikan di bawah [GNU General Public Lice
 ---
 
 <p align="center">
-  Dibuat dengan ❤️ oleh Tim <strong>Baca Di Teras</strong>
+  Dibuat oleh Tim <strong>KKN-T Tim II IDBU 13 Universitas Diponegoro 2026</strong>
 </p>
