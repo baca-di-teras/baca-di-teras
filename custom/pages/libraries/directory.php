@@ -9,7 +9,9 @@
  * Halaman direktori perpustakaan desa.
  */
 
-define('BASE_URL', '/baca-di-teras');
+if (!defined('BASE_URL')) {
+    define('BASE_URL', '/baca-di-teras');
+}
 
 $activePage = 'perpustakaan';
 
@@ -33,62 +35,27 @@ $chipFilterItems = [
     ['id' => 'pusat-digital', 'label' => 'Pusat Digital', 'href' => '#'],
 ];
 
-$libraryCards = [
-    [
-        'title' => 'Perpustakaan Teras Utama',
-        'description' => 'Perpustakaan unggulan kami yang melestarikan catatan leluhur desa bersama...',
-        'address' => 'Jl. Raya Teras No. 12, Alun-alun Pusat',
-        'hours' => '08:00 AM - 08:00 PM (Setiap Hari)',
-        'badge' => 'Pusat Utama',
-        'metric' => '8.4rb',
-        'image_alt' => 'Ruang baca Perpustakaan Teras Utama',
-    ],
-    [
-        'title' => 'Perpustakaan SD Negeri 1 Teras',
-        'description' => 'Pusat teknologi tinggi yang berfokus pada literasi digital, e-book, dan lokakarya...',
-        'address' => 'Sains Techno Park, Gerbang Timur',
-        'hours' => '09:00 AM - 09:00 PM (Sen-Sab)',
-        'badge' => 'Lab Digital',
-        'metric' => '2.1rb',
-        'image_alt' => 'Area belajar Perpustakaan SD Negeri 1 Teras',
-    ],
-    [
-        'title' => 'Perpustakaan SD Negeri 2 Teras',
-        'description' => 'Dikurasi khusus untuk pembaca muda kami, menampilkan zona bercerita interaktif dan...',
-        'address' => 'Gang Pendidikan, Teras Utara',
-        'hours' => '08:00 AM - 05:00 PM (Setiap Hari)',
-        'badge' => '',
-        'metric' => '3.6rb',
-        'image_alt' => 'Ruang anak Perpustakaan SD Negeri 2 Teras',
-    ],
-    [
-        'title' => 'Agro-Perpustakaan Teras',
-        'description' => 'Pusat pengetahuan yang didedikasikan untuk pertanian berkelanjutan, botani lokal...',
-        'address' => 'Distrik Pertanian Lembah Hijau',
-        'hours' => '07:00 AM - 04:00 PM (Sel-Min)',
-        'badge' => '',
-        'metric' => '1.8rb',
-        'image_alt' => 'Ruang koleksi Agro-Perpustakaan Teras',
-    ],
-    [
-        'title' => 'Teras South Commons',
-        'description' => 'Ruang komunitas yang aktif menyelenggarakan klub membaca, kelas bahasa, dan...',
-        'address' => 'Jl. Persatuan, Desa Selatan',
-        'hours' => '09:00 AM - 07:00 PM (Setiap Hari)',
-        'badge' => '',
-        'metric' => '4.2rb',
-        'image_alt' => 'Ruang komunitas Teras South Commons',
-    ],
-    [
-        'title' => 'Sanctuary Perbukitan',
-        'description' => 'Tempat peristirahatan tenang untuk studi mendalam dan meditasi, terletak di...',
-        'address' => 'Puncak Menara Pandang Summit',
-        'hours' => '10:00 AM - 06:00 PM (Setiap Hari)',
-        'badge' => '',
-        'metric' => '2.7rb',
-        'image_alt' => 'Teras baca Sanctuary Perbukitan',
-    ],
-];
+// ── Service Layer ──────────────────────────────────────────────
+$libPath = defined('ROOT_PATH') ? ROOT_PATH : __DIR__ . '/../../..';
+require_once $libPath . '/custom/helpers/Database.php';
+require_once $libPath . '/custom/services/LibraryService.php';
+
+$libraryService = new LibraryService();
+$dbLibraries = $libraryService->getAllActive();
+
+$libraryCards = [];
+foreach ($dbLibraries as $lib) {
+    $libraryCards[] = [
+        'title'       => $lib['name'],
+        'description' => $lib['tagline'] ?? '',
+        'address'     => $lib['address'] ?? '',
+        'hours'       => 'Sesuai jadwal operasional', // Simplifikasi, idealnya dari relasi hour
+        'badge'       => $lib['badge'] ?? '',
+        'metric'      => number_format((int)($lib['total_koleksi'] ?? 0)) . ' buku',
+        'image_alt'   => 'Ruang baca ' . $lib['name'],
+        'href'        => BASE_URL . '/perpustakaan/' . $lib['slug']
+    ];
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">

@@ -25,6 +25,7 @@ if (!isset($bookData) || !is_array($bookData)) {
 }
 
 // Destructure dengan default value
+// BookService mengembalikan 'image' sebagai URL penuh, bukan path relatif
 $bookId       = $bookData['id']       ?? 'book';
 $bookTitle    = $bookData['title']    ?? 'Judul Buku';
 $bookAuthor   = $bookData['author']   ?? '';
@@ -33,6 +34,12 @@ $bookBadge    = $bookData['badge']    ?? null;
 $bookImage    = $bookData['image']    ?? '';
 $bookHref     = $bookData['href']     ?? '#';
 $baseUrl      = defined('BASE_URL') ? BASE_URL : '';
+
+// Jika image sudah URL penuh (http/https atau path /baca-di-teras/slims/...)
+// jangan prefiks baseUrl lagi
+$bookImageSrc = (str_starts_with($bookImage, 'http') || str_starts_with($bookImage, '/'))
+    ? $bookImage
+    : $baseUrl . $bookImage;
 
 // Badge CSS class
 $badgeClass = '';
@@ -47,7 +54,7 @@ if ($bookBadge === 'Baru') {
 
     <!-- Book Cover -->
     <div class="bdt-book-card__cover-wrap">
-        <img src="<?= htmlspecialchars($baseUrl . $bookImage) ?>"
+        <img src="<?= htmlspecialchars($bookImageSrc) ?>"
              alt="Sampul buku <?= htmlspecialchars($bookTitle) ?>"
              class="bdt-book-card__cover"
              loading="lazy"

@@ -9,43 +9,55 @@
  * Halaman Hubungi Kami / Kontak Desa Teras.
  */
 
-define('BASE_URL', '/baca-di-teras');
+if (!defined('BASE_URL')) {
+    define('BASE_URL', '/baca-di-teras');
+}
 
 $activePage = 'kontak';
 
+// ── Service Layer ──────────────────────────────────────────────
+$libPath = defined('ROOT_PATH') ? ROOT_PATH : __DIR__ . '/../..';
+require_once $libPath . '/custom/helpers/Database.php';
+require_once $libPath . '/custom/services/VillageService.php';
+
+$villageService = new VillageService();
+$villageProfile = $villageService->getProfile() ?? [];
+
+// Susun variabel dari data DB (dengan fallback hardcoded jika DB kosong)
 $contactHero = [
-    'eyebrow' => 'Hubungi Kami',
-    'title' => 'Hubungi Kami',
+    'eyebrow'     => 'Hubungi Kami',
+    'title'       => 'Hubungi Kami',
     'description' => 'Memiliki pertanyaan tentang program perpustakaan atau inisiatif literasi digital kami? Kami di sini untuk membantu komunitas tumbuh bersama.',
 ];
 
-$contactMessageForm = [
-    'action' => '#',
-    'method' => 'post',
-];
+$contactMessageForm = ['action' => '#', 'method' => 'post'];
 
 $contactInformationItems = [
-    ['type' => 'phone', 'label' => 'Telepon', 'value' => '+62 812-3456-7890'],
-    ['type' => 'message', 'label' => 'WhatsApp', 'value' => '+62 812-3456-7890'],
-    ['type' => 'email', 'label' => 'Email', 'value' => 'halo@desateras.id'],
+    ['type' => 'phone',   'label' => 'Telepon',   'value' => $villageProfile['phone']     ?? '+62 271-781000'],
+    ['type' => 'message', 'label' => 'WhatsApp',  'value' => $villageProfile['whatsapp']  ?? '+62 812-3456-7890'],
+    ['type' => 'email',   'label' => 'Email',      'value' => $villageProfile['email']     ?? 'contact@desateras.id'],
 ];
 
 $detailedLocationItems = [
     [
-        'title' => 'Pusat Utama (Teras Center)',
-        'address' => 'Jl. Utama Desa Teras No. 1, Boyolali, Jawa Tengah',
-    ],
-    [
-        'title' => 'Stasiun Perpustakaan Digital',
-        'address' => 'Aula Komunitas, Dusun Kidul, Desa Teras',
+        'title'   => ($villageProfile['village_name'] ?? 'Desa Teras') . ' — Pusat Utama',
+        'address' => trim(
+            ($villageProfile['address'] ?? 'Jl. Raya Teras') . ', ' .
+            ($villageProfile['district'] ?? 'Kec. Teras') . ', ' .
+            ($villageProfile['regency'] ?? 'Boyolali') . ', ' .
+            ($villageProfile['province'] ?? 'Jawa Tengah'),
+            ', '
+        ),
     ],
 ];
 
 $gmapsPreview = [
     'label' => 'Jelajahi Perpustakaan Desa',
     'title' => 'Google Maps lokasi Perpustakaan Desa Teras',
-    'query' => 'Jl. Utama Desa Teras No. 1, Boyolali, Jawa Tengah',
+    'src'   => $villageProfile['google_maps_url']
+        ?? 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3955.034!2d110.648!3d-7.515!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sTeras%2C+Boyolali!5e0!3m2!1sid!2sid!4v0000000000000',
 ];
+
 ?>
 <!DOCTYPE html>
 <html lang="id">

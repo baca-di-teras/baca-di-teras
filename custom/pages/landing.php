@@ -11,16 +11,36 @@
  * Koleksi Terbaru, CTA Banner, Berita, Fitur, Tentang, Kontak, Footer.
  */
 
-define('BASE_URL', '/baca-di-teras');
+// BASE_URL sudah didefinisikan di index.php (Front Controller).
+// Definisikan hanya jika file ini diakses langsung (tanpa router).
+if (!defined('BASE_URL')) {
+    define('BASE_URL', '/baca-di-teras');
+}
 
 $activePage  = 'beranda';
 $currentYear = date('Y');
 
-// ── Config: Data statis halaman landing ──────────────────────
-require_once __DIR__ . '/../config/library-config.php';
-require_once __DIR__ . '/../config/book-config.php';
-require_once __DIR__ . '/../config/news-config.php';
-require_once __DIR__ . '/../config/feature-config.php';
+// ── Service Layer — ambil data dari database ──────────────────
+$libPath     = defined('ROOT_PATH') ? ROOT_PATH : __DIR__ . '/../..';
+require_once $libPath . '/custom/helpers/Database.php';
+require_once $libPath . '/custom/services/LibraryService.php';
+require_once $libPath . '/custom/services/BookService.php';
+require_once $libPath . '/custom/services/NewsService.php';
+require_once $libPath . '/custom/services/VillageService.php';
+
+$libraryService = new LibraryService();
+$bookService    = new BookService();
+$newsService    = new NewsService();
+$villageService = new VillageService();
+
+// Data untuk setiap seksi landing page
+$libraryList  = $libraryService->getFeatured(3);
+$stats        = $libraryService->getOverallStats();
+$bookList     = $bookService->getLatest(6);
+$featuredNews = $newsService->getFeaturedNews();
+$newsList     = $newsService->getRecentNews(3, 0);
+$featureList  = $villageService->getFeatures();
+
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -110,7 +130,7 @@ require_once __DIR__ . '/../config/feature-config.php';
                 </div>
                 <div>
                     <p class="bdt-hero__float-card-label">Total Koleksi Buku</p>
-                    <p class="bdt-hero__float-card-value">12.000+ Koleksi</p>
+                    <p class="bdt-hero__float-card-value"><?= number_format((int)($stats['totalKoleksi'] ?? 0), 0, ',', '.') ?>+ Koleksi</p>
                 </div>
             </div>
         </div>
@@ -136,7 +156,7 @@ require_once __DIR__ . '/../config/feature-config.php';
                     </svg>
                 </div>
                 <div>
-                    <p class="bdt-stats__number">6</p>
+                    <p class="bdt-stats__number"><?= (int)($stats['totalPerpustakaan'] ?? 0) ?></p>
                     <p class="bdt-stats__label">Perpustakaan</p>
                 </div>
             </div>
@@ -152,7 +172,7 @@ require_once __DIR__ . '/../config/feature-config.php';
                     </svg>
                 </div>
                 <div>
-                    <p class="bdt-stats__number">12.000+</p>
+                    <p class="bdt-stats__number"><?= number_format((int)($stats['totalKoleksi'] ?? 0), 0, ',', '.') ?>+</p>
                     <p class="bdt-stats__label">Koleksi Buku</p>
                 </div>
             </div>
@@ -360,7 +380,7 @@ require_once __DIR__ . '/../config/feature-config.php';
             <!-- Featured News -->
             <article class="bdt-news-card--featured" id="bdt-news-featured">
                 <div class="bdt-news-card__image-wrap">
-                    <img src="<?= BASE_URL ?>/custom/assets/images/<?= htmlspecialchars(basename($featuredNews['image'])) ?>"
+                    <img src="<?= htmlspecialchars($featuredNews['image'] ?? BASE_URL . '/custom/assets/images/news-featured.png') ?>"
                          alt="<?= htmlspecialchars($featuredNews['title']) ?>"
                          class="bdt-news-card__image"
                          loading="lazy"
@@ -370,7 +390,7 @@ require_once __DIR__ . '/../config/feature-config.php';
                     <span class="bdt-news-card__category-tag">
                         <?= htmlspecialchars($featuredNews['category']) ?>
                     </span>
-                    <a href="<?= BASE_URL . htmlspecialchars($featuredNews['href']) ?>"
+                    <a href="<?= BASE_URL ?>/berita/<?= htmlspecialchars($featuredNews['slug'] ?? '') ?>"
                        id="bdt-news-featured-title"
                        class="bdt-news-card__title">
                         <?= htmlspecialchars($featuredNews['title']) ?>
@@ -389,7 +409,10 @@ require_once __DIR__ . '/../config/feature-config.php';
                                 <line x1="8" y1="2" x2="8" y2="6"/>
                                 <line x1="3" y1="10" x2="21" y2="10"/>
                             </svg>
-                            <?= htmlspecialchars($featuredNews['date']) ?>
+                            <?php
+                                require_once (defined('ROOT_PATH') ? ROOT_PATH : __DIR__ . '/../..') . '/custom/services/ArticleService.php';
+                            ?>
+                            <?= ArticleService::formatDate($featuredNews['date'] ?? $featuredNews['publish_date'] ?? null) ?>
                         </span>
                         <span class="bdt-news-card__meta-item">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
@@ -399,7 +422,7 @@ require_once __DIR__ . '/../config/feature-config.php';
                                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                                 <circle cx="12" cy="7" r="4"/>
                             </svg>
-                            <?= htmlspecialchars($featuredNews['author']) ?>
+                            <?= htmlspecialchars($featuredNews['author_name'] ?? $featuredNews['author'] ?? 'Admin') ?>
                         </span>
                     </div>
                 </div>
@@ -411,7 +434,7 @@ require_once __DIR__ . '/../config/feature-config.php';
                     <article class="bdt-news-card--small"
                              id="bdt-news-small-<?= $newsIndex + 1 ?>">
                         <div class="bdt-news-card__image-wrap">
-                            <img src="<?= BASE_URL ?>/custom/assets/images/<?= htmlspecialchars(basename($newsItem['image'])) ?>"
+                            <img src="<?= htmlspecialchars($newsItem['image'] ?? BASE_URL . '/custom/assets/images/news-small.png') ?>"
                                  alt="<?= htmlspecialchars($newsItem['title']) ?>"
                                  class="bdt-news-card__image"
                                  loading="lazy"
@@ -421,7 +444,7 @@ require_once __DIR__ . '/../config/feature-config.php';
                             <span class="bdt-news-card__category-tag">
                                 <?= htmlspecialchars($newsItem['category']) ?>
                             </span>
-                            <a href="<?= BASE_URL . htmlspecialchars($newsItem['href']) ?>"
+                            <a href="<?= BASE_URL ?>/berita/<?= htmlspecialchars($newsItem['slug'] ?? '') ?>"
                                id="bdt-news-small-title-<?= $newsIndex + 1 ?>"
                                class="bdt-news-card__title bdt-news-card__title--sm">
                                 <?= htmlspecialchars($newsItem['title']) ?>
@@ -440,7 +463,7 @@ require_once __DIR__ . '/../config/feature-config.php';
                                         <line x1="8" y1="2" x2="8" y2="6"/>
                                         <line x1="3" y1="10" x2="21" y2="10"/>
                                     </svg>
-                                    <?= htmlspecialchars($newsItem['date']) ?>
+                                    <?= ArticleService::formatDate($newsItem['date'] ?? $newsItem['publish_date'] ?? null) ?>
                                 </span>
                             </div>
                         </div>
@@ -488,7 +511,7 @@ require_once __DIR__ . '/../config/feature-config.php';
                         <?= $feature['title'] ?>
                     </h3>
                     <p class="bdt-feature-card__desc">
-                        <?= htmlspecialchars($feature['desc']) ?>
+                        <?= htmlspecialchars($feature['description'] ?? $feature['desc'] ?? '') ?>
                     </p>
                     <a href="<?= BASE_URL . htmlspecialchars($feature['href']) ?>"
                        id="bdt-feature-link-<?= $featureIndex + 1 ?>"

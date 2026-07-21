@@ -24,15 +24,18 @@ if (!isset($libraryData) || !is_array($libraryData)) {
     return;
 }
 
-// Destructure dengan default value
-$cardId       = $libraryData['id']        ?? 'library';
-$cardName     = $libraryData['name']      ?? 'Perpustakaan';
-$cardAddress  = $libraryData['address']   ?? '';
-$cardImage    = $libraryData['image']     ?? '';
-$cardBadge    = $libraryData['badge']     ?? 'Unggulan';
-$cardTotalBuku = $libraryData['totalBuku'] ?? '';
-$cardHref     = $libraryData['href']      ?? '#';
-$baseUrl      = defined('BASE_URL') ? BASE_URL : '';
+// Destructure — support key DB (slug, thumbnail_image, total_koleksi)
+// sekaligus backward-compatible dengan key lama (id, image, totalBuku)
+$cardId        = $libraryData['slug']            ?? $libraryData['id']        ?? 'library';
+$cardName      = $libraryData['name']            ?? 'Perpustakaan';
+$cardAddress   = $libraryData['address']         ?? '';
+$cardImage     = $libraryData['thumbnail_image'] ?? $libraryData['image']     ?? '';
+$cardBadge     = $libraryData['badge']           ?? null;
+$cardTotalBuku = isset($libraryData['total_koleksi'])
+    ? number_format((int)$libraryData['total_koleksi'], 0, ',', '.') . ' Koleksi'
+    : ($libraryData['totalBuku'] ?? '');
+$cardHref      = $libraryData['href']            ?? BASE_URL . '/perpustakaan/' . $cardId;
+$baseUrl       = defined('BASE_URL') ? BASE_URL : '';
 ?>
 
 <article class="bdt-library-card" id="bdt-library-card-<?= htmlspecialchars($cardId) ?>">

@@ -9,12 +9,21 @@
  * Halaman pusat informasi, FAQ, panduan peminjaman, dan bantuan.
  */
 
-define('BASE_URL', '/baca-di-teras');
+if (!defined('BASE_URL')) {
+    define('BASE_URL', '/baca-di-teras');
+}
 
 $activePage = 'informasi';
 
-// Load config data
-require_once __DIR__ . '/../config/info-config.php';
+// ── Service Layer ──────────────────────────────────────────────
+$libPath = defined('ROOT_PATH') ? ROOT_PATH : __DIR__ . '/../..';
+require_once $libPath . '/custom/helpers/Database.php';
+require_once $libPath . '/custom/services/InformationService.php';
+
+$infoService = new InformationService();
+$faqList     = $infoService->getFaqList();
+$infoServices = $infoService->getServicesInfo();
+
 ?>
 <!DOCTYPE html>
 <html lang="id">

@@ -1,0 +1,57 @@
+# ============================================================
+# Baca Di Teras — Apache Configuration
+# ============================================================
+#
+# File    : .htaccess
+# Project : Baca Di Teras
+# Version : 1.0.0
+#
+# Front Controller Pattern:
+#   Semua request (kecuali file/folder yang benar-benar ada)
+#   diteruskan ke index.php untuk diproses oleh Router.
+#
+# Folder /slims/ dikecualikan sepenuhnya agar SLiMS berjalan normal.
+# ============================================================
+
+Options -Indexes
+Options -MultiViews
+
+# Aktifkan mod_rewrite
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Base path sesuai lokasi project di htdocs
+    # Jika project ada di root (http://domain.com/) gunakan: RewriteBase /
+    # Jika project ada di sub-folder (http://localhost/baca-di-teras/) gunakan:
+    RewriteBase /baca-di-teras/
+
+    # ── 1. Jangan redirect jika file/folder fisik benar-benar ada ──
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # ── 2. Kecualikan folder /slims/ sepenuhnya ─────────────────
+    RewriteRule ^slims(/.*)?$ slims/$1 [L]
+
+    # ── 3. Semua request lain → index.php ───────────────────────
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# ── Security headers ────────────────────────────────────────
+<IfModule mod_headers.c>
+    # Cegah clickjacking
+    Header always set X-Frame-Options "SAMEORIGIN"
+    # Cegah MIME-type sniffing
+    Header always set X-Content-Type-Options "nosniff"
+</IfModule>
+
+# ── Cache untuk aset statis ─────────────────────────────────
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css             "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType image/png            "access plus 6 months"
+    ExpiresByType image/jpeg           "access plus 6 months"
+    ExpiresByType image/webp           "access plus 6 months"
+    ExpiresByType image/svg+xml        "access plus 6 months"
+</IfModule>
