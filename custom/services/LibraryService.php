@@ -72,7 +72,7 @@ class LibraryService
      * @param  int $limit
      * @return array
      */
-    public function getFeatured(int $limit = 3): array
+    public function getFeatured(int $limit = 5): array
     {
         return $this->db->fetchAll(
             'SELECT
