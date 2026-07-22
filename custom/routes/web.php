@@ -81,6 +81,19 @@ $router->get('/informasi', 'custom/pages/informasi.php');
 $router->get('/kontak',    'custom/pages/contact.php');
 
 // ============================================================
+// PATHFINDER
+// ============================================================
+
+// Halaman utama pathfinder
+$router->get('/pathfinder', 'custom/pages/pathfinder/index.php');
+
+// Kategori pathfinder: /pathfinder/kategori/teknologi
+$router->get('/pathfinder/kategori/{slug}', 'custom/pages/pathfinder/category.php');
+
+// Detail pathfinder: /pathfinder/pemrograman-web
+$router->get('/pathfinder/{slug}', 'custom/pages/pathfinder/detail.php');
+
+// ============================================================
 // ADMIN — Redirect ke SLiMS Admin
 // ============================================================
 

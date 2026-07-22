@@ -37,6 +37,13 @@ if (!$book) {
     exit;
 }
 
+$book = array_merge([
+    'classification' => '',
+    'gmd' => '',
+    'language' => '',
+    'notes' => '',
+], $book);
+
 // Ambil buku terkait
 $relatedBooks = $bookService->getRelated($biblioId, 4);
 
