@@ -27,6 +27,7 @@ $navItems = [
     ['id' => 'berita',        'label' => 'Berita',        'href' => $baseUrl . '/berita'],
     ['id' => 'artikel',       'label' => 'Artikel',       'href' => $baseUrl . '/artikel'],
     ['id' => 'informasi',     'label' => 'Informasi',     'href' => $baseUrl . '/informasi'],
+    ['id' => 'pathfinder',    'label' => 'Pathfinder',    'href' => $baseUrl . '/pathfinder'],
 ];
 ?>
 
