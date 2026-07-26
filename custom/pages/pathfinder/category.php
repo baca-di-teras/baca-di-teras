@@ -17,7 +17,7 @@ if (!defined('BASE_URL')) {
 $activePage = 'pathfinder';
 
 // ── Service Layer ──────────────────────────────────────────────
-$libPath = defined('ROOT_PATH') ? ROOT_PATH : __DIR__ . '/../..';
+$libPath = defined('ROOT_PATH') ? ROOT_PATH : __DIR__ . '/../../..';
 require_once $libPath . '/custom/services/PathfinderService.php';
 
 $pfService = new PathfinderService();
@@ -25,6 +25,9 @@ $pfService = new PathfinderService();
 // Ambil slug kategori dari route params
 $categorySlug = $routeParams['slug'] ?? '';
 $category     = $pfService->getCategoryBySlug($categorySlug);
+
+$tags = isset($category['tags']) && is_string($category['tags']) ? json_decode($category['tags'], true) : ($category['tags'] ?? []);
+$category['tags'] = is_array($tags) ? $tags : [];
 
 // Redirect ke 404 jika kategori tidak ditemukan
 if ($category === null) {

@@ -22,7 +22,7 @@ if (!defined('BASE_URL')) {
 $activePage = 'pathfinder';
 
 // ── Service Layer ──────────────────────────────────────────────
-$libPath = defined('ROOT_PATH') ? ROOT_PATH : __DIR__ . '/../..';
+$libPath = defined('ROOT_PATH') ? ROOT_PATH : __DIR__ . '/../../..';
 require_once $libPath . '/custom/services/PathfinderService.php';
 
 $pfService = new PathfinderService();
@@ -38,7 +38,17 @@ if ($pathfinder === null) {
     exit;
 }
 
-$books        = $pathfinder['books'] ?? [];
+// Decode JSON fields
+$jsonFields = ['books', 'web_resources', 'broader_terms', 'narrower_terms', 'related_terms'];
+foreach ($jsonFields as $field) {
+    if (!empty($pathfinder[$field]) && is_string($pathfinder[$field])) {
+        $pathfinder[$field] = json_decode($pathfinder[$field], true) ?? [];
+    } elseif (empty($pathfinder[$field])) {
+        $pathfinder[$field] = [];
+    }
+}
+
+$books        = $pathfinder['books'];
 $webResources = $pathfinder['web_resources'] ?? [];
 ?>
 <!DOCTYPE html>
@@ -58,27 +68,6 @@ $webResources = $pathfinder['web_resources'] ?? [];
     <?php include __DIR__ . '/../../components/navbar.php'; ?>
 
     <div class="pf-wrapper">
-
-        <!-- ============================================================
-             Breadcrumb
-             ============================================================ -->
-        <nav class="pf-breadcrumb" id="pf-detail-breadcrumb" aria-label="Breadcrumb">
-            <a href="<?= BASE_URL ?>/">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align: -2px;">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                </svg>
-                Beranda
-            </a>
-            <span class="pf-breadcrumb__sep" aria-hidden="true">&rsaquo;</span>
-            <a href="<?= BASE_URL ?>/pathfinder">Pathfinder</a>
-            <span class="pf-breadcrumb__sep" aria-hidden="true">&rsaquo;</span>
-            <a href="<?= BASE_URL ?>/pathfinder/kategori/<?= htmlspecialchars($pathfinder['category_slug']) ?>">
-                <?= htmlspecialchars($pathfinder['category_label']) ?>
-            </a>
-            <span class="pf-breadcrumb__sep" aria-hidden="true">&rsaquo;</span>
-            <span class="pf-breadcrumb__current"><?= htmlspecialchars($pathfinder['title']) ?></span>
-        </nav>
 
         <!-- ============================================================
              Detail Layout

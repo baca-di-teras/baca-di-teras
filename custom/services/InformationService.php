@@ -5,12 +5,9 @@
  * File    : InformationService.php
  * Project : Baca Di Teras
  * Version : 1.0.0
- *
- * Mengelola data informasi umum seperti FAQ, tata tertib, jadwal,
- * dan panduan peminjaman dari tabel bdt_information.
  */
 
-require_once __DIR__ . '/../helpers/Database.php';
+require_once __DIR__ . '/../helpers/database.php';
 
 class InformationService
 {
@@ -22,77 +19,153 @@ class InformationService
     }
 
     /**
-     * Mengambil daftar FAQ (Pertanyaan yang Sering Diajukan)
-     * 
-     * @return array
+     * Mendapatkan semua informasi
      */
+    public function getAllInformation(): array
+    {
+        $sql = "SELECT * FROM bdt_information ORDER BY type ASC, sort_order ASC, info_id DESC";
+        return $this->db->fetchAll($sql);
+    }
+
     public function getFaqList(): array
     {
-        // Asumsi tabel bdt_information dengan type 'faq'
-        // Struktur kembalian sama dengan config array sebelumnya
-        return $this->db->fetchAll(
-            'SELECT title AS question, content AS answer 
-             FROM bdt_information 
-             WHERE type = "faq" AND status = "aktif" 
-             ORDER BY sort_order ASC'
-        );
+        $sql = "SELECT * FROM bdt_information WHERE type = 'faq' AND status = 'aktif' ORDER BY sort_order ASC, info_id DESC";
+        return $this->db->fetchAll($sql);
     }
 
     /**
-     * Mengambil informasi tata tertib
-     * 
-     * @return array
+     * Mendapatkan informasi berdasarkan ID
      */
-    public function getRules(): array
+    public function getInformationById(int $info_id): ?array
     {
-        return $this->db->fetchAll(
-            'SELECT title, content, extra_data 
-             FROM bdt_information 
-             WHERE type = "rule" AND status = "aktif" 
-             ORDER BY sort_order ASC'
-        );
+        $sql = "SELECT * FROM bdt_information WHERE info_id = ? LIMIT 1";
+        $stmt = $this->db->getConnection()->prepare($sql);
+        if (!$stmt) return null;
+
+        $stmt->bind_param('i', $info_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $info = $result->fetch_assoc();
+        $stmt->close();
+
+        return $info;
     }
 
     /**
-     * Mengambil informasi layanan (Peminjaman, Keanggotaan, dll)
-     * 
-     * @return array
+     * Membuat informasi baru
      */
+    public function createInformation(array $data): bool
+    {
+        $sql = "INSERT INTO bdt_information (id_name, type, title, content, extra_data, status, sort_order) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)";
+        
+        $stmt = $this->db->getConnection()->prepare($sql);
+        if (!$stmt) return false;
+
+        $id_name = $data['id_name'] ?? null;
+        $type = $data['type'] ?? 'lainnya';
+        $title = $data['title'] ?? '';
+        $content = $data['content'] ?? null;
+        $extra_data = isset($data['extra_data']) && !empty($data['extra_data']) ? $data['extra_data'] : null;
+        $status = $data['status'] ?? 'aktif';
+        $sort_order = $data['sort_order'] ?? 0;
+
+        $stmt->bind_param('ssssssi', $id_name, $type, $title, $content, $extra_data, $status, $sort_order);
+        
+        $result = $stmt->execute();
+        $stmt->close();
+        
+        return $result;
+    }
+
+    /**
+     * Memperbarui informasi
+     */
+    public function updateInformation(int $info_id, array $data): bool
+    {
+        $sql = "UPDATE bdt_information 
+                SET id_name = ?, type = ?, title = ?, content = ?, extra_data = ?, status = ?, sort_order = ? 
+                WHERE info_id = ?";
+        
+        $stmt = $this->db->getConnection()->prepare($sql);
+        if (!$stmt) return false;
+
+        $id_name = $data['id_name'] ?? null;
+        $type = $data['type'] ?? 'lainnya';
+        $title = $data['title'] ?? '';
+        $content = $data['content'] ?? null;
+        $extra_data = isset($data['extra_data']) && !empty($data['extra_data']) ? $data['extra_data'] : null;
+        $status = $data['status'] ?? 'aktif';
+        $sort_order = $data['sort_order'] ?? 0;
+
+        $stmt->bind_param('ssssssii', $id_name, $type, $title, $content, $extra_data, $status, $sort_order, $info_id);
+        
+        $result = $stmt->execute();
+        $stmt->close();
+        
+        return $result;
+    }
+
+    public function deleteInformation(int $info_id): bool
+    {
+        $sql = "DELETE FROM bdt_information WHERE info_id = ?";
+        $stmt = $this->db->getConnection()->prepare($sql);
+        if (!$stmt) return false;
+
+        $stmt->bind_param('i', $info_id);
+        $result = $stmt->execute();
+        $stmt->close();
+
+        return $result;
+    }
+
     public function getServicesInfo(): array
     {
-        $rows = $this->db->fetchAll(
-            'SELECT id_name AS id, title, content AS desc_text, extra_data 
-             FROM bdt_information 
-             WHERE type = "service" AND status = "aktif" 
-             ORDER BY sort_order ASC'
-        );
-        
-        $services = [];
-        foreach ($rows as $row) {
-            $extra = json_decode($row['extra_data'], true) ?? [];
-            $services[$row['id']] = [
-                'title' => $row['title'],
-                'desc'  => $row['desc_text'],
-                'points'=> $extra['points'] ?? [],
-                'action_label' => $extra['action_label'] ?? null,
-                'action_href'  => $extra['action_href'] ?? null,
-            ];
-        }
-        return $services;
-    }
-
-    /**
-     * Mengambil informasi daftar unduhan
-     * 
-     * @return array
-     */
-    public function getDownloads(): array
-    {
-        return $this->db->fetchAll(
-            'SELECT title AS label, content AS href 
-             FROM bdt_information 
-             WHERE type = "download" AND status = "aktif" 
-             ORDER BY sort_order ASC'
-        );
+        return [
+            'peminjaman' => [
+                'title' => 'Panduan Peminjaman',
+                'desc' => 'Berikut adalah ketentuan singkat peminjaman koleksi di perpustakaan kami.',
+                'points' => [
+                    'Maksimal meminjam 3 buku',
+                    'Durasi peminjaman 7 hari',
+                    'Wajib menunjukkan kartu anggota',
+                    'Denda keterlambatan berlaku'
+                ],
+                'action_href' => '#',
+                'action_label' => 'Baca Panduan Lengkap'
+            ],
+            'jam_operasional' => [
+                'title' => 'Jam Operasional Pusat',
+                'schedule' => [
+                    ['day' => 'Senin - Kamis', 'time' => '08:00 - 15:00', 'highlight' => false],
+                    ['day' => 'Jumat', 'time' => '08:00 - 11:30', 'highlight' => true],
+                    ['day' => 'Sabtu - Minggu', 'time' => 'Libur (Tutup)', 'highlight' => false]
+                ]
+            ],
+            'keanggotaan' => [
+                'title' => 'Keanggotaan Perpustakaan',
+                'desc' => 'Daftar menjadi anggota secara gratis untuk mengakses semua layanan perpustakaan Desa Teras.',
+                'action_href' => (defined('BASE_URL') ? BASE_URL : '') . '/daftar',
+                'action_label' => 'Daftar Sekarang'
+            ],
+            'unduhan' => [
+                'title' => 'Formulir & Panduan',
+                'files' => [
+                    ['label' => 'Form Pendaftaran (PDF)', 'href' => '#'],
+                    ['label' => 'Panduan Penggunaan OPAC', 'href' => '#'],
+                    ['label' => 'Surat Pengajuan Bebas Pustaka', 'href' => '#']
+                ]
+            ],
+            'tata_tertib' => [
+                'title' => 'Tata Tertib',
+                'desc' => 'Harap patuhi peraturan ini demi kenyamanan bersama pengunjung perpustakaan.',
+                'badges' => [
+                    'Dilarang Makan & Minum',
+                    'Harap Tenang',
+                    'Jaga Kebersihan',
+                    'Dilarang Merokok'
+                ]
+            ]
+        ];
     }
 }

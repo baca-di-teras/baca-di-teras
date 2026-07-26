@@ -44,22 +44,14 @@
    HERO SECTION – Index page
    ============================================================ */
 .pf-hero {
-    background: var(--pf-hero-bg);
+    background: #f8f9fa;
     padding: 72px 24px 64px;
     position: relative;
     overflow: hidden;
 }
 
 .pf-hero::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 45%;
-    height: 100%;
-    background: linear-gradient(180deg, rgba(220,252,231,0.4) 0%, rgba(240,253,244,0.1) 100%);
-    border-radius: 0 0 0 50%;
-    pointer-events: none;
+    display: none;
 }
 
 .pf-hero__inner {
@@ -73,7 +65,7 @@
     font-family: var(--font-base, 'Inter', sans-serif);
     font-size: 2.75rem;
     font-weight: 800;
-    color: var(--pf-gray-900);
+    color: var(--pf-green-900);
     margin: 0 0 16px;
     line-height: 1.15;
 }
@@ -201,7 +193,7 @@
     padding: 10px 20px;
     background: var(--color-white, #fff);
     border: 1.5px solid var(--pf-gray-200);
-    border-radius: 50px;
+    border-radius: 8px;
     font-size: 0.875rem;
     font-weight: 500;
     color: var(--pf-gray-700);
@@ -443,20 +435,20 @@
     gap: 8px;
     padding: 12px 24px;
     background: var(--color-white, #fff);
-    border: 1.5px solid var(--pf-gray-800);
+    border: 1.5px solid var(--pf-green-700);
     border-radius: 10px;
     font-size: 0.875rem;
     font-weight: 600;
-    color: var(--pf-gray-800);
+    color: var(--pf-green-700);
     cursor: pointer;
     transition: all 0.2s ease;
     font-family: var(--font-base, 'Inter', sans-serif);
 }
 
 .pf-btn-bookmark:hover {
-    background: var(--pf-gray-900);
+    background: var(--pf-green-700);
     color: #fff;
-    border-color: var(--pf-gray-900);
+    border-color: var(--pf-green-700);
 }
 
 .pf-btn-bookmark svg {
@@ -762,7 +754,7 @@
     justify-content: center;
     gap: 10px;
     padding: 14px 24px;
-    border: 1.5px solid var(--pf-gray-200);
+    border: 1.5px solid var(--color-primary, #1a6b2f);
     border-radius: 12px;
     background: var(--color-white, #fff);
     font-size: 0.9rem;
@@ -1292,4 +1284,69 @@
         height: 36px;
         font-size: 0.8rem;
     }
+}
+
+/* ============================================================
+   Pathfinder Navbar
+   ============================================================ */
+.pf-navbar {
+    background: white;
+    border-bottom: 1px solid var(--pf-gray-200);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+.pf-navbar__inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.pf-navbar__logo {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--pf-green-700);
+    text-decoration: none;
+}
+.pf-navbar__links {
+    display: flex;
+    gap: 32px;
+}
+.pf-navbar__link {
+    font-size: 0.95rem;
+    color: var(--pf-gray-600);
+    text-decoration: none;
+    font-weight: 500;
+    padding: 24px 0;
+    border-bottom: 2px solid transparent;
+}
+.pf-navbar__link:hover {
+    color: var(--pf-green-600);
+}
+.pf-navbar__link.active {
+    color: var(--pf-green-700);
+    border-bottom-color: var(--pf-green-600);
+}
+.pf-navbar__actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+.pf-navbar__icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--pf-gray-600);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border-radius: 50%;
+}
+.pf-navbar__icon-btn:hover {
+    background: var(--pf-gray-100);
+    color: var(--pf-gray-900);
 }

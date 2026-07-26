@@ -35,15 +35,16 @@ $offset   = ($page - 1) * $perPage;
 $total    = $articleService->countPublished($activeCategory);
 $maxPage  = (int) ceil($total / $perPage);
 
+// Ambil artikel hero (featured)
+$heroArticle = ($page === 1) ? $articleService->getHeroArticle($activeCategory) : null;
+$excludeId   = $heroArticle['article_id'] ?? 0;
+
 // Ambil artikel
 if ($activeCategory) {
-    $articles = $articleService->getByCategory($activeCategory, $perPage, $offset);
+    $articles = $articleService->getByCategory($activeCategory, $perPage, $offset, $excludeId);
 } else {
-    $articles = $articleService->getPublished($perPage, $offset);
+    $articles = $articleService->getPublished($perPage, $offset, $excludeId);
 }
-
-// Ambil artikel hero (featured)
-$heroArticle = $articleService->getHeroArticle();
 
 $baseUrl = defined('BASE_URL') ? BASE_URL : '';
 ?>
@@ -329,7 +330,9 @@ $baseUrl = defined('BASE_URL') ? BASE_URL : '';
             <a href="<?= $baseUrl ?>/artikel"
                class="bdt-category-filter__chip <?= $activeCategory === '' ? 'bdt-category-filter__chip--active' : '' ?>"
                id="bdt-filter-semua">Semua</a>
-            <?php foreach (ArticleService::CATEGORY_LABELS as $key => $label) : ?>
+            <?php foreach (ArticleService::ARTICLE_CATEGORIES as $key) : 
+                $label = ArticleService::CATEGORY_LABELS[$key] ?? $key;
+            ?>
             <a href="<?= $baseUrl ?>/artikel?kategori=<?= urlencode($key) ?>"
                class="bdt-category-filter__chip <?= $activeCategory === $key ? 'bdt-category-filter__chip--active' : '' ?>"
                id="bdt-filter-<?= htmlspecialchars($key) ?>">
@@ -341,7 +344,13 @@ $baseUrl = defined('BASE_URL') ? BASE_URL : '';
         <!-- Featured (hanya tampil di halaman 1 tanpa filter) -->
         <?php if ($heroArticle && $page === 1 && $activeCategory === '') : ?>
         <article class="bdt-article-featured" id="bdt-article-featured">
-            <img src="<?= htmlspecialchars($heroArticle['cover_image'] ?? $baseUrl . '/custom/assets/images/news-featured.png') ?>"
+            <?php 
+                $heroImg = $heroArticle['cover_image'] ?? '/custom/assets/images/news-featured.png';
+                if (strpos($heroImg, '/custom/') === 0 && strpos($heroImg, $baseUrl) !== 0) {
+                    $heroImg = rtrim($baseUrl, '/') . $heroImg;
+                }
+            ?>
+            <img src="<?= htmlspecialchars($heroImg) ?>"
                  alt="<?= htmlspecialchars($heroArticle['title']) ?>"
                  class="bdt-article-featured__img"
                  loading="eager"
@@ -356,7 +365,7 @@ $baseUrl = defined('BASE_URL') ? BASE_URL : '';
                     <?= htmlspecialchars($heroArticle['title']) ?>
                 </a>
                 <p class="bdt-article-featured__excerpt">
-                    <?= htmlspecialchars($heroArticle['excerpt'] ?? '') ?>
+                    <?= htmlspecialchars($heroArticle['excerpt'] ?: mb_strimwidth(strip_tags($heroArticle['body'] ?? ''), 0, 150, '...')) ?>
                 </p>
                 <div class="bdt-article-featured__meta">
                     <span>
@@ -394,7 +403,13 @@ $baseUrl = defined('BASE_URL') ? BASE_URL : '';
             <?php foreach ($articles as $i => $art) : ?>
             <article class="bdt-article-card" id="bdt-article-card-<?= $i + 1 ?>">
                 <div class="bdt-article-card__img-wrap">
-                    <img src="<?= htmlspecialchars($art['cover_image'] ?? $baseUrl . '/custom/assets/images/news-small.png') ?>"
+                    <?php 
+                        $artImg = $art['cover_image'] ?? '/custom/assets/images/news-small.png';
+                        if (strpos($artImg, '/custom/') === 0 && strpos($artImg, $baseUrl) !== 0) {
+                            $artImg = rtrim($baseUrl, '/') . $artImg;
+                        }
+                    ?>
+                    <img src="<?= htmlspecialchars($artImg) ?>"
                          alt="<?= htmlspecialchars($art['title']) ?>"
                          class="bdt-article-card__img"
                          loading="lazy"
@@ -410,17 +425,29 @@ $baseUrl = defined('BASE_URL') ? BASE_URL : '';
                         <?= htmlspecialchars($art['title']) ?>
                     </a>
                     <p class="bdt-article-card__excerpt">
-                        <?= htmlspecialchars($art['excerpt'] ?? '') ?>
+                        <?= htmlspecialchars($art['excerpt'] ?: mb_strimwidth(strip_tags($art['body'] ?? ''), 0, 150, '...')) ?>
                     </p>
                     <div class="bdt-article-card__meta">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                            <line x1="16" y1="2" x2="16" y2="6"/>
-                            <line x1="8" y1="2" x2="8" y2="6"/>
-                            <line x1="3" y1="10" x2="21" y2="10"/>
-                        </svg>
-                        <?= ArticleService::formatDate($art['publish_date']) ?>
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                <line x1="16" y1="2" x2="16" y2="6"/>
+                                <line x1="8" y1="2" x2="8" y2="6"/>
+                                <line x1="3" y1="10" x2="21" y2="10"/>
+                            </svg>
+                            <?= ArticleService::formatDate($art['publish_date']) ?>
+                        </span>
+                        <?php if (!empty($art['author_name'])) : ?>
+                        <span style="margin-left: 12px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                            <?= htmlspecialchars($art['author_name']) ?>
+                        </span>
+                        <?php endif; ?>
                     </div>
                 </div>
             </article>

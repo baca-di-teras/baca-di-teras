@@ -54,7 +54,10 @@ $related = $articleService->getRelated(
 );
 
 $baseUrl      = defined('BASE_URL') ? BASE_URL : '';
-$coverImage   = $news['cover_image'] ?? ($baseUrl . '/custom/assets/images/news-featured.png');
+$coverImage   = $news['cover_image'] ?? '/custom/assets/images/news-featured.png';
+if (strpos($coverImage, '/custom/') === 0 && strpos($coverImage, $baseUrl) !== 0) {
+    $coverImage = rtrim($baseUrl, '/') . $coverImage;
+}
 $publishDate  = ArticleService::formatDate($news['publish_date'] ?? null);
 $categoryLabel = ArticleService::CATEGORY_LABELS[$news['category']] ?? $news['category'];
 ?>
@@ -282,14 +285,14 @@ $categoryLabel = ArticleService::CATEGORY_LABELS[$news['category']] ?? $news['ca
                             <?= htmlspecialchars($publishDate) ?>
                         </span>
                         <?php endif; ?>
-                        <?php if (!empty($news['author'])) : ?>
+                        <?php if (!empty($news['author']) || !empty($news['author_name'])) : ?>
                         <span>
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                                 <circle cx="12" cy="7" r="4"/>
                             </svg>
-                            <?= htmlspecialchars($news['author']) ?>
+                            <?= htmlspecialchars($news['author'] ?? $news['author_name'] ?? '') ?>
                         </span>
                         <?php endif; ?>
                         <?php if (!empty($news['library_name'])) : ?>
@@ -329,7 +332,13 @@ $categoryLabel = ArticleService::CATEGORY_LABELS[$news['category']] ?? $news['ca
                     <a href="<?= $baseUrl ?>/berita/<?= htmlspecialchars($rel['slug']) ?>"
                        class="bdt-sidebar-related-item"
                        id="bdt-related-news-<?= $ri + 1 ?>">
-                        <img src="<?= htmlspecialchars($rel['cover_image'] ?? $baseUrl . '/custom/assets/images/news-small.png') ?>"
+                        <?php 
+                            $relImg = $rel['cover_image'] ?? '/custom/assets/images/news-small.png';
+                            if (strpos($relImg, '/custom/') === 0 && strpos($relImg, $baseUrl) !== 0) {
+                                $relImg = rtrim($baseUrl, '/') . $relImg;
+                            }
+                        ?>
+                        <img src="<?= htmlspecialchars($relImg) ?>"
                              alt="<?= htmlspecialchars($rel['title']) ?>"
                              class="bdt-sidebar-related-img"
                              loading="lazy"

@@ -19,7 +19,7 @@ if (!defined('BASE_URL')) {
 $activePage = 'pathfinder';
 
 // ── Service Layer ──────────────────────────────────────────────
-$libPath = defined('ROOT_PATH') ? ROOT_PATH : __DIR__ . '/../..';
+$libPath = defined('ROOT_PATH') ? ROOT_PATH : __DIR__ . '/../../..';
 require_once $libPath . '/custom/services/PathfinderService.php';
 
 $pfService  = new PathfinderService();
