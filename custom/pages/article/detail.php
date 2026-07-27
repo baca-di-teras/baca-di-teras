@@ -55,7 +55,10 @@ $related = $articleService->getRelated(
 $popular = $articleService->getPopular(5, 30);
 
 $baseUrl       = defined('BASE_URL') ? BASE_URL : '';
-$coverImage    = $article['cover_image'] ?? ($baseUrl . '/custom/assets/images/news-featured.png');
+$coverImage    = $article['cover_image'] ?? '/custom/assets/images/news-featured.png';
+if (strpos($coverImage, '/custom/') === 0 && strpos($coverImage, $baseUrl) !== 0) {
+    $coverImage = rtrim($baseUrl, '/') . $coverImage;
+}
 $publishDate   = ArticleService::formatDate($article['publish_date'] ?? null);
 $categoryLabel = ArticleService::CATEGORY_LABELS[$article['category']] ?? $article['category'];
 $tags          = $article['tags'] ?? [];
@@ -376,7 +379,13 @@ $tags          = $article['tags'] ?? [];
                     <a href="<?= $baseUrl ?>/artikel/<?= htmlspecialchars($rel['slug']) ?>"
                        class="bdt-sidebar-item"
                        id="bdt-related-article-<?= $ri + 1 ?>">
-                        <img src="<?= htmlspecialchars($rel['cover_image'] ?? $baseUrl . '/custom/assets/images/news-small.png') ?>"
+                        <?php 
+                            $relImg = $rel['cover_image'] ?? '/custom/assets/images/news-small.png';
+                            if (strpos($relImg, '/custom/') === 0 && strpos($relImg, $baseUrl) !== 0) {
+                                $relImg = rtrim($baseUrl, '/') . $relImg;
+                            }
+                        ?>
+                        <img src="<?= htmlspecialchars($relImg) ?>"
                              alt="<?= htmlspecialchars($rel['title']) ?>"
                              class="bdt-sidebar-item__img"
                              loading="lazy"
@@ -402,7 +411,13 @@ $tags          = $article['tags'] ?? [];
                     <a href="<?= $baseUrl ?>/artikel/<?= htmlspecialchars($pop['slug']) ?>"
                        class="bdt-sidebar-item"
                        id="bdt-popular-article-<?= $pi + 1 ?>">
-                        <img src="<?= htmlspecialchars($pop['cover_image'] ?? $baseUrl . '/custom/assets/images/news-small.png') ?>"
+                        <?php 
+                            $popImg = $pop['cover_image'] ?? '/custom/assets/images/news-small.png';
+                            if (strpos($popImg, '/custom/') === 0 && strpos($popImg, $baseUrl) !== 0) {
+                                $popImg = rtrim($baseUrl, '/') . $popImg;
+                            }
+                        ?>
+                        <img src="<?= htmlspecialchars($popImg) ?>"
                              alt="<?= htmlspecialchars($pop['title']) ?>"
                              class="bdt-sidebar-item__img"
                              loading="lazy"

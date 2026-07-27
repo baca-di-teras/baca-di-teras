@@ -22,9 +22,24 @@ require_once $libPath . '/custom/services/NewsService.php';
 require_once $libPath . '/custom/services/ArticleService.php';
 
 $newsService = new NewsService();
+$articleService = new ArticleService();
 
-$featuredNews = $newsService->getFeaturedNews();
-$newsList     = $newsService->getRecentNews(9, 0);
+// Filter
+$activeCategory = $_GET['kategori'] ?? '';
+if ($activeCategory && !in_array($activeCategory, ArticleService::NEWS_CATEGORIES)) {
+    $activeCategory = '';
+}
+
+// Pagination
+$perPage = 9;
+$page    = max(1, (int)($_GET['halaman'] ?? 1));
+$offset  = ($page - 1) * $perPage;
+$total   = $newsService->countNews($activeCategory);
+$maxPage = (int) ceil($total / $perPage);
+
+$featuredNews = ($page === 1) ? $newsService->getFeaturedNews($activeCategory) : null;
+$excludeId    = $featuredNews['article_id'] ?? 0;
+$newsList     = $newsService->getRecentNews($perPage, $offset, $activeCategory, $excludeId);
 $baseUrl      = defined('BASE_URL') ? BASE_URL : '';
 ?>
 <!DOCTYPE html>
@@ -237,6 +252,61 @@ $baseUrl      = defined('BASE_URL') ? BASE_URL : '';
         }
         .bdt-news-empty h3 { font-size: 1.25rem; margin-bottom: 8px; color: #555; }
 
+        /* Category Filter Chips */
+        .bdt-category-filter {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 48px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .bdt-category-filter__chip {
+            padding: 8px 20px;
+            border-radius: 100px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            color: #555;
+            background: #fff;
+            border: 1.5px solid #eaeaea;
+            transition: all 0.2s;
+        }
+        .bdt-category-filter__chip:hover {
+            border-color: #2d6a4f;
+            color: #2d6a4f;
+        }
+        .bdt-category-filter__chip--active {
+            background: #2d6a4f;
+            color: #fff;
+            border-color: #2d6a4f;
+        }
+        .bdt-category-filter__chip--active:hover {
+            color: #fff;
+        }
+
+        /* Pagination */
+        .bdt-pagination {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 48px;
+        }
+        .bdt-pagination a, .bdt-pagination span {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px; height: 40px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            border: 1.5px solid #e0e0e0;
+            color: #555;
+            transition: all 0.2s;
+        }
+        .bdt-pagination a:hover { background: #f0fdf4; border-color: #2d6a4f; color: #2d6a4f; }
+        .bdt-pagination .active { background: #2d6a4f; border-color: #2d6a4f; color: #fff; }
+
         @media (max-width: 900px) {
             .bdt-news-featured { grid-template-columns: 1fr; }
             .bdt-news-featured__img { height: 220px; }
@@ -270,7 +340,13 @@ $baseUrl      = defined('BASE_URL') ? BASE_URL : '';
         <?php if ($featuredNews) : ?>
         <!-- Featured News -->
         <article class="bdt-news-featured" id="bdt-news-featured">
-            <img src="<?= htmlspecialchars($featuredNews['image'] ?? $baseUrl . '/custom/assets/images/news-featured.png') ?>"
+            <?php 
+                $featuredImg = $featuredNews['image'] ?? '/custom/assets/images/news-featured.png';
+                if (strpos($featuredImg, '/custom/') === 0 && strpos($featuredImg, $baseUrl) !== 0) {
+                    $featuredImg = rtrim($baseUrl, '/') . $featuredImg;
+                }
+            ?>
+            <img src="<?= htmlspecialchars($featuredImg) ?>"
                  alt="<?= htmlspecialchars($featuredNews['title']) ?>"
                  class="bdt-news-featured__img"
                  loading="eager"
@@ -285,7 +361,7 @@ $baseUrl      = defined('BASE_URL') ? BASE_URL : '';
                     <?= htmlspecialchars($featuredNews['title']) ?>
                 </a>
                 <p class="bdt-news-featured__excerpt">
-                    <?= htmlspecialchars($featuredNews['excerpt'] ?? '') ?>
+                    <?= htmlspecialchars($featuredNews['excerpt'] ?: mb_strimwidth(strip_tags($featuredNews['body'] ?? ''), 0, 150, '...')) ?>
                 </p>
                 <div class="bdt-news-featured__meta">
                     <span>
@@ -316,28 +392,52 @@ $baseUrl      = defined('BASE_URL') ? BASE_URL : '';
         <!-- News Grid -->
         <h2 class="bdt-news-section-title">Semua Berita</h2>
 
+        <!-- Category Filters -->
+        <nav class="bdt-category-filter" aria-label="Filter kategori">
+            <a href="<?= $baseUrl ?>/berita"
+               class="bdt-category-filter__chip <?= $activeCategory === '' ? 'bdt-category-filter__chip--active' : '' ?>"
+               id="bdt-filter-semua">Semua</a>
+            <?php foreach (ArticleService::NEWS_CATEGORIES as $key) : 
+                $label = ArticleService::CATEGORY_LABELS[$key] ?? $key;
+            ?>
+            <a href="<?= $baseUrl ?>/berita?kategori=<?= urlencode($key) ?>"
+               class="bdt-category-filter__chip <?= $activeCategory === $key ? 'bdt-category-filter__chip--active' : '' ?>"
+               id="bdt-filter-<?= htmlspecialchars($key) ?>">
+                <?= htmlspecialchars($label) ?>
+            </a>
+            <?php endforeach; ?>
+        </nav>
+
         <?php if (!empty($newsList)) : ?>
         <div class="bdt-news-grid" id="bdt-news-grid">
             <?php foreach ($newsList as $i => $item) : ?>
             <article class="bdt-news-card" id="bdt-news-card-<?= $i + 1 ?>">
                 <div class="bdt-news-card__img-wrap">
-                    <img src="<?= htmlspecialchars($item['image'] ?? $baseUrl . '/custom/assets/images/news-small.png') ?>"
+                    <?php 
+                        $itemImg = $item['image'] ?? '/custom/assets/images/news-small.png';
+                        if (strpos($itemImg, '/custom/') === 0 && strpos($itemImg, $baseUrl) !== 0) {
+                            $itemImg = rtrim($baseUrl, '/') . $itemImg;
+                        }
+                    ?>
+                    <img src="<?= htmlspecialchars($itemImg) ?>"
                          alt="<?= htmlspecialchars($item['title']) ?>"
                          class="bdt-news-card__img"
                          loading="lazy"
                          width="400" height="200">
                 </div>
                 <div class="bdt-news-card__body">
-                    <span class="bdt-news-card__tag">
-                        <?= htmlspecialchars(ArticleService::CATEGORY_LABELS[$item['category']] ?? $item['category']) ?>
-                    </span>
+                    <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
+                        <span class="bdt-news-card__tag" style="margin-bottom: 0;">
+                            <?= htmlspecialchars(ArticleService::CATEGORY_LABELS[$item['category']] ?? $item['category']) ?>
+                        </span>
+                    </div>
                     <a href="<?= $baseUrl ?>/berita/<?= htmlspecialchars($item['slug'] ?? '') ?>"
                        id="bdt-news-card-link-<?= $i + 1 ?>"
                        class="bdt-news-card__title">
                         <?= htmlspecialchars($item['title']) ?>
                     </a>
                     <p class="bdt-news-card__excerpt">
-                        <?= htmlspecialchars($item['excerpt'] ?? '') ?>
+                        <?= htmlspecialchars($item['excerpt'] ?: mb_strimwidth(strip_tags($item['body'] ?? ''), 0, 150, '...')) ?>
                     </p>
                     <div class="bdt-news-card__meta">
                         <span>
@@ -350,11 +450,35 @@ $baseUrl      = defined('BASE_URL') ? BASE_URL : '';
                             </svg>
                             <?= ArticleService::formatDate($item['date'] ?? $item['publish_date'] ?? null) ?>
                         </span>
+                        <?php if (!empty($item['author'])) : ?>
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                            <?= htmlspecialchars($item['author']) ?>
+                        </span>
+                        <?php endif; ?>
                     </div>
                 </div>
             </article>
             <?php endforeach; ?>
         </div>
+
+        <!-- Pagination -->
+        <?php if ($maxPage > 1) : ?>
+        <nav class="bdt-pagination" aria-label="Navigasi halaman">
+            <?php for ($p = 1; $p <= $maxPage; $p++) : ?>
+                <?php if ($p === $page) : ?>
+                <span class="active" aria-current="page"><?= $p ?></span>
+                <?php else : ?>
+                <a href="<?= $baseUrl ?>/berita?halaman=<?= $p ?>" id="bdt-page-<?= $p ?>"><?= $p ?></a>
+                <?php endif; ?>
+            <?php endfor; ?>
+        </nav>
+        <?php endif; ?>
+
         <?php else : ?>
         <div class="bdt-news-empty">
             <h3>Belum ada berita tersedia</h3>
