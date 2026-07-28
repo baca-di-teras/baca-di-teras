@@ -25,14 +25,16 @@ $navItems = [
         ['id' => 'profil',        'label' => 'Profil Desa',      'href' => $baseUrl . '/profil'],
         ['id' => 'informasi',     'label' => 'Informasi',        'href' => $baseUrl . '/informasi']
     ]],
-    ['id' => 'perpustakaan', 'label' => 'Perpustakaan',     'href' => $baseUrl . '/perpustakaan'],
+    ['id' => 'layanan',      'label' => 'Layanan',          'type' => 'dropdown', 'children' => [
+        ['id' => 'perpustakaan',  'label' => 'Perpustakaan',     'href' => $baseUrl . '/perpustakaan'],
+        ['id' => 'pathfinder',    'label' => 'Pathfinder',       'href' => $baseUrl . '/pathfinder']
+    ]],
     ['id' => 'katalog',      'label' => 'Katalog',          'href' => $baseUrl . '/katalog'],
     ['id' => 'rilis',        'label' => 'Rilis',            'type' => 'dropdown', 'children' => [
         ['id' => 'artikel',       'label' => 'Artikel',          'href' => $baseUrl . '/artikel'],
         ['id' => 'berita',        'label' => 'Berita',           'href' => $baseUrl . '/berita'],
         ['id' => 'media',         'label' => 'Media',            'href' => $baseUrl . '/media']
     ]],
-    ['id' => 'pathfinder',   'label' => 'Pathfinder',       'href' => $baseUrl . '/pathfinder'],
     ['id' => 'produk',       'label' => 'Produk',           'href' => $baseUrl . '/produk'],
     ['id' => 'donasi',       'label' => 'Donasi',           'href' => $baseUrl . '/donasi']
 ];
@@ -64,8 +66,14 @@ $navItems = [
             <ul class="bdt-navbar__nav" id="bdt-navbar-nav" role="list">
                 <?php foreach ($navItems as $item) : ?>
                     <?php if (isset($item['type']) && $item['type'] === 'dropdown') : ?>
+                    <?php
+                    $isDropdownActive = false;
+                    foreach ($item['children'] as $child) {
+                        if ($activePage === $child['id']) { $isDropdownActive = true; break; }
+                    }
+                    ?>
                     <li class="bdt-navbar__nav-item bdt-dropdown">
-                        <a href="javascript:void(0)" class="bdt-navbar__nav-link bdt-dropdown-toggle">
+                        <a href="javascript:void(0)" class="bdt-navbar__nav-link bdt-dropdown-toggle<?= $isDropdownActive ? ' active' : '' ?>">
                             <?= htmlspecialchars($item['label']) ?>
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:4px;"><polyline points="6 9 12 15 18 9"></polyline></svg>
                         </a>
@@ -153,8 +161,14 @@ $navItems = [
         <ul class="bdt-navbar__mobile-nav" role="list">
             <?php foreach ($navItems as $item) : ?>
                 <?php if (isset($item['type']) && $item['type'] === 'dropdown') : ?>
+                <?php
+                $isDropdownActive = false;
+                foreach ($item['children'] as $child) {
+                    if ($activePage === $child['id']) { $isDropdownActive = true; break; }
+                }
+                ?>
                 <li class="bdt-mobile-dropdown">
-                    <span class="bdt-navbar__mobile-link bdt-mobile-dropdown-toggle">
+                    <span class="bdt-navbar__mobile-link bdt-mobile-dropdown-toggle<?= $isDropdownActive ? ' active' : '' ?>">
                         <?= htmlspecialchars($item['label']) ?>
                     </span>
                     <ul class="bdt-mobile-dropdown-menu">

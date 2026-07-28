@@ -116,8 +116,18 @@ $router->get('/portal-admin/pengumuman/tambah', 'custom/pages/admin/create_annou
 $router->get('/portal-admin/pathfinder', 'custom/pages/pathfinder/managepathfinder.php');
 $router->get('/portal-admin/pathfinder/kategori', 'custom/pages/pathfinder/managecategory.php');
 
-// Halaman utama pathfinder
+// Halaman utama pathfinder (lama)
 $router->get('/pathfinder', 'custom/pages/pathfinder/index.php');
+
+// Halaman Pathfinder baru — dua panel (sidebar kategori + daftar topik)
+// /pathfinder/jelajahi           → tampilkan semua, kategori pertama dipilih
+// /pathfinder/jelajahi/{slug}    → kategori tertentu aktif di sidebar
+// /pathfinder/jelajahi/{slug}/{topik}/buku/{id} → tampilan detail buku di dalam topik
+$router->get('/pathfinder/jelajahi',                             'custom/pages/pathfinder/browse.php');
+$router->get('/pathfinder/jelajahi/{slug}',                      'custom/pages/pathfinder/browse.php');
+$router->get('/pathfinder/jelajahi/{slug}/{topik}',              'custom/pages/pathfinder/browse.php');
+$router->get('/pathfinder/jelajahi/{slug}/{topik}/buku/{id}',    'custom/pages/pathfinder/browse.php');
+$router->get('/pathfinder/buku/{id}',                            'custom/pages/pathfinder/browse.php');
 
 // Kategori pathfinder: /pathfinder/kategori/teknologi
 $router->get('/pathfinder/kategori/{slug}', 'custom/pages/pathfinder/category.php');
