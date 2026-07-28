@@ -85,6 +85,7 @@ if ($activeCategory) {
             'intro'     => $svc->getIntroduction($id),
             'guides'    => $svc->getGuidesByTopicId($id),
             'downloads' => $svc->getDownloadsByTopicId($id),
+            'ext_resources' => $svc->getExternalResourcesByTopicId($id),
         ]);
     }
 }

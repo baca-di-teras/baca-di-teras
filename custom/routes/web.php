@@ -135,6 +135,9 @@ $router->get('/pathfinder/kategori/{slug}', 'custom/pages/pathfinder/category.ph
 // Detail pathfinder: /pathfinder/pemrograman-web
 $router->get('/pathfinder/{slug}', 'custom/pages/pathfinder/detail.php');
 
+// Download PDF pathfinder
+$router->get('/pathfinder/download/{slug}', 'custom/pages/pathfinder/download.php');
+
 // ============================================================
 // ADMIN — Redirect ke SLiMS Admin
 // ============================================================

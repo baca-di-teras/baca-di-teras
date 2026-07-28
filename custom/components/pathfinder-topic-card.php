@@ -30,6 +30,7 @@ $books       = $topic['books']       ?? [];
 $intro       = $topic['intro']       ?? null;
 $guides      = $topic['guides']      ?? [];
 $downloads   = $topic['downloads']   ?? [];
+$ext_resources = $topic['ext_resources'] ?? [];
 $totalBooks  = count($books);
 $catSlug     = $topic['category_slug'] ?? $activeSlug ?? 'literasi-lingkungan';
 $catName     = $topic['category_name'] ?? 'Literasi Lingkungan';
@@ -112,17 +113,16 @@ if ($isTopicForActiveBook) {
                 <span class="ptc-tab__count"><?= count($guides) ?></span>
                 <?php endif; ?>
             </button>
-            <button class="ptc-tab"
-                    role="tab"
-                    aria-selected="false"
-                    aria-controls="ptc-tab-downloads-<?= $slug ?>"
-                    id="ptc-tablink-downloads-<?= $slug ?>"
-                    data-tab="downloads">
+            <a href="<?= BASE_URL ?>/pathfinder/download/<?= $slug ?>" 
+               class="ptc-tab"
+               style="text-decoration: none; color: inherit;"
+               target="_blank"
+               id="ptc-tablink-downloads-<?= $slug ?>">
                 Download
                 <?php if (!empty($downloads)): ?>
                 <span class="ptc-tab__count"><?= count($downloads) ?></span>
                 <?php endif; ?>
-            </button>
+            </a>
         </div>
 
         <!-- ── Tab Panels ───────────────────────────────────── -->
@@ -384,6 +384,28 @@ if ($isTopicForActiveBook) {
                 <?php endforeach; ?>
             </div>
             <?php endif; ?>
+            
+            <!-- External Resources -->
+            <?php if (!empty($ext_resources)): ?>
+            <div style="margin-top: 30px; border-top: 1px solid #eaeaea; padding-top: 20px;">
+                <h3 style="font-size: 1.125rem; font-weight: 700; color: #1f2937; margin-bottom: 15px;">Referensi Lain / Sumber Internet Terbuka</h3>
+                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px;">
+                    <?php foreach ($ext_resources as $ext): ?>
+                    <li style="display: flex; align-items: flex-start; gap: 10px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                        </svg>
+                        <div>
+                            <a href="<?= htmlspecialchars($ext['url']) ?>" target="_blank" rel="noopener noreferrer" style="color: #059669; text-decoration: none; font-weight: 500; word-break: break-all;">
+                                <?= htmlspecialchars($ext['title']) ?>
+                            </a>
+                        </div>
+                    </li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+            <?php endif; ?>
         </div>
 
         <!-- Tab 3: Tips & Panduan -->
@@ -504,66 +526,7 @@ if ($isTopicForActiveBook) {
         </div>
 
 
-        <!-- Tab 4: Download -->
-        <div class="ptc-tabpanel"
-             id="ptc-tab-downloads-<?= $slug ?>"
-             role="tabpanel"
-             aria-labelledby="ptc-tablink-downloads-<?= $slug ?>">
 
-            <?php if (empty($downloads)): ?>
-            <div class="ptc-empty">
-                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true">
-                    <path d="M224,144v64a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V144a16,16,0,0,1,16-16H80a8,8,0,0,1,0,16H48v64H208V144H176a8,8,0,0,1,0-16h32A16,16,0,0,1,224,144Zm-101.66-42.34a8,8,0,0,0,11.32,0l40-40a8,8,0,0,0-11.32-11.32L136,76.69V24a8,8,0,0,0-16,0V76.69L93.66,50.34A8,8,0,0,0,82.34,61.66Z"/>
-                </svg>
-                <p>Belum ada file download untuk topik ini.</p>
-                <p class="ptc-empty__hint">Pustakawan dapat menambahkan file download melalui Portal Admin.</p>
-            </div>
-            <?php else: ?>
-            <div class="ptc-download-list">
-                <?php
-                $fileTypeIcons = [
-                    'pdf'  => 'M215.88,199.29l-22.57-22.57A71.63,71.63,0,0,0,200,152a72,72,0,1,0-72,72,71.63,71.63,0,0,0,24.72-6.69l22.57,22.57a8,8,0,0,0,11.31-11.31ZM112,208a56,56,0,1,1,56-56A56.06,56.06,0,0,1,112,208Zm120-128V192a8,8,0,0,1-16,0V96H168a8,8,0,0,1-8-8V40H96v72a8,8,0,0,1-16,0V40A16,16,0,0,1,96,24h72a8,8,0,0,1,5.65,2.34l40,40A8,8,0,0,1,232,80Z',
-                    'jpg'  => 'M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40ZM40,200V56H216V200ZM208,168a8,8,0,0,1-8,8H56a8,8,0,0,1-5.66-13.66l36-36a8,8,0,0,1,11.31,0l19.32,19.31L132.69,130a8,8,0,0,1,11.31,0l58.34,58.34A8,8,0,0,1,208,168Z',
-                    'png'  => 'M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40ZM40,200V56H216V200ZM208,168a8,8,0,0,1-8,8H56a8,8,0,0,1-5.66-13.66l36-36a8,8,0,0,1,11.31,0l19.32,19.31L132.69,130a8,8,0,0,1,11.31,0l58.34,58.34A8,8,0,0,1,208,168Z',
-                    'default' => 'M224,144v64a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V144a16,16,0,0,1,16-16H80a8,8,0,0,1,0,16H48v64H208V144H176a8,8,0,0,1,0-16h32A16,16,0,0,1,224,144Zm-101.66-42.34a8,8,0,0,0,11.32,0l40-40a8,8,0,0,0-11.32-11.32L136,76.69V24a8,8,0,0,0-16,0V76.69L93.66,50.34A8,8,0,0,0,82.34,61.66Z',
-                ];
-                foreach ($downloads as $dl):
-                    $iconPath = $fileTypeIcons[$dl['file_type']] ?? $fileTypeIcons['default'];
-                    $sizeKb   = $dl['file_size'] > 0 ? round($dl['file_size'] / 1024) . ' KB' : '';
-                ?>
-                <div class="ptc-download-item">
-                    <div class="ptc-download-item__icon ptc-download-item__icon--<?= htmlspecialchars($dl['file_type']) ?>">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true">
-                            <path d="<?= $iconPath ?>"/>
-                        </svg>
-                        <span class="ptc-download-item__ext"><?= strtoupper(htmlspecialchars($dl['file_type'])) ?></span>
-                    </div>
-                    <div class="ptc-download-item__info">
-                        <h4 class="ptc-download-item__title"><?= htmlspecialchars($dl['title']) ?></h4>
-                        <?php if (!empty($dl['description'])): ?>
-                        <p class="ptc-download-item__desc"><?= htmlspecialchars($dl['description']) ?></p>
-                        <?php endif; ?>
-                        <div class="ptc-download-item__meta">
-                            <?php if ($sizeKb): ?><span><?= $sizeKb ?></span><?php endif; ?>
-                            <?php if ($dl['download_count'] > 0): ?>
-                            <span><?= (int)$dl['download_count'] ?> unduhan</span>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                    <a href="<?= BASE_URL ?>/pathfinder/download/<?= (int)$dl['id'] ?>"
-                       class="ptc-download-item__btn"
-                       download
-                       aria-label="Unduh <?= htmlspecialchars($dl['title']) ?>">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true">
-                            <path d="M224,144v64a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V144a16,16,0,0,1,16-16H80a8,8,0,0,1,0,16H48v64H208V144H176a8,8,0,0,1,0-16h32A16,16,0,0,1,224,144Zm-101.66-42.34a8,8,0,0,0,11.32,0l40-40a8,8,0,0,0-11.32-11.32L136,76.69V24a8,8,0,0,0-16,0V76.69L93.66,50.34A8,8,0,0,0,82.34,61.66Z"/>
-                        </svg>
-                        Unduh
-                    </a>
-                </div>
-                <?php endforeach; ?>
-            </div>
-            <?php endif; ?>
-        </div>
 
     </div><!-- /ptc-panel -->
 </div><!-- /ptc-item -->
