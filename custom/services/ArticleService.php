@@ -5,29 +5,16 @@
  * File    : ArticleService.php
  * Project : Baca Di Teras
  * Version : 1.0.0
- *
- * Seluruh query yang berhubungan dengan artikel dan berita.
- * Menggunakan tabel: bdt_article, bdt_article_tag, bdt_article_view,
- * dan integrasi SLiMS: user (penulis), biblio (resensi buku).
- *
- * ATURAN:
- *   - Tidak ada SQL mentah di halaman PHP.
- *   - Kembalikan selalu array PHP yang siap dipakai view.
- *
- * Usage:
- *   require_once ROOT_PATH . '/custom/services/ArticleService.php';
- *   $service  = new ArticleService();
- *   $articles = $service->getPublished(6);
- *   $article  = $service->getBySlug('festival-baca-2026');
  */
 
-require_once __DIR__ . '/../helpers/Database.php';
+require_once __DIR__ . '/../helpers/database.php';
+require_once __DIR__ . '/ActivityLogService.php';
 
 class ArticleService
 {
     private Database $db;
+    private ActivityLogService $activityLog;
 
-    /** Kategori valid sesuai ENUM di tabel bdt_article */
     public const CATEGORIES = [
         'berita',
         'kegiatan',
@@ -37,341 +24,379 @@ class ArticleService
         'lainnya',
     ];
 
-    /** Label tampilan untuk setiap kategori */
     public const CATEGORY_LABELS = [
-        'berita'       => 'Berita',
-        'kegiatan'     => 'Kegiatan',
-        'pengumuman'   => 'Pengumuman',
-        'resensi'      => 'Resensi Buku',
-        'literasi'     => 'Literasi',
-        'lainnya'      => 'Lainnya',
+        'berita'     => 'Berita',
+        'kegiatan'   => 'Kegiatan',
+        'pengumuman' => 'Pengumuman',
+        'resensi'    => 'Resensi Buku',
+        'literasi'   => 'Artikel Literasi',
+        'lainnya'    => 'Lainnya'
     ];
+
+    public const ARTICLE_CATEGORIES = ['resensi', 'literasi', 'lainnya'];
+    public const NEWS_CATEGORIES = ['berita', 'kegiatan', 'pengumuman'];
+
+    public static function formatDate(?string $date): string
+    {
+        if (!$date) return '-';
+        $time = strtotime($date);
+        $months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        $d = date('d', $time);
+        $m = $months[date('n', $time) - 1];
+        $y = date('Y', $time);
+        return "$d $m $y";
+    }
 
     public function __construct()
     {
         $this->db = Database::getInstance();
+        $this->activityLog = new ActivityLogService();
     }
 
-    // ── Query Artikel ─────────────────────────────────────────
-
-    /**
-     * Ambil daftar artikel published, diurutkan terbaru.
-     * Digunakan di: halaman /artikel, /berita.
-     *
-     * @param  int $limit
-     * @param  int $offset
-     * @return array
-     */
-    public function getPublished(int $limit = 10, int $offset = 0): array
+    public function getAllArticles(): array
     {
-        return $this->db->fetchAll(
-            'SELECT
-                a.article_id,
-                a.title,
-                a.slug,
-                a.excerpt,
-                a.cover_image,
-                a.category,
-                a.publish_date,
-                a.is_featured,
-                a.is_pinned,
-                a.view_count,
-                l.name AS library_name,
-                l.slug AS library_slug,
-                u.realname AS author_name
-             FROM bdt_article a
-             LEFT JOIN bdt_library l ON a.library_id = l.library_id
-             LEFT JOIN user        u ON a.created_by  = u.user_id
-             WHERE a.status = "published"
-               AND (a.publish_date IS NULL OR a.publish_date <= NOW())
-             ORDER BY a.is_pinned DESC, a.publish_date DESC
-             LIMIT ? OFFSET ?',
-            'ii',
-            [$limit, $offset]
+        // Join dengan tabel user untuk mengambil author, dan join bdt_article_tag
+        $sql = "SELECT a.*, 
+                (SELECT GROUP_CONCAT(tag_name SEPARATOR ',') FROM bdt_article_tag t WHERE t.article_id = a.article_id) as tags
+                FROM bdt_article a 
+                ORDER BY a.created_at DESC";
+                
+        $data = $this->db->fetchAll($sql);
+        
+        foreach ($data as &$row) {
+            $row['tags'] = $row['tags'] ? explode(',', $row['tags']) : [];
+        }
+        
+        return $data;
+    }
+
+    public function countPublished(string $category = ''): int
+    {
+        if ($category) {
+            $sql = "SELECT COUNT(*) FROM bdt_article WHERE status = 'published' AND category = ?";
+            return (int) $this->db->fetchScalar($sql, 's', [$category]);
+        } else {
+            $sql = "SELECT COUNT(*) FROM bdt_article WHERE status = 'published' AND category IN ('resensi', 'literasi', 'lainnya')";
+            return (int) $this->db->fetchScalar($sql);
+        }
+    }
+
+    public function getPublished(int $limit = 9, int $offset = 0, int $excludeId = 0): array
+    {
+        $sql = "SELECT a.*, l.name AS library_name, u.name AS author_name, u.role AS author_role 
+                FROM bdt_article a 
+                LEFT JOIN bdt_library l ON a.library_id = l.library_id 
+                LEFT JOIN bdt_admins u ON a.created_by = u.id 
+                WHERE a.status = 'published' 
+                AND a.category IN ('resensi', 'literasi', 'lainnya')
+                AND a.article_id != ?
+                ORDER BY a.is_pinned DESC, a.publish_date DESC LIMIT ? OFFSET ?";
+        return $this->db->fetchAll($sql, 'iii', [$excludeId, $limit, $offset]);
+    }
+
+    public function getByCategory(string $category, int $limit = 9, int $offset = 0, int $excludeId = 0): array
+    {
+        $sql = "SELECT a.*, l.name AS library_name, u.name AS author_name, u.role AS author_role 
+                FROM bdt_article a 
+                LEFT JOIN bdt_library l ON a.library_id = l.library_id 
+                LEFT JOIN bdt_admins u ON a.created_by = u.id 
+                WHERE a.status = 'published' AND a.category = ? 
+                AND a.article_id != ?
+                ORDER BY a.is_pinned DESC, a.publish_date DESC LIMIT ? OFFSET ?";
+        return $this->db->fetchAll($sql, 'siii', [$category, $excludeId, $limit, $offset]);
+    }
+
+    public function getHeroArticle(string $category = ''): ?array
+    {
+        if ($category) {
+            $sql = "SELECT a.*, l.name AS library_name, u.name AS author_name, u.role AS author_role 
+                    FROM bdt_article a 
+                    LEFT JOIN bdt_library l ON a.library_id = l.library_id 
+                    LEFT JOIN bdt_admins u ON a.created_by = u.id 
+                    WHERE a.status = 'published' AND a.category = ? AND a.is_featured = 1 
+                    ORDER BY a.publish_date DESC LIMIT 1";
+            return $this->db->fetchOne($sql, 's', [$category]);
+        } else {
+            $sql = "SELECT a.*, l.name AS library_name, u.name AS author_name, u.role AS author_role 
+                    FROM bdt_article a 
+                    LEFT JOIN bdt_library l ON a.library_id = l.library_id 
+                    LEFT JOIN bdt_admins u ON a.created_by = u.id 
+                    WHERE a.status = 'published' AND a.is_featured = 1 
+                    AND a.category IN ('resensi', 'literasi', 'lainnya')
+                    ORDER BY a.publish_date DESC LIMIT 1";
+            return $this->db->fetchOne($sql);
+        }
+    }
+
+    public function getArticleById(int $article_id): ?array
+    {
+        $sql = "SELECT a.*, u.name AS author_name, u.role AS author_role, 
+                (SELECT GROUP_CONCAT(tag_name SEPARATOR ',') FROM bdt_article_tag t WHERE t.article_id = a.article_id) as tags
+                FROM bdt_article a 
+                LEFT JOIN bdt_admins u ON a.created_by = u.id
+                WHERE a.article_id = ? LIMIT 1";
+                
+        $stmt = $this->db->getConnection()->prepare($sql);
+        if (!$stmt) return null;
+
+        $stmt->bind_param('i', $article_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $article = $result->fetch_assoc();
+        $stmt->close();
+
+        if ($article) {
+            $article['tags'] = $article['tags'] ? explode(',', $article['tags']) : [];
+        }
+
+        return $article;
+    }
+
+    public function createArticle(array $data): bool
+    {
+        $this->db->getConnection()->begin_transaction();
+
+        try {
+            $sql = "INSERT INTO bdt_article (title, slug, excerpt, body, cover_image, category, status, publish_date, is_featured, is_pinned, created_by) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            
+            $stmt = $this->db->getConnection()->prepare($sql);
+            if (!$stmt) throw new Exception("Prepare failed");
+
+            $title = $data['title'];
+            $slug = $data['slug'] ?? $this->generateSlug($title);
+            $excerpt = $data['excerpt'] ?? '';
+            $body = $data['body'] ?? '';
+            $cover_image = $data['cover_image'] ?? null;
+            $category = $data['category'] ?? 'berita';
+            $status = $data['status'] ?? 'draft';
+            $publish_date = $data['publish_date'] ?? date('Y-m-d H:i:s');
+            $is_featured = $data['is_featured'] ?? 0;
+            $is_pinned = $data['is_pinned'] ?? 0;
+            $created_by = $data['created_by'] ?? null;
+
+            $stmt->bind_param('ssssssssiii', $title, $slug, $excerpt, $body, $cover_image, $category, $status, $publish_date, $is_featured, $is_pinned, $created_by);
+            
+            if (!$stmt->execute()) {
+                throw new Exception("Execute failed: " . $stmt->error);
+            }
+            
+            $article_id = $stmt->insert_id;
+            $stmt->close();
+
+            // Insert tags
+            if (!empty($data['tags']) && is_array($data['tags'])) {
+                $this->syncTags($article_id, $data['tags']);
+            }
+
+            $this->db->getConnection()->commit();
+
+            $this->activityLog->log('menambahkan', 'Artikel', $title);
+
+            return true;
+        } catch (Exception $e) {
+            $this->db->getConnection()->rollback();
+            error_log("ArticleService::createArticle Error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateArticle(int $article_id, array $data): bool
+    {
+        $this->db->getConnection()->begin_transaction();
+
+        try {
+            $sql = "UPDATE bdt_article 
+                    SET title = ?, slug = ?, excerpt = ?, body = ?, cover_image = ?, category = ?, status = ?, publish_date = ?, is_featured = ?, is_pinned = ? 
+                    WHERE article_id = ?";
+            
+            $stmt = $this->db->getConnection()->prepare($sql);
+            if (!$stmt) throw new Exception("Prepare failed");
+
+            $title = $data['title'];
+            $slug = $data['slug'] ?? $this->generateSlug($title);
+            $excerpt = $data['excerpt'] ?? '';
+            $body = $data['body'] ?? '';
+            $cover_image = $data['cover_image'] ?? null;
+            $category = $data['category'] ?? 'berita';
+            $status = $data['status'] ?? 'draft';
+            $publish_date = $data['publish_date'] ?? date('Y-m-d H:i:s');
+            $is_featured = $data['is_featured'] ?? 0;
+            $is_pinned = $data['is_pinned'] ?? 0;
+
+            $stmt->bind_param('ssssssssiii', $title, $slug, $excerpt, $body, $cover_image, $category, $status, $publish_date, $is_featured, $is_pinned, $article_id);
+            
+            if (!$stmt->execute()) {
+                throw new Exception("Execute failed: " . $stmt->error);
+            }
+            $stmt->close();
+
+            // Sync tags
+            if (isset($data['tags']) && is_array($data['tags'])) {
+                $this->syncTags($article_id, $data['tags']);
+            }
+
+            $this->db->getConnection()->commit();
+
+            $this->activityLog->log('mengubah', 'Artikel', $title);
+
+            return true;
+        } catch (Exception $e) {
+            $this->db->getConnection()->rollback();
+            error_log("ArticleService::updateArticle Error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteArticle(int $article_id): bool
+    {
+        $sql = "DELETE FROM bdt_article WHERE article_id = ?";
+        $stmt = $this->db->getConnection()->prepare($sql);
+        if (!$stmt) return false;
+
+        $stmt->bind_param('i', $article_id);
+        $result = $stmt->execute();
+        $stmt->close();
+
+        if ($result) {
+            $this->activityLog->log('menghapus', 'Artikel', "ID: $article_id");
+        }
+
+        return $result;
+    }
+
+    private function syncTags(int $article_id, array $tags): void
+    {
+        // Delete old tags
+        $stmtDel = $this->db->getConnection()->prepare("DELETE FROM bdt_article_tag WHERE article_id = ?");
+        $stmtDel->bind_param('i', $article_id);
+        $stmtDel->execute();
+        $stmtDel->close();
+
+        // Insert new tags
+        if (empty($tags)) return;
+        
+        $stmtIns = $this->db->getConnection()->prepare("INSERT IGNORE INTO bdt_article_tag (article_id, tag_name) VALUES (?, ?)");
+        foreach ($tags as $tag) {
+            $t = trim($tag);
+            if ($t !== '') {
+                $stmtIns->bind_param('is', $article_id, $t);
+                $stmtIns->execute();
+            }
+        }
+        $stmtIns->close();
+    }
+
+    private function generateSlug(string $title): string
+    {
+        $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $title)));
+        $slug = preg_replace('/-+/', '-', $slug);
+        return $slug;
+    }
+
+    public function getBySlug(string $slug): array|false
+    {
+        return $this->db->fetchOne(
+            'SELECT a.*,
+                    l.name AS library_name,
+                    l.slug AS library_slug,
+                    u.realname AS author_name
+               FROM bdt_article a
+               LEFT JOIN bdt_library l ON a.library_id  = l.library_id
+               LEFT JOIN user        u ON a.created_by  = u.user_id
+              WHERE a.slug   = ?
+                AND a.status = "published"
+              LIMIT 1',
+            's',
+            [$slug]
         );
     }
 
-    /**
-     * Hitung total artikel published (untuk pagination).
-     *
-     * @param  string $category  Kosong = semua kategori
-     * @return int
-     */
-    public function countPublished(string $category = ''): int
-    {
-        if ($category !== '' && in_array($category, self::CATEGORIES, true)) {
-            $count = $this->db->fetchScalar(
-                'SELECT COUNT(*)
-                 FROM bdt_article
-                 WHERE status   = "published"
-                   AND category = ?
-                   AND (publish_date IS NULL OR publish_date <= NOW())',
-                's',
-                [$category]
-            );
-        } else {
-            $count = $this->db->fetchScalar(
-                'SELECT COUNT(*)
-                 FROM bdt_article
-                 WHERE status = "published"
-                   AND (publish_date IS NULL OR publish_date <= NOW())'
-            );
-        }
-
-        return (int) $count;
-    }
-
-    /**
-     * Ambil artikel unggulan (is_featured = 1).
-     * Digunakan di: landing page — seksi "Berita & Kegiatan".
-     *
-     * @param  int $limit
-     * @return array
-     */
-    public function getFeatured(int $limit = 3): array
+    public function getRecent(int $limit = 5): array
     {
         return $this->db->fetchAll(
-            'SELECT
-                a.article_id,
-                a.title,
-                a.slug,
-                a.excerpt,
-                a.cover_image,
-                a.category,
-                a.publish_date,
-                a.view_count,
-                l.name AS library_name,
-                l.slug AS library_slug
-             FROM bdt_article a
-             LEFT JOIN bdt_library l ON a.library_id = l.library_id
-             WHERE a.status      = "published"
-               AND a.is_featured = 1
-               AND (a.publish_date IS NULL OR a.publish_date <= NOW())
-             ORDER BY a.publish_date DESC
-             LIMIT ?',
+            'SELECT a.*,
+                    l.name AS library_name
+               FROM bdt_article a
+               LEFT JOIN bdt_library l ON a.library_id = l.library_id
+              WHERE a.status = "published"
+                AND (a.publish_date IS NULL OR a.publish_date <= NOW())
+              ORDER BY a.publish_date DESC
+              LIMIT ?',
             'i',
             [$limit]
         );
     }
 
-    /**
-     * Ambil satu artikel featured sebagai artikel utama (hero).
-     * Digunakan di: landing page, halaman /berita.
-     *
-     * @return array|null
-     */
-    public function getHeroArticle(): ?array
-    {
-        return $this->db->fetchOne(
-            'SELECT
-                a.article_id,
-                a.title,
-                a.slug,
-                a.excerpt,
-                a.cover_image,
-                a.category,
-                a.publish_date,
-                a.view_count,
-                l.name     AS library_name,
-                u.realname AS author_name
-             FROM bdt_article a
-             LEFT JOIN bdt_library l ON a.library_id = l.library_id
-             LEFT JOIN user        u ON a.created_by  = u.user_id
-             WHERE a.status      = "published"
-               AND a.is_featured = 1
-               AND (a.publish_date IS NULL OR a.publish_date <= NOW())
-             ORDER BY a.is_pinned DESC, a.publish_date DESC
-             LIMIT 1'
-        );
-    }
-
-    /**
-     * Ambil artikel terbaru (non-featured) untuk sidebar/grid.
-     * Digunakan di: landing page, sidebar halaman /berita.
-     *
-     * @param  int $limit
-     * @param  int $excludeId  ID artikel yang dikecualikan (biasanya hero)
-     * @return array
-     */
-    public function getRecent(int $limit = 5, int $excludeId = 0): array
-    {
-        return $this->db->fetchAll(
-            'SELECT
-                a.article_id,
-                a.title,
-                a.slug,
-                a.excerpt,
-                a.cover_image,
-                a.category,
-                a.publish_date,
-                a.view_count
-             FROM bdt_article a
-             WHERE a.status      = "published"
-               AND a.article_id != ?
-               AND (a.publish_date IS NULL OR a.publish_date <= NOW())
-             ORDER BY a.publish_date DESC
-             LIMIT ?',
-            'ii',
-            [$excludeId, $limit]
-        );
-    }
-
-    /**
-     * Ambil artikel terpopuler dalam N hari terakhir.
-     * Digunakan di: sidebar halaman artikel.
-     *
-     * @param  int $limit
-     * @param  int $days
-     * @return array
-     */
     public function getPopular(int $limit = 5, int $days = 30): array
     {
         return $this->db->fetchAll(
-            'SELECT
-                a.article_id,
-                a.title,
-                a.slug,
-                a.cover_image,
-                a.category,
-                a.publish_date,
-                COALESCE(SUM(v.view_count), 0) AS total_views
-             FROM bdt_article a
-             LEFT JOIN bdt_article_view v
-                    ON a.article_id = v.article_id
-                   AND v.view_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
-             WHERE a.status = "published"
-               AND (a.publish_date IS NULL OR a.publish_date <= NOW())
-             GROUP BY a.article_id
-             ORDER BY total_views DESC, a.publish_date DESC
-             LIMIT ?',
+            'SELECT a.*,
+                    l.name AS library_name,
+                    COALESCE(SUM(v.view_count), 0) AS total_views
+               FROM bdt_article a
+               LEFT JOIN bdt_library     l ON a.library_id  = l.library_id
+               LEFT JOIN bdt_article_view v ON a.article_id = v.article_id
+                                           AND v.view_date  >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+              WHERE a.status = "published"
+                AND (a.publish_date IS NULL OR a.publish_date <= NOW())
+              GROUP BY a.article_id
+              ORDER BY total_views DESC, a.publish_date DESC
+              LIMIT ?',
             'ii',
             [$days, $limit]
         );
     }
 
-    /**
-     * Ambil artikel berdasarkan kategori.
-     *
-     * @param  string $category
-     * @param  int    $limit
-     * @param  int    $offset
-     * @return array
-     */
-    public function getByCategory(string $category, int $limit = 10, int $offset = 0): array
-    {
-        if (!in_array($category, self::CATEGORIES, true)) {
-            return [];
-        }
-
+    public function getRelated(
+        int    $articleId,
+        string $category,
+        int    $libraryId = 0,
+        int    $limit     = 4
+    ): array {
         return $this->db->fetchAll(
-            'SELECT
-                a.article_id,
-                a.title,
-                a.slug,
-                a.excerpt,
-                a.cover_image,
-                a.category,
-                a.publish_date,
-                a.view_count,
-                l.name AS library_name
-             FROM bdt_article a
-             LEFT JOIN bdt_library l ON a.library_id = l.library_id
-             WHERE a.status   = "published"
-               AND a.category = ?
-               AND (a.publish_date IS NULL OR a.publish_date <= NOW())
-             ORDER BY a.is_pinned DESC, a.publish_date DESC
-             LIMIT ? OFFSET ?',
-            'sii',
-            [$category, $limit, $offset]
-        );
-    }
-
-    // ── Detail Artikel ────────────────────────────────────────
-
-    /**
-     * Ambil detail satu artikel berdasarkan slug URL.
-     * Digunakan di: halaman /berita/{slug}, /artikel/{slug}.
-     *
-     * @param  string    $slug
-     * @return array|null
-     */
-    public function getBySlug(string $slug): ?array
-    {
-        $article = $this->db->fetchOne(
-            'SELECT
-                a.*,
-                l.name      AS library_name,
-                l.slug      AS library_slug,
-                l.address   AS library_address,
-                u.realname  AS author_name
-             FROM bdt_article a
-             LEFT JOIN bdt_library l ON a.library_id = l.library_id
-             LEFT JOIN user        u ON a.created_by  = u.user_id
-             WHERE a.slug   = ?
-               AND a.status = "published"
-               AND (a.publish_date IS NULL OR a.publish_date <= NOW())
-             LIMIT 1',
-            's',
-            [$slug]
-        );
-
-        if (!$article) {
-            return null;
-        }
-
-        // Tambahkan tag
-        $article['tags'] = $this->getTags((int) $article['article_id']);
-
-        return $article;
-    }
-
-    /**
-     * Ambil artikel terkait berdasarkan kategori atau perpustakaan yang sama.
-     * Digunakan di: halaman detail artikel — seksi "Artikel Terkait".
-     *
-     * @param  int    $articleId   Artikel saat ini (dikecualikan)
-     * @param  string $category
-     * @param  int    $libraryId   0 jika tidak ada relasi perpus
-     * @param  int    $limit
-     * @return array
-     */
-    public function getRelated(int $articleId, string $category, int $libraryId = 0, int $limit = 4): array
-    {
-        return $this->db->fetchAll(
-            'SELECT
-                a.article_id,
-                a.title,
-                a.slug,
-                a.excerpt,
-                a.cover_image,
-                a.category,
-                a.publish_date,
-                l.name AS library_name
-             FROM bdt_article a
-             LEFT JOIN bdt_library l ON a.library_id = l.library_id
-             WHERE a.status      = "published"
-               AND a.article_id != ?
-               AND (a.category   = ? OR a.library_id = ?)
-               AND (a.publish_date IS NULL OR a.publish_date <= NOW())
-             ORDER BY a.publish_date DESC
-             LIMIT ?',
+            'SELECT a.*,
+                    l.name AS library_name
+               FROM bdt_article a
+               LEFT JOIN bdt_library l ON a.library_id = l.library_id
+              WHERE a.status     = "published"
+                AND a.article_id != ?
+                AND (a.category   = ? OR a.library_id = ?)
+                AND (a.publish_date IS NULL OR a.publish_date <= NOW())
+              ORDER BY a.publish_date DESC
+              LIMIT ?',
             'isii',
             [$articleId, $category, $libraryId ?: 0, $limit]
         );
     }
 
-    // ── Tag ───────────────────────────────────────────────────
+    public function search(string $query, int $limit = 10): array
+    {
+        $likeQuery = '%' . $query . '%';
 
-    /**
-     * Ambil semua tag suatu artikel.
-     *
-     * @param  int $articleId
-     * @return array  Array of strings
-     */
+        return $this->db->fetchAll(
+            'SELECT a.*,
+                    l.name AS library_name
+               FROM bdt_article a
+               LEFT JOIN bdt_library l ON a.library_id = l.library_id
+              WHERE a.status = "published"
+                AND (a.publish_date IS NULL OR a.publish_date <= NOW())
+                AND (
+                    a.title   LIKE ? OR
+                    a.body    LIKE ? OR
+                    a.excerpt LIKE ?
+                )
+              ORDER BY a.publish_date DESC
+              LIMIT ?',
+            'sssi',
+            [$likeQuery, $likeQuery, $likeQuery, $limit]
+        );
+    }
+
     public function getTags(int $articleId): array
     {
         $rows = $this->db->fetchAll(
-            'SELECT tag_name FROM bdt_article_tag WHERE article_id = ? ORDER BY tag_name ASC',
+            'SELECT tag_name FROM bdt_article_tag WHERE article_id = ? ORDER BY tag_name',
             'i',
             [$articleId]
         );
@@ -379,51 +404,26 @@ class ArticleService
         return array_column($rows, 'tag_name');
     }
 
-    /**
-     * Ambil artikel berdasarkan tag.
-     *
-     * @param  string $tagName
-     * @param  int    $limit
-     * @return array
-     */
     public function getByTag(string $tagName, int $limit = 10): array
     {
         return $this->db->fetchAll(
-            'SELECT
-                a.article_id,
-                a.title,
-                a.slug,
-                a.excerpt,
-                a.cover_image,
-                a.category,
-                a.publish_date,
-                l.name AS library_name
-             FROM bdt_article a
-             JOIN bdt_article_tag  t ON a.article_id = t.article_id
-             LEFT JOIN bdt_library l ON a.library_id  = l.library_id
-             WHERE a.status   = "published"
-               AND t.tag_name = ?
-               AND (a.publish_date IS NULL OR a.publish_date <= NOW())
-             ORDER BY a.publish_date DESC
-             LIMIT ?',
+            'SELECT a.*,
+                    l.name AS library_name
+               FROM bdt_article a
+               JOIN bdt_article_tag  t ON a.article_id  = t.article_id
+               LEFT JOIN bdt_library l ON a.library_id  = l.library_id
+              WHERE a.status   = "published"
+                AND t.tag_name = ?
+                AND (a.publish_date IS NULL OR a.publish_date <= NOW())
+              ORDER BY a.publish_date DESC
+              LIMIT ?',
             'si',
             [$tagName, $limit]
         );
     }
 
-    // ── Statistik Pembacaan ───────────────────────────────────
-
-    /**
-     * Catat satu pembacaan artikel.
-     * Idempotent per hari — menggunakan INSERT ... ON DUPLICATE KEY UPDATE.
-     * Dipanggil di awal setiap halaman detail artikel.
-     *
-     * @param  int $articleId
-     * @return void
-     */
     public function recordView(int $articleId): void
     {
-        // Catat ke tabel statistik harian
         $this->db->execute(
             'INSERT INTO bdt_article_view (article_id, view_date, view_count)
              VALUES (?, CURDATE(), 1)
@@ -432,7 +432,6 @@ class ArticleService
             [$articleId]
         );
 
-        // Increment counter denormalized di bdt_article
         $this->db->execute(
             'UPDATE bdt_article SET view_count = view_count + 1 WHERE article_id = ?',
             'i',
@@ -440,126 +439,37 @@ class ArticleService
         );
     }
 
-    // ── Write (Insert / Update) ───────────────────────────────
-
-    /**
-     * Buat artikel baru.
-     * Digunakan dari panel admin atau integrasi SLiMS.
-     *
-     * @param  array $data
-     * @return int   article_id baru
-     */
-    public function create(array $data): int
+    public function getViewStats(int $articleId, int $days = 30): array
     {
-        $this->db->execute(
-            'INSERT INTO bdt_article
-                (title, slug, excerpt, body, cover_image, category,
-                 status, publish_date, is_featured, is_pinned,
-                 created_by, library_id, biblio_id, meta_description)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            'ssssssssiiiii s',
-            [
-                $data['title']           ?? '',
-                $data['slug']            ?? self::generateSlug($data['title'] ?? ''),
-                $data['excerpt']         ?? null,
-                $data['body']            ?? '',
-                $data['cover_image']     ?? null,
-                $data['category']        ?? 'berita',
-                $data['status']          ?? 'draft',
-                $data['publish_date']    ?? null,
-                (int) ($data['is_featured'] ?? 0),
-                (int) ($data['is_pinned']   ?? 0),
-                $data['created_by']      ?? null,
-                $data['library_id']      ?? null,
-                $data['biblio_id']       ?? null,
-                $data['meta_description']?? null,
-            ]
+        return $this->db->fetchAll(
+            'SELECT view_date, view_count
+               FROM bdt_article_view
+              WHERE article_id = ?
+                AND view_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+              ORDER BY view_date ASC',
+            'ii',
+            [$articleId, $days]
         );
-
-        $articleId = $this->db->lastInsertId();
-
-        if (!empty($data['tags']) && is_array($data['tags'])) {
-            $this->saveTags($articleId, $data['tags']);
-        }
-
-        return $articleId;
     }
 
-    // ── Helper Statis ────────────────────────────────────────
-
-    /**
-     * Generate slug URL dari judul artikel.
-     *
-     * @param  string $title
-     * @return string
-     */
-    public static function generateSlug(string $title): string
+    public function getReviews(int $limit = 5): array
     {
-        $slug = mb_strtolower(trim($title), 'UTF-8');
-        $slug = preg_replace('/[^a-z0-9\s-]/u', '', $slug);
-        $slug = preg_replace('/[\s-]+/', '-', $slug);
-        return trim($slug, '-');
-    }
-
-    /**
-     * Kembalikan label tampilan kategori.
-     *
-     * @param  string $category
-     * @return string
-     */
-    public static function getCategoryLabel(string $category): string
-    {
-        return self::CATEGORY_LABELS[$category] ?? ucfirst($category);
-    }
-
-    /**
-     * Format tanggal publish ke bahasa Indonesia.
-     * Contoh: "14 Juli 2026"
-     *
-     * @param  string|null $datetime  Nilai dari kolom publish_date
-     * @return string
-     */
-    public static function formatDate(?string $datetime): string
-    {
-        if (!$datetime) {
-            return '';
-        }
-
-        $bulan = [
-            1  => 'Januari',  2  => 'Februari', 3  => 'Maret',
-            4  => 'April',    5  => 'Mei',       6  => 'Juni',
-            7  => 'Juli',     8  => 'Agustus',   9  => 'September',
-            10 => 'Oktober',  11 => 'November',  12 => 'Desember',
-        ];
-
-        $ts  = strtotime($datetime);
-        $d   = (int) date('j', $ts);
-        $m   = (int) date('n', $ts);
-        $y   = date('Y', $ts);
-
-        return "{$d} {$bulan[$m]} {$y}";
-    }
-
-    // ── Internal ──────────────────────────────────────────────
-
-    /**
-     * Simpan tag untuk artikel (batch INSERT IGNORE).
-     *
-     * @param  int   $articleId
-     * @param  array $tags
-     */
-    private function saveTags(int $articleId, array $tags): void
-    {
-        foreach ($tags as $tagName) {
-            $tagName = mb_strtolower(trim((string) $tagName), 'UTF-8');
-            if ($tagName === '') {
-                continue;
-            }
-            $this->db->execute(
-                'INSERT IGNORE INTO bdt_article_tag (article_id, tag_name) VALUES (?, ?)',
-                'is',
-                [$articleId, $tagName]
-            );
-        }
+        return $this->db->fetchAll(
+            'SELECT a.*,
+                    b.title       AS biblio_title,
+                    b.isbn_issn   AS biblio_isbn,
+                    b.image       AS biblio_image,
+                    l.name        AS library_name
+               FROM bdt_article a
+               LEFT JOIN biblio      b ON a.biblio_id   = b.biblio_id
+               LEFT JOIN bdt_library l ON a.library_id  = l.library_id
+              WHERE a.status   = "published"
+                AND a.category = "resensi"
+                AND (a.publish_date IS NULL OR a.publish_date <= NOW())
+              ORDER BY a.publish_date DESC
+              LIMIT ?',
+            'i',
+            [$limit]
+        );
     }
 }

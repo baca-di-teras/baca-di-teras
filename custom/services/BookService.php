@@ -415,21 +415,23 @@ class BookService
             : (defined('BASE_URL') ? BASE_URL : '') . '/custom/assets/images/book-placeholder.png';
 
         // URL halaman detail — gunakan biblio_id sebagai identifier
-        $baseUrl    = defined('BASE_URL') ? BASE_URL : '';
-        $detailHref = $baseUrl . '/katalog/' . $biblioId;
+        $detailHref = '/katalog/' . $biblioId;
 
         return [
-            'id'          => $biblioId,
-            'title'       => $row['title']        ?? '',
-            'author'      => $row['author']        ?? 'Tidak diketahui',
-            'publisher'   => $row['publisher']     ?? '',
-            'publishYear' => $row['publish_year']  ?? '',
-            'image'       => $coverImage,
-            'href'        => $detailHref,
-            'isbn'        => $row['isbn_issn']     ?? '',
-            'callNumber'  => $row['call_number']   ?? '',
-            'badge'       => ($row['promoted'] ?? 0) ? 'Unggulan' : null,
-            'inputDate'   => $row['input_date']    ?? '',
+            'id'             => $biblioId,
+            'title'          => $row['title']          ?? '',
+            'author'         => $row['author']         ?? 'Tidak diketahui',
+            'publisher'      => $row['publisher']      ?? '',
+            'publishYear'    => $row['publish_year']   ?? '',
+            'image'          => $coverImage,
+            'href'           => $detailHref,
+            'isbn'           => $row['isbn_issn']      ?? '',
+            'callNumber'     => $row['call_number']    ?? '',
+            'classification' => $row['classification'] ?? '',
+            'gmd'            => $row['gmd']            ?? '',
+            'language'       => $row['language']       ?? '',
+            'badge'          => ($row['promoted'] ?? 0) ? 'Unggulan' : null,
+            'inputDate'      => $row['input_date']     ?? '',
         ];
     }
 

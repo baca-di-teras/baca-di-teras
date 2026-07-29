@@ -19,15 +19,24 @@ $activePage = $activePage ?? 'beranda';
 // Base URL helper (adjust if project uses a different constant)
 $baseUrl = defined('BASE_URL') ? BASE_URL : '';
 
-// Navigation menu items
 $navItems = [
-    ['id' => 'beranda',       'label' => 'Beranda',       'href' => $baseUrl . '/'],
-    ['id' => 'profil',        'label' => 'Profil Desa',   'href' => $baseUrl . '/profil'],
-    ['id' => 'perpustakaan',  'label' => 'Perpustakaan',  'href' => $baseUrl . '/perpustakaan'],
-    ['id' => 'berita',        'label' => 'Berita',        'href' => $baseUrl . '/berita'],
-    ['id' => 'artikel',       'label' => 'Artikel',       'href' => $baseUrl . '/artikel'],
-    ['id' => 'informasi',     'label' => 'Informasi',     'href' => $baseUrl . '/informasi'],
-    ['id' => 'pathfinder',    'label' => 'Pathfinder',    'href' => $baseUrl . '/pathfinder'],
+    ['id' => 'beranda',      'label' => 'Beranda',          'href' => $baseUrl . '/'],
+    ['id' => 'tentang',      'label' => 'Tentang',          'type' => 'dropdown', 'children' => [
+        ['id' => 'profil',        'label' => 'Profil Desa',      'href' => $baseUrl . '/profil'],
+        ['id' => 'informasi',     'label' => 'Informasi',        'href' => $baseUrl . '/informasi']
+    ]],
+    ['id' => 'layanan',      'label' => 'Layanan',          'type' => 'dropdown', 'children' => [
+        ['id' => 'perpustakaan',  'label' => 'Perpustakaan',     'href' => $baseUrl . '/perpustakaan'],
+        ['id' => 'pathfinder',    'label' => 'Pathfinder',       'href' => $baseUrl . '/pathfinder']
+    ]],
+    ['id' => 'katalog',      'label' => 'Katalog',          'href' => $baseUrl . '/katalog'],
+    ['id' => 'rilis',        'label' => 'Rilis',            'type' => 'dropdown', 'children' => [
+        ['id' => 'artikel',       'label' => 'Artikel',          'href' => $baseUrl . '/artikel'],
+        ['id' => 'berita',        'label' => 'Berita',           'href' => $baseUrl . '/berita'],
+        ['id' => 'media',         'label' => 'Media',            'href' => $baseUrl . '/media']
+    ]],
+    ['id' => 'produk',       'label' => 'Produk',           'href' => $baseUrl . '/produk'],
+    ['id' => 'donasi',       'label' => 'Donasi',           'href' => $baseUrl . '/donasi']
 ];
 ?>
 
@@ -56,14 +65,41 @@ $navItems = [
         <nav aria-label="Menu Utama">
             <ul class="bdt-navbar__nav" id="bdt-navbar-nav" role="list">
                 <?php foreach ($navItems as $item) : ?>
+                    <?php if (isset($item['type']) && $item['type'] === 'dropdown') : ?>
+                    <?php
+                    $isDropdownActive = false;
+                    foreach ($item['children'] as $child) {
+                        if ($activePage === $child['id']) { $isDropdownActive = true; break; }
+                    }
+                    ?>
+                    <li class="bdt-navbar__nav-item bdt-dropdown">
+                        <a href="javascript:void(0)" class="bdt-navbar__nav-link bdt-dropdown-toggle<?= $isDropdownActive ? ' active' : '' ?>">
+                            <?= htmlspecialchars($item['label']) ?>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:4px;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </a>
+                        <ul class="bdt-dropdown-menu">
+                            <?php foreach ($item['children'] as $child) : ?>
+                            <li>
+                                <a href="<?= htmlspecialchars($child['href']) ?>" 
+                                   class="bdt-dropdown-item<?= $activePage === $child['id'] ? ' active' : '' ?>"
+                                   <?= isset($child['target']) ? 'target="' . htmlspecialchars($child['target']) . '"' : '' ?>>
+                                    <?= htmlspecialchars($child['label']) ?>
+                                </a>
+                            </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </li>
+                    <?php else : ?>
                     <li class="bdt-navbar__nav-item">
                         <a href="<?= htmlspecialchars($item['href']) ?>"
                            id="bdt-nav-<?= htmlspecialchars($item['id']) ?>"
                            class="bdt-navbar__nav-link<?= $activePage === $item['id'] ? ' active' : '' ?>"
+                           <?= isset($item['target']) ? 'target="' . htmlspecialchars($item['target']) . '"' : '' ?>
                            <?= $activePage === $item['id'] ? 'aria-current="page"' : '' ?>>
                             <?= htmlspecialchars($item['label']) ?>
                         </a>
                     </li>
+                    <?php endif; ?>
                 <?php endforeach; ?>
             </ul>
         </nav>
@@ -124,14 +160,41 @@ $navItems = [
         <!-- Mobile Nav Links -->
         <ul class="bdt-navbar__mobile-nav" role="list">
             <?php foreach ($navItems as $item) : ?>
+                <?php if (isset($item['type']) && $item['type'] === 'dropdown') : ?>
+                <?php
+                $isDropdownActive = false;
+                foreach ($item['children'] as $child) {
+                    if ($activePage === $child['id']) { $isDropdownActive = true; break; }
+                }
+                ?>
+                <li class="bdt-mobile-dropdown">
+                    <span class="bdt-navbar__mobile-link bdt-mobile-dropdown-toggle<?= $isDropdownActive ? ' active' : '' ?>">
+                        <?= htmlspecialchars($item['label']) ?>
+                    </span>
+                    <ul class="bdt-mobile-dropdown-menu">
+                        <?php foreach ($item['children'] as $child) : ?>
+                        <li>
+                            <a href="<?= htmlspecialchars($child['href']) ?>"
+                               id="bdt-mobile-nav-<?= htmlspecialchars($child['id']) ?>"
+                               class="bdt-navbar__mobile-link<?= $activePage === $child['id'] ? ' active' : '' ?>"
+                               <?= isset($child['target']) ? 'target="' . htmlspecialchars($child['target']) . '"' : '' ?>>
+                                <?= htmlspecialchars($child['label']) ?>
+                            </a>
+                        </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </li>
+                <?php else : ?>
                 <li>
                     <a href="<?= htmlspecialchars($item['href']) ?>"
                        id="bdt-mobile-nav-<?= htmlspecialchars($item['id']) ?>"
                        class="bdt-navbar__mobile-link<?= $activePage === $item['id'] ? ' active' : '' ?>"
+                       <?= isset($item['target']) ? 'target="' . htmlspecialchars($item['target']) . '"' : '' ?>
                        <?= $activePage === $item['id'] ? 'aria-current="page"' : '' ?>>
                         <?= htmlspecialchars($item['label']) ?>
                     </a>
                 </li>
+                <?php endif; ?>
             <?php endforeach; ?>
         </ul>
 

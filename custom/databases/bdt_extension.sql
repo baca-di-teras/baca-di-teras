@@ -537,19 +537,17 @@ ORDER BY a.is_pinned DESC, a.publish_date DESC;
 
 -- View: statistik koleksi per perpustakaan
 -- Join ke tabel SLiMS: item (eksemplar) dan mst_location
-CREATE OR REPLACE VIEW `bdt_library_stats` AS
-SELECT
+CREATE OR REPLACE VIEW bdt_library_stats AS
+SELECT 
     lib.library_id,
     lib.slug,
     lib.name,
     lib.slims_location_id,
     lib.total_koleksi,
     lib.total_anggota,
-    COUNT(DISTINCT i.item_id) AS total_eksemplar_aktif
-FROM `bdt_library` lib
-LEFT JOIN `item` i
-    ON i.location_id = lib.slims_location_id
-   AND i.item_status_id NOT IN ('WD', 'MIS')
+    COUNT(DISTINCT i.item_id) as total_eksemplar_aktif
+FROM bdt_library lib
+LEFT JOIN item i ON i.location_id = lib.slims_location_id AND (i.item_status_id NOT IN ('WD', 'MIS') OR i.item_status_id IS NULL)
 GROUP BY lib.library_id;
 
 COMMIT;

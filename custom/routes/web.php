@@ -81,15 +81,70 @@ $router->get('/informasi', 'custom/pages/informasi.php');
 $router->get('/kontak',    'custom/pages/contact.php');
 
 // ============================================================
+// PATHFINDER
+// ============================================================
+
+// Admin portal login & logout
+$router->get('/portal-admin/login', 'custom/pages/admin/login.php');
+$router->get('/portal-admin/logout', 'custom/pages/admin/logout.php');
+
+// Global CMS Admin Dashboard
+$router->get('/portal-admin', 'custom/pages/admin/dashboard.php');
+
+// CMS Modules (Skeletons)
+$router->get('/portal-admin/artikel', 'custom/pages/admin/manage_article.php');
+$router->get('/portal-admin/artikel/create', 'custom/pages/admin/create_article.php');
+$router->get('/portal-admin/artikel/edit', 'custom/pages/admin/edit_article.php');
+$router->get('/portal-admin/perpustakaan', 'custom/pages/admin/manage_library.php');
+$router->get('/portal-admin/perpustakaan/create', 'custom/pages/admin/create_library.php');
+$router->get('/portal-admin/perpustakaan/edit', 'custom/pages/admin/edit_library.php');
+$router->get('/portal-admin/informasi', 'custom/pages/admin/manage_info.php');
+$router->get('/portal-admin/informasi/create', 'custom/pages/admin/create_info.php');
+$router->get('/portal-admin/informasi/edit', 'custom/pages/admin/edit_info.php');
+$router->get('/portal-admin/profil-desa', 'custom/pages/admin/manage_profile.php');
+
+$router->get('/portal-admin/akun', 'custom/pages/admin/manage_accounts.php');
+$router->get('/portal-admin/akun/tambah', 'custom/pages/admin/create_account.php');
+$router->get('/portal-admin/akun/edit', 'custom/pages/admin/edit_account.php');
+
+// Aktivitas & Pengumuman
+$router->get('/portal-admin/aktivitas', 'custom/pages/admin/manage_activity.php');
+$router->get('/portal-admin/pengumuman', 'custom/pages/admin/manage_announcements.php');
+$router->get('/portal-admin/pengumuman/tambah', 'custom/pages/admin/create_announcement.php');
+
+// Pathfinder Admin Modules
+$router->get('/portal-admin/pathfinder', 'custom/pages/pathfinder/managepathfinder.php');
+$router->get('/portal-admin/pathfinder/kategori', 'custom/pages/pathfinder/managecategory.php');
+
+// Halaman utama pathfinder (lama)
+$router->get('/pathfinder', 'custom/pages/pathfinder/index.php');
+
+// Halaman Pathfinder baru — dua panel (sidebar kategori + daftar topik)
+// /pathfinder/jelajahi           → tampilkan semua, kategori pertama dipilih
+// /pathfinder/jelajahi/{slug}    → kategori tertentu aktif di sidebar
+// /pathfinder/jelajahi/{slug}/{topik}/buku/{id} → tampilan detail buku di dalam topik
+$router->get('/pathfinder/jelajahi',                             'custom/pages/pathfinder/browse.php');
+$router->get('/pathfinder/jelajahi/{slug}',                      'custom/pages/pathfinder/browse.php');
+$router->get('/pathfinder/jelajahi/{slug}/{topik}',              'custom/pages/pathfinder/browse.php');
+$router->get('/pathfinder/jelajahi/{slug}/{topik}/buku/{id}',    'custom/pages/pathfinder/browse.php');
+$router->get('/pathfinder/buku/{id}',                            'custom/pages/pathfinder/browse.php');
+
+// Kategori pathfinder: /pathfinder/kategori/teknologi
+$router->get('/pathfinder/kategori/{slug}', 'custom/pages/pathfinder/category.php');
+
+// Detail pathfinder: /pathfinder/pemrograman-web
+$router->get('/pathfinder/{slug}', 'custom/pages/pathfinder/detail.php');
+
+// Download PDF pathfinder
+$router->get('/pathfinder/download/{slug}', 'custom/pages/pathfinder/download.php');
+
+// ============================================================
 // ADMIN — Redirect ke SLiMS Admin
 // ============================================================
 
 // /admin → redirect ke SLiMS backend
 // Gunakan path absolut sesuai instalasi SLiMS
 $router->redirect('/admin', BASE_URL . '/slims/admin/', 302);
-
-// /login → redirect ke SLiMS Member Area
-$router->redirect('/login', BASE_URL . '/slims/?p=member', 302);
 
 // ============================================================
 // 404 — Halaman tidak ditemukan

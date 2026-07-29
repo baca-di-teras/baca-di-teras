@@ -5,123 +5,285 @@
  * File    : LibraryService.php
  * Project : Baca Di Teras
  * Version : 1.0.0
- *
- * Seluruh query yang berhubungan dengan perpustakaan
- * (tabel bdt_library, bdt_library_gallery, bdt_library_facility,
- *  bdt_library_hour, dan integrasi SLiMS: mst_location, item).
- *
- * ATURAN:
- *   - Semua metode mengembalikan array PHP murni (bukan object).
- *   - Halaman PHP memanggil LibraryService, BUKAN Database langsung.
- *   - Tidak ada logika tampilan (HTML) di dalam kelas ini.
- *
- * Usage:
- *   require_once ROOT_PATH . '/custom/services/LibraryService.php';
- *   $service   = new LibraryService();
- *   $libraries = $service->getAllActive();
  */
 
-require_once __DIR__ . '/../helpers/Database.php';
+require_once __DIR__ . '/../helpers/database.php';
+require_once __DIR__ . '/ActivityLogService.php';
 
 class LibraryService
 {
     private Database $db;
+    private ActivityLogService $activityLog;
 
     public function __construct()
     {
         $this->db = Database::getInstance();
+        $this->activityLog = new ActivityLogService();
     }
 
-    // ── Daftar Perpustakaan ────────────────────────────────────
+    public function getAllLibraries(): array
+    {
+        $sql = "SELECT * FROM bdt_library ORDER BY sort_order ASC, library_id DESC";
+        return $this->db->fetchAll($sql);
+    }
 
-    /**
-     * Ambil semua perpustakaan dengan status aktif.
-     * Digunakan di: halaman /perpustakaan, landing page.
-     *
-     * @return array
-     */
     public function getAllActive(): array
     {
-        return $this->db->fetchAll(
-            'SELECT
-                library_id,
-                slug,
-                name,
-                tagline,
-                badge,
-                address,
-                phone,
-                cover_image,
-                thumbnail_image,
-                total_koleksi,
-                total_anggota,
-                status,
-                sort_order
-             FROM bdt_library
-             WHERE status = ?
-             ORDER BY sort_order ASC, name ASC',
-            's',
-            ['aktif']
-        );
+        $sql = "SELECT * FROM bdt_library WHERE status = 'aktif' ORDER BY sort_order ASC, name ASC";
+        return $this->db->fetchAll($sql);
     }
 
-    /**
-     * Ambil perpustakaan unggulan (badge IS NOT NULL).
-     * Digunakan di: landing page — seksi "Perpustakaan Unggulan".
-     *
-     * @param  int $limit
-     * @return array
-     */
-    public function getFeatured(int $limit = 5): array
+    public function getFeatured(int $limit = 3): array
     {
-        return $this->db->fetchAll(
-            'SELECT
-                library_id,
-                slug,
-                name,
-                address,
-                badge,
-                thumbnail_image,
-                total_koleksi
-             FROM bdt_library
-             WHERE status = ?
-               AND badge  IS NOT NULL
-             ORDER BY sort_order ASC
-             LIMIT ?',
-            'si',
-            ['aktif', $limit]
-        );
+        $sql = "SELECT * FROM bdt_library WHERE status = 'aktif' AND badge IS NOT NULL ORDER BY sort_order ASC LIMIT ?";
+        return $this->db->fetchAll($sql, 'i', [$limit]);
     }
 
-    // ── Detail Perpustakaan ────────────────────────────────────
+    public function getOverallStats(): array
+    {
+        $sql = "SELECT 
+                    COUNT(DISTINCT l.library_id) as totalPerpustakaan, 
+                    SUM(l.total_anggota) as totalAnggota,
+                    (SELECT COUNT(i.item_id) 
+                     FROM item i 
+                     JOIN bdt_library lib ON i.location_id = lib.slims_location_id
+                     WHERE i.item_status_id NOT IN ('WD', 'MIS') AND lib.status = 'aktif') as totalKoleksi
+                FROM bdt_library l 
+                WHERE l.status = 'aktif'";
+        $row = $this->db->fetchOne($sql);
+        return $row ?: ['totalPerpustakaan' => 0, 'totalKoleksi' => 0, 'totalAnggota' => 0];
+    }
 
-    /**
-     * Ambil satu perpustakaan berdasarkan slug URL.
-     * Digunakan di: halaman /perpustakaan/{slug}.
-     *
-     * @param  string    $slug
-     * @return array|null
-     */
-    public function getBySlug(string $slug): ?array
+    public function getLibraryById(int $library_id): ?array
+    {
+        $sql = "SELECT * FROM bdt_library WHERE library_id = ? LIMIT 1";
+        $stmt = $this->db->getConnection()->prepare($sql);
+        if (!$stmt) return null;
+
+        $stmt->bind_param('i', $library_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $library = $result->fetch_assoc();
+        $stmt->close();
+
+        return $library;
+    }
+
+    public function createLibrary(array $data): bool
+    {
+        $sql = "INSERT INTO bdt_library (slims_location_id, slug, name, tagline, badge, status, address, village, phone, email, whatsapp, google_maps_url, latitude, longitude, cover_image, description, sort_order) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        
+        $stmt = $this->db->getConnection()->prepare($sql);
+        if (!$stmt) return false;
+
+        $slims_location_id = $data['slims_location_id'] ?? '';
+        $name = $data['name'];
+        $slug = $data['slug'] ?? $this->generateSlug($name);
+        $tagline = $data['tagline'] ?? null;
+        $badge = $data['badge'] ?? null;
+        $status = $data['status'] ?? 'aktif';
+        $address = $data['address'] ?? null;
+        $village = $data['village'] ?? null;
+        $phone = $data['phone'] ?? null;
+        $email = $data['email'] ?? null;
+        $whatsapp = $data['whatsapp'] ?? null;
+        $google_maps_url = $data['google_maps_url'] ?? null;
+        $latitude = $data['latitude'] ?? null;
+        $longitude = $data['longitude'] ?? null;
+        $cover_image = $data['cover_image'] ?? null;
+        $description = $data['description'] ?? null;
+        $sort_order = $data['sort_order'] ?? 0;
+
+        $stmt->bind_param('ssssssssssssddssi', 
+            $slims_location_id, $slug, $name, $tagline, $badge, $status, 
+            $address, $village, $phone, $email, $whatsapp, $google_maps_url, 
+            $latitude, $longitude, $cover_image, $description, $sort_order
+        );
+        
+        $result = $stmt->execute();
+        $stmt->close();
+        
+        if ($result) {
+            $this->activityLog->log('menambahkan', 'Perpustakaan', $name);
+        }
+
+        return $result;
+    }
+
+    public function updateLibrary(int $library_id, array $data): bool
+    {
+        $sql = "UPDATE bdt_library 
+                SET slims_location_id = ?, slug = ?, name = ?, tagline = ?, badge = ?, status = ?, address = ?, village = ?, phone = ?, email = ?, whatsapp = ?, google_maps_url = ?, latitude = ?, longitude = ?, cover_image = ?, description = ?, sort_order = ? 
+                WHERE library_id = ?";
+        
+        $stmt = $this->db->getConnection()->prepare($sql);
+        if (!$stmt) return false;
+
+        $slims_location_id = $data['slims_location_id'] ?? '';
+        $name = $data['name'];
+        $slug = $data['slug'] ?? $this->generateSlug($name);
+        $tagline = $data['tagline'] ?? null;
+        $badge = $data['badge'] ?? null;
+        $status = $data['status'] ?? 'aktif';
+        $address = $data['address'] ?? null;
+        $village = $data['village'] ?? null;
+        $phone = $data['phone'] ?? null;
+        $email = $data['email'] ?? null;
+        $whatsapp = $data['whatsapp'] ?? null;
+        $google_maps_url = $data['google_maps_url'] ?? null;
+        $latitude = $data['latitude'] ?? null;
+        $longitude = $data['longitude'] ?? null;
+        $cover_image = $data['cover_image'] ?? null;
+        $description = $data['description'] ?? null;
+        $sort_order = $data['sort_order'] ?? 0;
+
+        $stmt->bind_param('ssssssssssssddssii', 
+            $slims_location_id, $slug, $name, $tagline, $badge, $status, 
+            $address, $village, $phone, $email, $whatsapp, $google_maps_url, 
+            $latitude, $longitude, $cover_image, $description, $sort_order,
+            $library_id
+        );
+        
+        $result = $stmt->execute();
+        $stmt->close();
+        
+        if ($result) {
+            $this->activityLog->log('mengubah', 'Perpustakaan', $name);
+        }
+
+        return $result;
+    }
+
+    public function deleteLibrary(int $library_id): bool
+    {
+        $sql = "DELETE FROM bdt_library WHERE library_id = ?";
+        $stmt = $this->db->getConnection()->prepare($sql);
+        if (!$stmt) return false;
+
+        $stmt->bind_param('i', $library_id);
+        $result = $stmt->execute();
+        $stmt->close();
+
+        if ($result) {
+            $this->activityLog->log('menghapus', 'Perpustakaan', "ID: $library_id");
+        }
+
+        return $result;
+    }
+
+    public function getBySlug(string $slug): array|false
     {
         return $this->db->fetchOne(
-            'SELECT * FROM bdt_library WHERE slug = ? AND status != ? LIMIT 1',
-            'ss',
-            [$slug, 'nonaktif']
+            'SELECT * FROM bdt_library WHERE slug = ? LIMIT 1',
+            's',
+            [$slug]
         );
     }
 
-    /**
-     * Ambil detail lengkap perpustakaan beserta relasi:
-     * galeri, fasilitas, jam operasional, dan statistik dari SLiMS.
-     * Digunakan di: halaman /perpustakaan/{slug}.
-     *
-     * @param  string    $slug
-     * @return array|null  Array berisi key: library, gallery, facilities, hours, isOpenNow, stats
-     */
+    public function getGallery(int $libraryId): array
+    {
+        return $this->db->fetchAll(
+            'SELECT * FROM bdt_library_gallery
+              WHERE library_id = ?
+              ORDER BY sort_order ASC, gallery_id ASC',
+            'i',
+            [$libraryId]
+        );
+    }
+
+    public function getFacilities(int $libraryId): array
+    {
+        return $this->db->fetchAll(
+            'SELECT * FROM bdt_library_facility
+              WHERE library_id = ?
+              ORDER BY sort_order ASC',
+            'i',
+            [$libraryId]
+        );
+    }
+
+    public function getHours(int $libraryId): array
+    {
+        $rows = $this->db->fetchAll(
+            'SELECT * FROM bdt_library_hour
+              WHERE library_id = ?
+              ORDER BY day_of_week ASC',
+            'i',
+            [$libraryId]
+        );
+
+        $hours = [];
+        foreach ($rows as $row) {
+            $hours[(int) $row['day_of_week']] = $row;
+        }
+        return $hours;
+    }
+
+    public function isOpenNow(int $libraryId): bool
+    {
+        $todayDow  = (int) date('w');
+        $nowTime   = date('H:i:s');
+
+        $row = $this->db->fetchOne(
+            'SELECT * FROM bdt_library_hour
+              WHERE library_id   = ?
+                AND day_of_week  = ?
+                AND is_open      = 1
+              LIMIT 1',
+            'ii',
+            [$libraryId, $todayDow]
+        );
+
+        if (!$row) {
+            return false;
+        }
+
+        return $nowTime >= $row['open_time'] && $nowTime <= $row['close_time'];
+    }
+
+    public function getTodayHour(int $libraryId): array|false
+    {
+        $todayDow = (int) date('w');
+
+        return $this->db->fetchOne(
+            'SELECT * FROM bdt_library_hour
+              WHERE library_id  = ?
+                AND day_of_week = ?
+              LIMIT 1',
+            'ii',
+            [$libraryId, $todayDow]
+        );
+    }
+
+    public function countActiveItems(string $locationId): int
+    {
+        $count = $this->db->fetchScalar(
+            'SELECT COUNT(*) FROM item
+              WHERE location_id    = ?
+                AND item_status_id NOT IN ("WD", "MIS")',
+            's',
+            [$locationId]
+        );
+        return (int) $count;
+    }
+
+    public function countUniqueTitles(string $locationId): int
+    {
+        $count = $this->db->fetchScalar(
+            'SELECT COUNT(DISTINCT biblio_id) FROM item
+              WHERE location_id    = ?
+                AND item_status_id NOT IN ("WD", "MIS")',
+            's',
+            [$locationId]
+        );
+        return (int) $count;
+    }
+
     public function getDetailBySlug(string $slug): ?array
     {
         $library = $this->getBySlug($slug);
+
         if (!$library) {
             return null;
         }
@@ -137,220 +299,18 @@ class LibraryService
             'isOpenNow'  => $this->isOpenNow($libraryId),
             'todayHour'  => $this->getTodayHour($libraryId),
             'stats'      => [
-                'totalEksemplar' => $this->countActiveItems($locationId),
-                'totalJudul'     => $this->countUniqueTitles($locationId),
-                'totalKoleksi'   => (int) $library['total_koleksi'],
-                'totalAnggota'   => (int) $library['total_anggota'],
+                'totalEksemplar'   => $this->countActiveItems($locationId),
+                'totalJudul'       => $this->countUniqueTitles($locationId),
+                'totalKoleksi'     => (int) $library['total_koleksi'],
+                'totalAnggota'     => (int) $library['total_anggota'],
             ],
         ];
     }
 
-    // ── Galeri ────────────────────────────────────────────────
-
-    /**
-     * Ambil semua foto galeri suatu perpustakaan.
-     *
-     * @param  int $libraryId
-     * @return array
-     */
-    public function getGallery(int $libraryId): array
+    private function generateSlug(string $title): string
     {
-        return $this->db->fetchAll(
-            'SELECT gallery_id, image_path, caption, alt_text, sort_order
-             FROM bdt_library_gallery
-             WHERE library_id = ?
-             ORDER BY sort_order ASC, gallery_id ASC',
-            'i',
-            [$libraryId]
-        );
-    }
-
-    // ── Fasilitas ─────────────────────────────────────────────
-
-    /**
-     * Ambil daftar fasilitas suatu perpustakaan.
-     *
-     * @param  int $libraryId
-     * @return array
-     */
-    public function getFacilities(int $libraryId): array
-    {
-        return $this->db->fetchAll(
-            'SELECT facility_id, icon, name, description, sort_order
-             FROM bdt_library_facility
-             WHERE library_id = ?
-             ORDER BY sort_order ASC',
-            'i',
-            [$libraryId]
-        );
-    }
-
-    // ── Jam Operasional ───────────────────────────────────────
-
-    /**
-     * Ambil jam operasional semua hari, diindeks oleh day_of_week.
-     * 0=Minggu, 1=Senin, ..., 6=Sabtu.
-     *
-     * @param  int $libraryId
-     * @return array  Array terindeks oleh day_of_week
-     */
-    public function getHours(int $libraryId): array
-    {
-        $rows = $this->db->fetchAll(
-            'SELECT day_of_week, is_open, open_time, close_time, note
-             FROM bdt_library_hour
-             WHERE library_id = ?
-             ORDER BY day_of_week ASC',
-            'i',
-            [$libraryId]
-        );
-
-        $indexed = [];
-        foreach ($rows as $row) {
-            $indexed[(int) $row['day_of_week']] = $row;
-        }
-        return $indexed;
-    }
-
-    /**
-     * Ambil jam operasional hari ini.
-     *
-     * @param  int $libraryId
-     * @return array|null
-     */
-    public function getTodayHour(int $libraryId): ?array
-    {
-        // date('w') = 0 (Minggu) s/d 6 (Sabtu)
-        $todayDow = (int) date('w');
-
-        return $this->db->fetchOne(
-            'SELECT * FROM bdt_library_hour WHERE library_id = ? AND day_of_week = ? LIMIT 1',
-            'ii',
-            [$libraryId, $todayDow]
-        );
-    }
-
-    /**
-     * Cek apakah perpustakaan sedang buka berdasarkan jam sekarang.
-     *
-     * @param  int $libraryId
-     * @return bool
-     */
-    public function isOpenNow(int $libraryId): bool
-    {
-        $todayDow = (int) date('w');
-        $nowTime  = date('H:i:s');
-
-        $row = $this->db->fetchOne(
-            'SELECT open_time, close_time
-             FROM bdt_library_hour
-             WHERE library_id  = ?
-               AND day_of_week = ?
-               AND is_open     = 1
-             LIMIT 1',
-            'ii',
-            [$libraryId, $todayDow]
-        );
-
-        if (!$row) {
-            return false;
-        }
-
-        return $nowTime >= $row['open_time'] && $nowTime <= $row['close_time'];
-    }
-
-    // ── Integrasi SLiMS ───────────────────────────────────────
-
-    /**
-     * Hitung total eksemplar aktif dari tabel item SLiMS.
-     * Status WD (Withdrawn) dan MIS (Missing) dikecualikan.
-     *
-     * @param  string $locationId  slims_location_id, contoh: 'PU'
-     * @return int
-     */
-    public function countActiveItems(string $locationId): int
-    {
-        $count = $this->db->fetchScalar(
-            'SELECT COUNT(*)
-             FROM item
-             WHERE location_id    = ?
-               AND item_status_id NOT IN ("WD", "MIS")',
-            's',
-            [$locationId]
-        );
-        return (int) $count;
-    }
-
-    /**
-     * Hitung judul unik yang tersedia di suatu lokasi.
-     *
-     * @param  string $locationId
-     * @return int
-     */
-    public function countUniqueTitles(string $locationId): int
-    {
-        $count = $this->db->fetchScalar(
-            'SELECT COUNT(DISTINCT biblio_id)
-             FROM item
-             WHERE location_id    = ?
-               AND item_status_id NOT IN ("WD", "MIS")',
-            's',
-            [$locationId]
-        );
-        return (int) $count;
-    }
-
-    /**
-     * Ambil statistik gabungan untuk ditampilkan di landing page
-     * (total seluruh perpustakaan aktif).
-     *
-     * @return array  Array berisi totalKoleksi, totalAnggota, totalPerpustakaan, totalEksemplar
-     */
-    public function getOverallStats(): array
-    {
-        $row = $this->db->fetchOne(
-            'SELECT
-                COUNT(*)               AS total_perpustakaan,
-                SUM(total_koleksi)     AS total_koleksi,
-                SUM(total_anggota)     AS total_anggota
-             FROM bdt_library
-             WHERE status = ?',
-            's',
-            ['aktif']
-        );
-
-        // Hitung total eksemplar dari item SLiMS (lintas semua lokasi)
-        $eksemplar = $this->db->fetchScalar(
-            'SELECT COUNT(*) FROM item WHERE item_status_id NOT IN ("WD", "MIS")'
-        );
-
-        return [
-            'totalPerpustakaan' => (int) ($row['total_perpustakaan'] ?? 0),
-            'totalKoleksi'      => (int) ($row['total_koleksi']      ?? 0),
-            'totalAnggota'      => (int) ($row['total_anggota']      ?? 0),
-            'totalEksemplar'    => (int) ($eksemplar                 ?? 0),
-        ];
-    }
-
-    /**
-     * Sinkronisasi total_koleksi dan total_anggota dari SLiMS.
-     * Dipanggil via cron job atau setelah transaksi SLiMS.
-     *
-     * @param  int $libraryId
-     * @param  int $totalKoleksi
-     * @param  int $totalAnggota
-     * @return int  Baris terpengaruh
-     */
-    public function syncStats(int $libraryId, int $totalKoleksi, int $totalAnggota): int
-    {
-        return $this->db->execute(
-            'UPDATE bdt_library
-             SET total_koleksi = ?,
-                 total_anggota = ?,
-                 updated_at    = NOW()
-             WHERE library_id  = ?',
-            'iii',
-            [$totalKoleksi, $totalAnggota, $libraryId]
-        );
+        $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $title)));
+        $slug = preg_replace('/-+/', '-', $slug);
+        return $slug;
     }
 }
