@@ -37,6 +37,7 @@ $infoServices = $infoService->getServicesInfo();
     <!-- Main styles -->
     <link rel="stylesheet" href="<?= BASE_URL ?>/custom/assets/css/landing.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/custom/assets/css/informasi.css">
+    <link rel="icon" type="image/png" href="<?= defined('BASE_URL') ? BASE_URL : '/baca-di-teras' ?>/custom/assets/images/logo_header.png">
 </head>
 <body>
     <?php include __DIR__ . '/../components/navbar.php'; ?>

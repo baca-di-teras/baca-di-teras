@@ -41,7 +41,7 @@ $navItems = [
 ?>
 
 <!-- Navbar Stylesheet -->
-<link rel="stylesheet" href="<?= $baseUrl ?>/custom/assets/css/navbar.css">
+<link rel="stylesheet" href="<?= $baseUrl ?>/custom/assets/css/navbar.css?v=<?= filemtime(__DIR__ . '/../assets/css/navbar.css') ?>">
 
 <!-- ============================================================
      Navbar Component

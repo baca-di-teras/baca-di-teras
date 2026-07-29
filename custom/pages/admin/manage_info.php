@@ -58,6 +58,7 @@ $informations = $infoService->getAllInformation();
         .btn-delete { color: #dc2626; }
         .btn-delete:hover { background: #fee2e2; }
     </style>
+    <link rel="icon" type="image/png" href="<?= defined('BASE_URL') ? BASE_URL : '/baca-di-teras' ?>/custom/assets/images/logo_header.png">
 </head>
 <body>
 

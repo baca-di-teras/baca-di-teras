@@ -76,6 +76,7 @@ $bookListJson = json_encode(
     <title><?= htmlspecialchars($pageTitle) ?> – Baca Di Teras</title>
     <link rel="stylesheet" href="<?= $baseUrl ?>/custom/assets/css/catalog.css">
     <link rel="stylesheet" href="<?= $baseUrl ?>/custom/assets/css/landing.css">
+    <link rel="icon" type="image/png" href="<?= defined('BASE_URL') ? BASE_URL : '/baca-di-teras' ?>/custom/assets/images/logo_header.png">
 </head>
 <body>
 
@@ -142,9 +143,11 @@ $bookListJson = json_encode(
                 <!-- KATEGORI -->
                 <div class="bdt-filter-group" id="bdt-filter-kategori">
                     <span class="bdt-filter-group__label">Kategori</span>
-                    <?php foreach ($categoryList as $catItem) : ?>
-                        <label class="bdt-filter-checkbox"
-                               for="bdt-cat-<?= htmlspecialchars($catItem['id']) ?>">
+                    <div id="bdt-list-kategori">
+                    <?php foreach ($categoryList as $index => $catItem) : ?>
+                        <label class="bdt-filter-checkbox <?= $index >= 10 ? 'is-hidden-filter' : '' ?>"
+                               for="bdt-cat-<?= htmlspecialchars($catItem['id']) ?>"
+                               <?= $index >= 10 ? 'style="display: none;"' : '' ?>>
                             <input type="checkbox"
                                    id="bdt-cat-<?= htmlspecialchars($catItem['id']) ?>"
                                    name="kategori"
@@ -153,6 +156,12 @@ $bookListJson = json_encode(
                             <?= htmlspecialchars($catItem['label']) ?>
                         </label>
                     <?php endforeach; ?>
+                    </div>
+                    <?php if (count($categoryList) > 10): ?>
+                    <button type="button" class="bdt-filter-toggle" onclick="toggleFilterList('bdt-list-kategori', this)">
+                        Selengkapnya <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+                    <?php endif; ?>
                 </div>
 
                 <!-- PERPUSTAKAAN -->
@@ -197,9 +206,11 @@ $bookListJson = json_encode(
                 <!-- PENERBIT -->
                 <div class="bdt-filter-group" id="bdt-filter-penerbit">
                     <span class="bdt-filter-group__label">Penerbit</span>
-                    <?php foreach ($publisherList as $pubItem) : ?>
-                        <label class="bdt-filter-radio"
-                               for="bdt-pub-<?= htmlspecialchars($pubItem['id']) ?>">
+                    <div id="bdt-list-penerbit">
+                    <?php foreach ($publisherList as $index => $pubItem) : ?>
+                        <label class="bdt-filter-radio <?= $index >= 10 ? 'is-hidden-filter' : '' ?>"
+                               for="bdt-pub-<?= htmlspecialchars($pubItem['id']) ?>"
+                               <?= $index >= 10 ? 'style="display: none;"' : '' ?>>
                             <input type="radio"
                                    id="bdt-pub-<?= htmlspecialchars($pubItem['id']) ?>"
                                    name="penerbit"
@@ -208,6 +219,12 @@ $bookListJson = json_encode(
                             <?= htmlspecialchars($pubItem['label']) ?>
                         </label>
                     <?php endforeach; ?>
+                    </div>
+                    <?php if (count($publisherList) > 10): ?>
+                    <button type="button" class="bdt-filter-toggle" onclick="toggleFilterList('bdt-list-penerbit', this)">
+                        Selengkapnya <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+                    <?php endif; ?>
                 </div>
 
             </aside>
@@ -288,6 +305,26 @@ $bookListJson = json_encode(
 <script>
 (function () {
     'use strict';
+
+    // ── Global Toggle Function ───────────────────────────────
+    window.toggleFilterList = function(listId, btn) {
+        const container = document.getElementById(listId);
+        if (!container) return;
+        const hiddenItems = container.querySelectorAll('.is-hidden-filter');
+        const isExpanded = container.classList.contains('is-expanded');
+        
+        if (isExpanded) {
+            // Collapse
+            hiddenItems.forEach(function(el) { el.style.display = 'none'; });
+            container.classList.remove('is-expanded');
+            btn.innerHTML = 'Selengkapnya <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>';
+        } else {
+            // Expand
+            hiddenItems.forEach(function(el) { el.style.display = 'flex'; });
+            container.classList.add('is-expanded');
+            btn.innerHTML = 'Sembunyikan <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>';
+        }
+    };
 
     // ── State ────────────────────────────────────────────────
     const ITEMS_PER_PAGE = <?= $itemsPerPage ?>;

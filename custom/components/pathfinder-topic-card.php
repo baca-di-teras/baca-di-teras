@@ -197,7 +197,13 @@ if ($isTopicForActiveBook) {
                     <div class="ptc-book-detail__cover-card">
                         <div class="ptc-book-detail__cover-wrap">
                             <?php if (!empty($activeBookDetail['image'])): ?>
-                            <img src="<?= BASE_URL ?>/slims/images/docs/<?= htmlspecialchars($activeBookDetail['image']) ?>" alt="Sampul <?= htmlspecialchars($activeBookDetail['title']) ?>" onerror="this.src='<?= BASE_URL ?>/custom/assets/img/book-cover-placeholder.svg'">
+                            <?php
+                                $imgSrc = $activeBookDetail['image'];
+                                if (!str_starts_with($imgSrc, 'http') && !str_starts_with($imgSrc, '/')) {
+                                    $imgSrc = BASE_URL . (str_starts_with($imgSrc, 'slims/') ? '/' : '/slims/images/docs/') . $imgSrc;
+                                }
+                            ?>
+                            <img src="<?= htmlspecialchars($imgSrc) ?>" alt="Sampul <?= htmlspecialchars($activeBookDetail['title']) ?>" onerror="this.src='<?= BASE_URL ?>/custom/assets/images/book-placeholder.png'">
                             <?php else: ?>
                             <div class="ptc-book-item__cover-ph" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#e2e8f0;color:#64748b;">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" viewBox="0 0 256 256"><path d="M224,48H160a40,40,0,0,0-32,16A40,40,0,0,0,96,48H32A16,16,0,0,0,16,64V192a16,16,0,0,0,16,16H96a24,24,0,0,1,24,24,8,8,0,0,0,16,0,24,24,0,0,1,24-24h64a16,16,0,0,0,16-16V64A16,16,0,0,0,224,48Z"/></svg>
@@ -298,7 +304,13 @@ if ($isTopicForActiveBook) {
                     <div class="ptc-book-item" id="book-<?= (int)$book['biblio_id'] ?>">
                         <div class="ptc-book-item__cover">
                             <?php if (!empty($book['image'])): ?>
-                            <img src="<?= BASE_URL ?>/slims/images/docs/<?= htmlspecialchars($book['image']) ?>" alt="Sampul <?= htmlspecialchars($book['title']) ?>" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                            <?php
+                                $imgSrc = $book['image'];
+                                if (!str_starts_with($imgSrc, 'http') && !str_starts_with($imgSrc, '/')) {
+                                    $imgSrc = BASE_URL . (str_starts_with($imgSrc, 'slims/') ? '/' : '/slims/images/docs/') . $imgSrc;
+                                }
+                            ?>
+                            <img src="<?= htmlspecialchars($imgSrc) ?>" alt="Sampul <?= htmlspecialchars($book['title']) ?>" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                             <div class="ptc-book-item__cover-ph" style="display:none"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 256 256"><path d="M224,48H160a40,40,0,0,0-32,16A40,40,0,0,0,96,48H32A16,16,0,0,0,16,64V192a16,16,0,0,0,16,16H96a24,24,0,0,1,24,24,8,8,0,0,0,16,0,24,24,0,0,1,24-24h64a16,16,0,0,0,16-16V64A16,16,0,0,0,224,48Z"/></svg></div>
                             <?php else: ?>
                             <div class="ptc-book-item__cover-ph"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 256 256"><path d="M224,48H160a40,40,0,0,0-32,16A40,40,0,0,0,96,48H32A16,16,0,0,0,16,64V192a16,16,0,0,0,16,16H96a24,24,0,0,1,24,24,8,8,0,0,0,16,0,24,24,0,0,1,24-24h64a16,16,0,0,0,16-16V64A16,16,0,0,0,224,48Z"/></svg></div>
@@ -338,7 +350,13 @@ if ($isTopicForActiveBook) {
                     <!-- Cover -->
                     <div class="ptc-book-item__cover">
                         <?php if (!empty($book['image'])): ?>
-                        <img src="<?= BASE_URL ?>/slims/images/docs/<?= htmlspecialchars($book['image']) ?>"
+                        <?php
+                            $imgSrc = $book['image'];
+                            if (!str_starts_with($imgSrc, 'http') && !str_starts_with($imgSrc, '/')) {
+                                $imgSrc = BASE_URL . (str_starts_with($imgSrc, 'slims/') ? '/' : '/slims/images/docs/') . $imgSrc;
+                            }
+                        ?>
+                        <img src="<?= htmlspecialchars($imgSrc) ?>"
                              alt="Sampul <?= htmlspecialchars($book['title']) ?>"
                              loading="lazy"
                              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
@@ -387,23 +405,46 @@ if ($isTopicForActiveBook) {
             
             <!-- External Resources -->
             <?php if (!empty($ext_resources)): ?>
-            <div style="margin-top: 30px; border-top: 1px solid #eaeaea; padding-top: 20px;">
-                <h3 style="font-size: 1.125rem; font-weight: 700; color: #1f2937; margin-bottom: 15px;">Referensi Lain / Sumber Internet Terbuka</h3>
-                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px;">
-                    <?php foreach ($ext_resources as $ext): ?>
-                    <li style="display: flex; align-items: flex-start; gap: 10px;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;">
-                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                        </svg>
-                        <div>
-                            <a href="<?= htmlspecialchars($ext['url']) ?>" target="_blank" rel="noopener noreferrer" style="color: #059669; text-decoration: none; font-weight: 500; word-break: break-all;">
-                                <?= htmlspecialchars($ext['title']) ?>
-                            </a>
+            <div class="ptc-ext-resources">
+                <div class="ptc-ext-resources__header">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256"><path d="M136,120v64a8,8,0,0,1-16,0V120a8,8,0,0,1,16,0Zm88-32.46V208a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V48A16,16,0,0,1,48,32h87.54a16,16,0,0,1,11.31,4.69l68.46,68.46A16,16,0,0,1,224,87.54ZM144,48v48h48ZM48,208H208V112H136a8,8,0,0,1-8-8V48H48Z"/></svg>
+                    <h3>Referensi Lain / Sumber Internet Terbuka</h3>
+                </div>
+                <div class="ptc-ext-grid">
+                    <?php foreach ($ext_resources as $ext): 
+                        $domain = '';
+                        if (!empty($ext['url'])) {
+                            $parsed = parse_url($ext['url']);
+                            if (!empty($parsed['host'])) {
+                                $domain = preg_replace('/^www\./', '', $parsed['host']);
+                            }
+                        }
+                    ?>
+                    <a href="<?= htmlspecialchars($ext['url']) ?>" target="_blank" rel="noopener noreferrer" class="ptc-ext-card">
+                        <div class="ptc-ext-card__icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                            </svg>
                         </div>
-                    </li>
+                        <div class="ptc-ext-card__content">
+                            <h4 class="ptc-ext-card__title"><?= htmlspecialchars($ext['title']) ?></h4>
+                            <?php if (!empty($ext['description'])): ?>
+                            <p class="ptc-ext-card__desc"><?= htmlspecialchars(mb_substr(strip_tags($ext['description']), 0, 120)) ?></p>
+                            <?php endif; ?>
+                            <?php if ($domain): ?>
+                            <span class="ptc-ext-card__domain"><?= htmlspecialchars($domain) ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="ptc-ext-card__arrow">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </div>
+                    </a>
                     <?php endforeach; ?>
-                </ul>
+                </div>
             </div>
             <?php endif; ?>
         </div>

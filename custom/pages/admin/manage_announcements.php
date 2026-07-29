@@ -35,6 +35,7 @@ $admin_active_page = 'announcement';
     <title>Pengumuman Sistem - Admin Portal</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
     <link rel="stylesheet" href="<?= BASE_URL ?>/custom/assets/css/admin.css">
+    <link rel="icon" type="image/png" href="<?= defined('BASE_URL') ? BASE_URL : '/baca-di-teras' ?>/custom/assets/images/logo_header.png">
 </head>
 <body>
     <?php include __DIR__ . '/../../components/admin-sidebar.php'; ?>

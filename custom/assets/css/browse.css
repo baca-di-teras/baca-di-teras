@@ -1536,3 +1536,125 @@
         font-size: 1.4rem;
     }
 }
+
+/* ============================================================
+   External Resources (Referensi Lain)
+   ============================================================ */
+.ptc-ext-resources {
+    margin-top: 36px;
+    padding-top: 24px;
+    border-top: 1px solid var(--br-gray-200);
+}
+
+.ptc-ext-resources__header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    color: var(--br-gray-900);
+}
+
+.ptc-ext-resources__header h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.ptc-ext-resources__header svg {
+    color: var(--br-green-600);
+}
+
+.ptc-ext-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0 16px;
+}
+
+.ptc-ext-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    background: var(--br-white);
+    border: 1px solid var(--br-gray-200);
+    border-radius: 12px;
+    padding: 16px;
+    text-decoration: none;
+    color: inherit;
+    transition: all var(--br-transition);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.ptc-ext-card:hover {
+    border-color: var(--br-green-400);
+    background: var(--br-green-50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.05);
+}
+
+.ptc-ext-card__icon {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--br-green-100);
+    color: var(--br-green-700);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--br-transition);
+}
+
+.ptc-ext-card:hover .ptc-ext-card__icon {
+    background: var(--br-green-600);
+    color: var(--br-white);
+}
+
+.ptc-ext-card__content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ptc-ext-card__title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--br-gray-900);
+    margin: 0;
+    line-height: 1.3;
+}
+
+.ptc-ext-card__desc {
+    font-size: 0.82rem;
+    color: var(--br-gray-500);
+    margin: 0;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.ptc-ext-card__domain {
+    font-size: 0.75rem;
+    color: var(--br-green-700);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 2px;
+}
+
+.ptc-ext-card__arrow {
+    flex-shrink: 0;
+    color: var(--br-gray-300);
+    align-self: center;
+    transition: color var(--br-transition), transform var(--br-transition);
+}
+
+.ptc-ext-card:hover .ptc-ext-card__arrow {
+    color: var(--br-green-600);
+    transform: translateX(3px);
+}

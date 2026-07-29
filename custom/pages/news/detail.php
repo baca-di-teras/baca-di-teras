@@ -242,6 +242,7 @@ $categoryLabel = ArticleService::CATEGORY_LABELS[$news['category']] ?? $news['ca
             .bdt-article-sidebar { position: static; }
         }
     </style>
+    <link rel="icon" type="image/png" href="<?= defined('BASE_URL') ? BASE_URL : '/baca-di-teras' ?>/custom/assets/images/logo_header.png">
 </head>
 <body>
 <?php include $libPath . '/custom/components/navbar.php'; ?>

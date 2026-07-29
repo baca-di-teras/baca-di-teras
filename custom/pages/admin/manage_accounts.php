@@ -56,6 +56,7 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
         .badge-admin { background: #dbeafe; color: #1e40af; }
         .badge-kontributor { background: #d1fae5; color: #065f46; }
     </style>
+    <link rel="icon" type="image/png" href="<?= defined('BASE_URL') ? BASE_URL : '/baca-di-teras' ?>/custom/assets/images/logo_header.png">
 </head>
 <body>
     <?php include __DIR__ . '/../../components/admin-sidebar.php'; ?>

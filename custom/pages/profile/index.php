@@ -308,6 +308,7 @@ $mapsUrl   = $profile['google_maps_url'] ?? '';
             .bdt-profile-stats__inner { grid-template-columns: 1fr 1fr; }
         }
     </style>
+    <link rel="icon" type="image/png" href="<?= defined('BASE_URL') ? BASE_URL : '/baca-di-teras' ?>/custom/assets/images/logo_header.png">
 </head>
 <body>
 <?php include $libPath . '/custom/components/navbar.php'; ?>

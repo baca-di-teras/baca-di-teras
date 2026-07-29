@@ -113,6 +113,7 @@ $eventList = [];
     <title><?= htmlspecialchars($libName) ?> – Baca Di Teras</title>
     <link rel="stylesheet" href="<?= $baseUrl ?>/custom/assets/css/library-detail.css">
     <link rel="stylesheet" href="<?= $baseUrl ?>/custom/assets/css/landing.css">
+    <link rel="icon" type="image/png" href="<?= defined('BASE_URL') ? BASE_URL : '/baca-di-teras' ?>/custom/assets/images/logo_header.png">
 </head>
 <body>
 

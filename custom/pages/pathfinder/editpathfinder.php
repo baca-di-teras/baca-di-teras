@@ -105,6 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .input-title { width: 100%; border: none; border-bottom: 1px solid #e5e7eb; padding: 8px 0 16px 0; font-size: 1.15rem; font-weight: 500; outline: none; color: #111827; }
         .input-title::placeholder { color: #d1d5db; font-weight: 400; }
     </style>
+    <link rel="icon" type="image/png" href="<?= defined('BASE_URL') ? BASE_URL : '/baca-di-teras' ?>/custom/assets/images/logo_header.png">
 </head>
 <body class="page-bg">
 

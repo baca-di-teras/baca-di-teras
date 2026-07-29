@@ -268,6 +268,7 @@ $tags          = $article['tags'] ?? [];
             .bdt-art-cover { height: 260px; }
         }
     </style>
+    <link rel="icon" type="image/png" href="<?= defined('BASE_URL') ? BASE_URL : '/baca-di-teras' ?>/custom/assets/images/logo_header.png">
 </head>
 <body>
 <?php include $libPath . '/custom/components/navbar.php'; ?>

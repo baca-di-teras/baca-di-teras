@@ -35,6 +35,7 @@ $admin_active_page = 'dashboard';
     <!-- Admin styles -->
     <link rel="stylesheet" href="<?= BASE_URL ?>/custom/assets/css/admin.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/custom/assets/css/modal.css">
+    <link rel="icon" type="image/png" href="<?= defined('BASE_URL') ? BASE_URL : '/baca-di-teras' ?>/custom/assets/images/logo_header.png">
 </head>
 <body>
 

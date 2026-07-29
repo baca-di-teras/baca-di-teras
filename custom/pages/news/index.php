@@ -317,6 +317,7 @@ $baseUrl      = defined('BASE_URL') ? BASE_URL : '';
             .bdt-news-grid { grid-template-columns: 1fr; }
         }
     </style>
+    <link rel="icon" type="image/png" href="<?= defined('BASE_URL') ? BASE_URL : '/baca-di-teras' ?>/custom/assets/images/logo_header.png">
 </head>
 <body>
 <?php include $libPath . '/custom/components/navbar.php'; ?>

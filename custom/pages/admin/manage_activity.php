@@ -40,6 +40,7 @@ $admin_active_page = 'activity';
         .badge-hapus { background: #fee2e2; color: #991b1b; }
         .badge-login { background: #f3f4f6; color: #374151; }
     </style>
+    <link rel="icon" type="image/png" href="<?= defined('BASE_URL') ? BASE_URL : '/baca-di-teras' ?>/custom/assets/images/logo_header.png">
 </head>
 <body>
     <?php include __DIR__ . '/../../components/admin-sidebar.php'; ?>

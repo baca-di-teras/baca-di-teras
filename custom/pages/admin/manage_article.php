@@ -59,6 +59,7 @@ $articles = $articleService->getAllArticles();
         .article-thumb { width: 64px; height: 48px; object-fit: cover; border-radius: 6px; background-color: #f3f4f6; }
         .featured-icon { color: #f59e0b; display: inline-block; vertical-align: middle; margin-left: 4px; }
     </style>
+    <link rel="icon" type="image/png" href="<?= defined('BASE_URL') ? BASE_URL : '/baca-di-teras' ?>/custom/assets/images/logo_header.png">
 </head>
 <body>
 
