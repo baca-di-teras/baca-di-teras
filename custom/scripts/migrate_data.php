@@ -1549,7 +1549,7 @@ function seedLibraryRegistry(mysqli $targetConnection, string $currentDate, stri
     ];
 
     foreach ($libraryRows as $libraryRow) {
-        insertRow($targetConnection, 'bdt_library', [
+        $row = [
             'slims_location_id' => $libraryRow[0],
             'slug' => $libraryRow[1],
             'name' => $libraryRow[2],
@@ -1571,7 +1571,8 @@ function seedLibraryRegistry(mysqli $targetConnection, string $currentDate, stri
             'visi' => $libraryRow[18],
             'misi' => $libraryRow[19],
             'sort_order' => $libraryRow[20],
-        ]);
+        ];
+        insertRow($targetConnection, 'bdt_library', array_keys($row), $row);
     }
 }
 

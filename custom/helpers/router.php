@@ -117,6 +117,10 @@ class Router
         // 2. Cek route statis (exact match)
         if (isset($this->routes[$requestPath])) {
             $route = $this->routes[$requestPath];
+            if ($this->checkMaintenanceMode($requestPath)) {
+                $this->loadView('custom/pages/maintenance.php', []);
+                return;
+            }
             $this->runMiddleware($route['middleware']);
             $this->loadView($route['file'], []);
             return;
@@ -126,6 +130,10 @@ class Router
         foreach ($this->routes as $pattern => $route) {
             $params = $this->matchDynamic($pattern, $requestPath);
             if ($params !== null) {
+                if ($this->checkMaintenanceMode($requestPath)) {
+                    $this->loadView('custom/pages/maintenance.php', []);
+                    return;
+                }
                 $this->runMiddleware($route['middleware']);
                 $this->loadView($route['file'], $params);
                 return;
@@ -137,6 +145,33 @@ class Router
     }
 
     // ── Internal helpers ──────────────────────────────────────
+
+    private function checkMaintenanceMode(string $path): bool
+    {
+        // Pengecualian: Admin tidak terkena maintenance mode
+        if (str_starts_with($path, 'portal-admin')) {
+            return false;
+        }
+
+        // Baca file maintenance.json
+        $configFile = ROOT_PATH . '/custom/config/maintenance.json';
+        if (file_exists($configFile)) {
+            $config = json_decode(file_get_contents($configFile), true);
+            if (isset($config['maintenance'])) {
+                if ($config['maintenance']['global'] === true) {
+                    return true;
+                }
+                
+                $segment = explode('/', ltrim($path, '/'))[0];
+                if ($segment === '') $segment = 'landing';
+                
+                if (isset($config['maintenance']['pages'][$segment]) && $config['maintenance']['pages'][$segment] === true) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
     /**
      * Parse path dari REQUEST_URI (hapus base path dan query string).

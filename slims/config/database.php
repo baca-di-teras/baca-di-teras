@@ -26,12 +26,12 @@ return [
     'nodes' => [
         'SLiMS' => [
             'host' => 'localhost',
-            'database' => 'bacaditeras',
+            'database' => 'bacadite_bacaditeras_slims',
             'port' => 3306,
-            'username' => 'root',
-            'password' => '',
+            'username' => 'bacadite_bacaditeras_slims',
+            'password' => 'UHxCYcVpnXy2SUqSyUGW',
             'options' => [
-                'storage_engine' => 'MyISAM'
+                'storage_engine' => 'InnoDB'
             ]
         ],
         // add more here

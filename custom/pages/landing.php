@@ -205,8 +205,8 @@ if ($featuredNews === null) {
                     </svg>
                 </div>
                 <div>
-                    <p class="bdt-stats__number"><?= number_format((int)($stats['totalPengunjungBulanIni'] ?? 0), 0, ',', '.') ?></p>
-                    <p class="bdt-stats__label">Pengunjung / Bulan</p>
+                    <p class="bdt-stats__number">3.500+</p>
+                    <p class="bdt-stats__label">Donasi Buku</p>
                 </div>
             </div>
 
@@ -242,7 +242,7 @@ if ($featuredNews === null) {
         <div class="bdt-section__header">
             <div class="bdt-section__header-text">
                 <span class="bdt-section__tag">Rekomendasi</span>
-                <h2 class="bdt-section__title">Perpustakaan Unggulan</h2>
+                <h2 class="bdt-section__title">Perpustakaan Kami</h2>
                 <p class="bdt-section__subtitle">
                     Temukan perpustakaan terbaik di Desa Teras dengan koleksi
                     terlengkap dan fasilitas paling nyaman untuk semua kalangan.

@@ -32,3 +32,8 @@ if (!defined('DB_PORT')) {
 if (!defined('DB_CHARSET')) {
     define('DB_CHARSET', 'utf8mb4');
 }
+
+if (!defined('DB_DEBUG')) {
+    define('DB_DEBUG', true);
+}
+

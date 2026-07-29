@@ -22,9 +22,24 @@ require_once $libPath . '/custom/services/NewsService.php';
 require_once $libPath . '/custom/services/ArticleService.php';
 
 $newsService = new NewsService();
+$articleService = new ArticleService();
 
-$featuredNews = $newsService->getFeaturedNews();
-$newsList     = $newsService->getRecentNews(9, 0);
+// Filter
+$activeCategory = $_GET['kategori'] ?? '';
+if ($activeCategory && !in_array($activeCategory, ArticleService::NEWS_CATEGORIES)) {
+    $activeCategory = '';
+}
+
+// Pagination
+$perPage = 9;
+$page    = max(1, (int)($_GET['halaman'] ?? 1));
+$offset  = ($page - 1) * $perPage;
+$total   = $newsService->countNews($activeCategory);
+$maxPage = (int) ceil($total / $perPage);
+
+$featuredNews = ($page === 1) ? $newsService->getAllFeaturedNews($activeCategory) : [];
+$excludeIds   = !empty($featuredNews) ? array_column($featuredNews, 'article_id') : [];
+$newsList     = $newsService->getRecentNews($perPage, $offset, $activeCategory, $excludeIds);
 $baseUrl      = defined('BASE_URL') ? BASE_URL : '';
 ?>
 <!DOCTYPE html>
@@ -75,8 +90,26 @@ $baseUrl      = defined('BASE_URL') ? BASE_URL : '';
             padding: 64px 0 80px;
         }
 
-        /* Featured */
+        /* Featured Slider */
+        .bdt-news-featured-slider {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            gap: 24px;
+            scroll-behavior: smooth;
+        }
+        .bdt-news-featured-slider::-webkit-scrollbar {
+            display: none;
+        }
+        .bdt-news-featured-container {
+            margin-bottom: 56px;
+        }
+
         .bdt-news-featured {
+            flex: 0 0 100%;
+            scroll-snap-align: start;
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 40px;
@@ -85,7 +118,47 @@ $baseUrl      = defined('BASE_URL') ? BASE_URL : '';
             border-radius: 24px;
             overflow: hidden;
             box-shadow: 0 4px 24px rgba(0,0,0,0.06);
-            margin-bottom: 56px;
+        }
+        
+        .bdt-featured-slider-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 24px;
+        }
+        .slider-btn {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #555;
+            transition: all 0.2s;
+        }
+        .slider-btn:hover {
+            border-color: #2d6a4f;
+            color: #2d6a4f;
+            background: #f0fdf4;
+        }
+        .slider-dots {
+            display: flex;
+            gap: 8px;
+        }
+        .slider-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #d1d5db;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .slider-dot.active {
+            background: #2d6a4f;
         }
         .bdt-news-featured__img {
             width: 100%;
@@ -237,6 +310,61 @@ $baseUrl      = defined('BASE_URL') ? BASE_URL : '';
         }
         .bdt-news-empty h3 { font-size: 1.25rem; margin-bottom: 8px; color: #555; }
 
+        /* Category Filter Chips */
+        .bdt-category-filter {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 48px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .bdt-category-filter__chip {
+            padding: 8px 20px;
+            border-radius: 100px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            color: #555;
+            background: #fff;
+            border: 1.5px solid #eaeaea;
+            transition: all 0.2s;
+        }
+        .bdt-category-filter__chip:hover {
+            border-color: #2d6a4f;
+            color: #2d6a4f;
+        }
+        .bdt-category-filter__chip--active {
+            background: #2d6a4f;
+            color: #fff;
+            border-color: #2d6a4f;
+        }
+        .bdt-category-filter__chip--active:hover {
+            color: #fff;
+        }
+
+        /* Pagination */
+        .bdt-pagination {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 48px;
+        }
+        .bdt-pagination a, .bdt-pagination span {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px; height: 40px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            border: 1.5px solid #e0e0e0;
+            color: #555;
+            transition: all 0.2s;
+        }
+        .bdt-pagination a:hover { background: #f0fdf4; border-color: #2d6a4f; color: #2d6a4f; }
+        .bdt-pagination .active { background: #2d6a4f; border-color: #2d6a4f; color: #fff; }
+
         @media (max-width: 900px) {
             .bdt-news-featured { grid-template-columns: 1fr; }
             .bdt-news-featured__img { height: 220px; }
@@ -267,77 +395,128 @@ $baseUrl      = defined('BASE_URL') ? BASE_URL : '';
 <main class="bdt-news-main" id="bdt-news-main">
     <div class="bdt-container">
 
-        <?php if ($featuredNews) : ?>
-        <!-- Featured News -->
-        <article class="bdt-news-featured" id="bdt-news-featured">
-            <img src="<?= htmlspecialchars($featuredNews['image'] ?? $baseUrl . '/custom/assets/images/news-featured.png') ?>"
-                 alt="<?= htmlspecialchars($featuredNews['title']) ?>"
-                 class="bdt-news-featured__img"
-                 loading="eager"
-                 width="600" height="340">
-            <div class="bdt-news-featured__body">
-                <span class="bdt-news-featured__tag">
-                    <?= htmlspecialchars(ArticleService::CATEGORY_LABELS[$featuredNews['category']] ?? $featuredNews['category']) ?>
-                </span>
-                <a href="<?= $baseUrl ?>/berita/<?= htmlspecialchars($featuredNews['slug'] ?? '') ?>"
-                   id="bdt-news-featured-link"
-                   class="bdt-news-featured__title">
-                    <?= htmlspecialchars($featuredNews['title']) ?>
-                </a>
-                <p class="bdt-news-featured__excerpt">
-                    <?= htmlspecialchars($featuredNews['excerpt'] ?? '') ?>
-                </p>
-                <div class="bdt-news-featured__meta">
-                    <span>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                            <line x1="16" y1="2" x2="16" y2="6"/>
-                            <line x1="8" y1="2" x2="8" y2="6"/>
-                            <line x1="3" y1="10" x2="21" y2="10"/>
-                        </svg>
-                        <?= ArticleService::formatDate($featuredNews['date'] ?? $featuredNews['publish_date'] ?? null) ?>
-                    </span>
-                    <?php if (!empty($featuredNews['author'])) : ?>
-                    <span>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                            <circle cx="12" cy="7" r="4"/>
-                        </svg>
-                        <?= htmlspecialchars($featuredNews['author']) ?>
-                    </span>
-                    <?php endif; ?>
-                </div>
+        <?php if (!empty($featuredNews)) : ?>
+        <!-- Featured News Slider -->
+        <div class="bdt-news-featured-container">
+            <div class="bdt-news-featured-slider" id="bdt-featured-slider">
+                <?php foreach ($featuredNews as $index => $featured) : ?>
+                <article class="bdt-news-featured" id="bdt-news-featured-<?= $index ?>">
+                    <?php 
+                        $featuredImg = $featured['image'] ?? '/custom/assets/images/news-featured.png';
+                        if (strpos($featuredImg, '/custom/') === 0 && strpos($featuredImg, $baseUrl) !== 0) {
+                            $featuredImg = rtrim($baseUrl, '/') . $featuredImg;
+                        }
+                    ?>
+                    <img src="<?= htmlspecialchars($featuredImg) ?>"
+                         alt="<?= htmlspecialchars($featured['title']) ?>"
+                         class="bdt-news-featured__img"
+                         loading="eager"
+                         width="600" height="340">
+                    <div class="bdt-news-featured__body">
+                        <span class="bdt-news-featured__tag">
+                            <?= htmlspecialchars(ArticleService::CATEGORY_LABELS[$featured['category']] ?? $featured['category']) ?>
+                        </span>
+                        <a href="<?= $baseUrl ?>/berita/<?= htmlspecialchars($featured['slug'] ?? '') ?>"
+                           id="bdt-news-featured-link-<?= $index ?>"
+                           class="bdt-news-featured__title">
+                            <?= htmlspecialchars($featured['title']) ?>
+                        </a>
+                        <p class="bdt-news-featured__excerpt">
+                            <?= htmlspecialchars($featured['excerpt'] ?: mb_strimwidth(strip_tags($featured['body'] ?? ''), 0, 150, '...')) ?>
+                        </p>
+                        <div class="bdt-news-featured__meta">
+                            <span>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                    <line x1="16" y1="2" x2="16" y2="6"/>
+                                    <line x1="8" y1="2" x2="8" y2="6"/>
+                                    <line x1="3" y1="10" x2="21" y2="10"/>
+                                </svg>
+                                <?= ArticleService::formatDate($featured['date'] ?? $featured['publish_date'] ?? null) ?>
+                            </span>
+                            <?php if (!empty($featured['author'])) : ?>
+                            <span>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="12" cy="7" r="4"/>
+                                </svg>
+                                <?= htmlspecialchars($featured['author']) ?>
+                            </span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </article>
+                <?php endforeach; ?>
             </div>
-        </article>
+            <?php if (count($featuredNews) > 1) : ?>
+            <div class="bdt-featured-slider-controls">
+                <button class="slider-btn prev-btn" id="featuredPrev" aria-label="Sebelumnya">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </button>
+                <div class="slider-dots" id="featuredDots">
+                    <?php foreach ($featuredNews as $index => $featured) : ?>
+                        <span class="slider-dot <?= $index === 0 ? 'active' : '' ?>" data-index="<?= $index ?>"></span>
+                    <?php endforeach; ?>
+                </div>
+                <button class="slider-btn next-btn" id="featuredNext" aria-label="Selanjutnya">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </button>
+            </div>
+            <?php endif; ?>
+        </div>
         <?php endif; ?>
 
         <!-- News Grid -->
         <h2 class="bdt-news-section-title">Semua Berita</h2>
+
+        <!-- Category Filters -->
+        <nav class="bdt-category-filter" aria-label="Filter kategori">
+            <a href="<?= $baseUrl ?>/berita"
+               class="bdt-category-filter__chip <?= $activeCategory === '' ? 'bdt-category-filter__chip--active' : '' ?>"
+               id="bdt-filter-semua">Semua</a>
+            <?php foreach (ArticleService::NEWS_CATEGORIES as $key) : 
+                $label = ArticleService::CATEGORY_LABELS[$key] ?? $key;
+            ?>
+            <a href="<?= $baseUrl ?>/berita?kategori=<?= urlencode($key) ?>"
+               class="bdt-category-filter__chip <?= $activeCategory === $key ? 'bdt-category-filter__chip--active' : '' ?>"
+               id="bdt-filter-<?= htmlspecialchars($key) ?>">
+                <?= htmlspecialchars($label) ?>
+            </a>
+            <?php endforeach; ?>
+        </nav>
 
         <?php if (!empty($newsList)) : ?>
         <div class="bdt-news-grid" id="bdt-news-grid">
             <?php foreach ($newsList as $i => $item) : ?>
             <article class="bdt-news-card" id="bdt-news-card-<?= $i + 1 ?>">
                 <div class="bdt-news-card__img-wrap">
-                    <img src="<?= htmlspecialchars($item['image'] ?? $baseUrl . '/custom/assets/images/news-small.png') ?>"
+                    <?php 
+                        $itemImg = $item['image'] ?? '/custom/assets/images/news-small.png';
+                        if (strpos($itemImg, '/custom/') === 0 && strpos($itemImg, $baseUrl) !== 0) {
+                            $itemImg = rtrim($baseUrl, '/') . $itemImg;
+                        }
+                    ?>
+                    <img src="<?= htmlspecialchars($itemImg) ?>"
                          alt="<?= htmlspecialchars($item['title']) ?>"
                          class="bdt-news-card__img"
                          loading="lazy"
                          width="400" height="200">
                 </div>
                 <div class="bdt-news-card__body">
-                    <span class="bdt-news-card__tag">
-                        <?= htmlspecialchars(ArticleService::CATEGORY_LABELS[$item['category']] ?? $item['category']) ?>
-                    </span>
+                    <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
+                        <span class="bdt-news-card__tag" style="margin-bottom: 0;">
+                            <?= htmlspecialchars(ArticleService::CATEGORY_LABELS[$item['category']] ?? $item['category']) ?>
+                        </span>
+                    </div>
                     <a href="<?= $baseUrl ?>/berita/<?= htmlspecialchars($item['slug'] ?? '') ?>"
                        id="bdt-news-card-link-<?= $i + 1 ?>"
                        class="bdt-news-card__title">
                         <?= htmlspecialchars($item['title']) ?>
                     </a>
                     <p class="bdt-news-card__excerpt">
-                        <?= htmlspecialchars($item['excerpt'] ?? '') ?>
+                        <?= htmlspecialchars($item['excerpt'] ?: mb_strimwidth(strip_tags($item['body'] ?? ''), 0, 150, '...')) ?>
                     </p>
                     <div class="bdt-news-card__meta">
                         <span>
@@ -350,11 +529,35 @@ $baseUrl      = defined('BASE_URL') ? BASE_URL : '';
                             </svg>
                             <?= ArticleService::formatDate($item['date'] ?? $item['publish_date'] ?? null) ?>
                         </span>
+                        <?php if (!empty($item['author'])) : ?>
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                            <?= htmlspecialchars($item['author']) ?>
+                        </span>
+                        <?php endif; ?>
                     </div>
                 </div>
             </article>
             <?php endforeach; ?>
         </div>
+
+        <!-- Pagination -->
+        <?php if ($maxPage > 1) : ?>
+        <nav class="bdt-pagination" aria-label="Navigasi halaman">
+            <?php for ($p = 1; $p <= $maxPage; $p++) : ?>
+                <?php if ($p === $page) : ?>
+                <span class="active" aria-current="page"><?= $p ?></span>
+                <?php else : ?>
+                <a href="<?= $baseUrl ?>/berita?halaman=<?= $p ?>" id="bdt-page-<?= $p ?>"><?= $p ?></a>
+                <?php endif; ?>
+            <?php endfor; ?>
+        </nav>
+        <?php endif; ?>
+
         <?php else : ?>
         <div class="bdt-news-empty">
             <h3>Belum ada berita tersedia</h3>
@@ -366,5 +569,63 @@ $baseUrl      = defined('BASE_URL') ? BASE_URL : '';
 </main>
 
 <?php include $libPath . '/custom/components/footer.php'; ?>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const slider = document.getElementById('bdt-featured-slider');
+        if (!slider) return;
+        
+        const prevBtn = document.getElementById('featuredPrev');
+        const nextBtn = document.getElementById('featuredNext');
+        const dots = document.querySelectorAll('.slider-dot');
+        
+        if (!prevBtn || !nextBtn) return;
+
+        let currentIndex = 0;
+        const totalItems = dots.length;
+
+        function updateDots() {
+            dots.forEach((dot, idx) => {
+                dot.classList.toggle('active', idx === currentIndex);
+            });
+        }
+
+        function scrollToIndex(index) {
+            if (index < 0) index = totalItems - 1;
+            if (index >= totalItems) index = 0;
+            
+            currentIndex = index;
+            const scrollWidth = slider.clientWidth;
+            slider.scrollTo({ left: scrollWidth * currentIndex, behavior: 'smooth' });
+            updateDots();
+        }
+
+        let isScrolling;
+        slider.addEventListener('scroll', () => {
+            window.clearTimeout(isScrolling);
+            isScrolling = setTimeout(() => {
+                const index = Math.round(slider.scrollLeft / slider.clientWidth);
+                if (index !== currentIndex) {
+                    currentIndex = index;
+                    updateDots();
+                }
+            }, 50);
+        });
+
+        prevBtn.addEventListener('click', () => scrollToIndex(currentIndex - 1));
+        nextBtn.addEventListener('click', () => scrollToIndex(currentIndex + 1));
+        dots.forEach((dot, idx) => {
+            dot.addEventListener('click', () => scrollToIndex(idx));
+        });
+        
+        // Auto slide
+        setInterval(() => {
+            if (!slider.matches(':hover')) {
+                scrollToIndex(currentIndex + 1);
+            }
+        }, 5000);
+    });
+</script>
+
 </body>
 </html>

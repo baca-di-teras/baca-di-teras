@@ -54,7 +54,10 @@ $related = $articleService->getRelated(
 );
 
 $baseUrl      = defined('BASE_URL') ? BASE_URL : '';
-$coverImage   = $news['cover_image'] ?? ($baseUrl . '/custom/assets/images/news-featured.png');
+$coverImage   = $news['cover_image'] ?? '/custom/assets/images/news-featured.png';
+if (strpos($coverImage, '/custom/') === 0 && strpos($coverImage, $baseUrl) !== 0) {
+    $coverImage = rtrim($baseUrl, '/') . $coverImage;
+}
 $publishDate  = ArticleService::formatDate($news['publish_date'] ?? null);
 $categoryLabel = ArticleService::CATEGORY_LABELS[$news['category']] ?? $news['category'];
 ?>
@@ -132,6 +135,11 @@ $categoryLabel = ArticleService::CATEGORY_LABELS[$news['category']] ?? $news['ca
             line-height: 1.9;
             color: #333;
         }
+        /* Quill Alignment Support */
+        .bdt-article-body .ql-align-center { text-align: center; }
+        .bdt-article-body .ql-align-right { text-align: right; }
+        .bdt-article-body .ql-align-justify { text-align: justify; }
+        
         .bdt-article-body p { margin: 0 0 1.4em; }
         .bdt-article-body h2 { font-size: 1.4rem; font-weight: 700; color: #1a1a2e; margin: 2em 0 0.8em; }
         .bdt-article-body h3 { font-size: 1.15rem; font-weight: 700; color: #1a1a2e; margin: 1.5em 0 0.6em; }
@@ -282,14 +290,14 @@ $categoryLabel = ArticleService::CATEGORY_LABELS[$news['category']] ?? $news['ca
                             <?= htmlspecialchars($publishDate) ?>
                         </span>
                         <?php endif; ?>
-                        <?php if (!empty($news['author'])) : ?>
+                        <?php if (!empty($news['author']) || !empty($news['author_name'])) : ?>
                         <span>
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                                 <circle cx="12" cy="7" r="4"/>
                             </svg>
-                            <?= htmlspecialchars($news['author']) ?>
+                            <?= htmlspecialchars($news['author'] ?? $news['author_name'] ?? '') ?>
                         </span>
                         <?php endif; ?>
                         <?php if (!empty($news['library_name'])) : ?>
@@ -306,7 +314,14 @@ $categoryLabel = ArticleService::CATEGORY_LABELS[$news['category']] ?? $news['ca
                 </header>
 
                 <div class="bdt-article-body" id="bdt-news-body">
-                    <?= $news['body'] ?? '' ?>
+                    <?php 
+                        $bodyHtml = $news['body'] ?? '';
+                        if (strip_tags($bodyHtml) === $bodyHtml) {
+                            echo nl2br(htmlspecialchars($bodyHtml));
+                        } else {
+                            echo $bodyHtml;
+                        }
+                    ?>
                 </div>
 
                 <!-- Tags -->
@@ -329,7 +344,13 @@ $categoryLabel = ArticleService::CATEGORY_LABELS[$news['category']] ?? $news['ca
                     <a href="<?= $baseUrl ?>/berita/<?= htmlspecialchars($rel['slug']) ?>"
                        class="bdt-sidebar-related-item"
                        id="bdt-related-news-<?= $ri + 1 ?>">
-                        <img src="<?= htmlspecialchars($rel['cover_image'] ?? $baseUrl . '/custom/assets/images/news-small.png') ?>"
+                        <?php 
+                            $relImg = $rel['cover_image'] ?? '/custom/assets/images/news-small.png';
+                            if (strpos($relImg, '/custom/') === 0 && strpos($relImg, $baseUrl) !== 0) {
+                                $relImg = rtrim($baseUrl, '/') . $relImg;
+                            }
+                        ?>
+                        <img src="<?= htmlspecialchars($relImg) ?>"
                              alt="<?= htmlspecialchars($rel['title']) ?>"
                              class="bdt-sidebar-related-img"
                              loading="lazy"

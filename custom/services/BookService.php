@@ -487,53 +487,21 @@ class BookService
         // URL halaman detail — gunakan biblio_id sebagai identifier
         $detailHref = '/katalog/' . $biblioId;
 
-        $topics = [];
-        if (!empty($row['topics'])) {
-            $topics = array_values(array_filter(array_map('trim', explode(',', (string) $row['topics']))));
-        }
-
-        $availableCount = (int) ($row['tersedia'] ?? 0);
-        $loanedCount    = (int) ($row['dipinjam'] ?? 0);
-        $reservedCount  = (int) ($row['dipesan'] ?? 0);
-        $availability   = 'tersedia';
-        if ($availableCount <= 0 && $reservedCount > 0) {
-            $availability = 'dipesan';
-        } elseif ($availableCount <= 0 && $loanedCount > 0) {
-            $availability = 'dipinjam';
-        }
-
         return [
-            'id'            => $biblioId,
-            'title'         => $row['title']        ?? '',
-            'author'        => $row['author']        ?? 'Tidak diketahui',
-            'publisher'     => $row['publisher']     ?? '',
-            'publisherId'   => (int) ($row['publisher_id'] ?? 0),
-            'publishYear'   => $row['publish_year']  ?? '',
-            'image'         => $coverImage,
-            'href'          => $detailHref,
-            'isbn'          => $row['isbn_issn']     ?? '',
-            'callNumber'    => $row['call_number']   ?? '',
-            'classification'=> $row['classification'] ?? '',
-            'gmd'           => $row['gmd'] ?? '',
-            'language'      => $row['language'] ?? '',
-            'notes'         => $row['notes'] ?? '',
-            'edition'       => $row['edition'] ?? '',
-            'collation'     => $row['collation'] ?? '',
-            'seriesTitle'   => $row['series_title'] ?? '',
-            'publishPlace'  => $row['publish_place'] ?? '',
-            'badge'         => ($row['promoted'] ?? 0) ? 'Unggulan' : null,
-            'inputDate'     => $row['input_date']    ?? '',
-            'category'      => $row['primary_topic'] ?? ($topics[0] ?? ''),
-            'topics'        => $topics,
-            'perpustakaan'  => $row['library_slug'] ?? '',
-            'libraryName'   => $row['library_name'] ?? '',
-            'libraryNames'  => $row['library_names'] ?? '',
-            'locationId'    => $row['location_ids'] ?? '',
-            'locationIds'   => !empty($row['location_ids']) ? explode(',', (string) $row['location_ids']) : [],
-            'ketersediaan'  => $availability,
-            'stok'          => $availableCount,
-            'totalStok'     => (int) ($row['total_eksemplar'] ?? $availableCount),
-            'antrian'       => $reservedCount,
+            'id'             => $biblioId,
+            'title'          => $row['title']          ?? '',
+            'author'         => $row['author']         ?? 'Tidak diketahui',
+            'publisher'      => $row['publisher']      ?? '',
+            'publishYear'    => $row['publish_year']   ?? '',
+            'image'          => $coverImage,
+            'href'           => $detailHref,
+            'isbn'           => $row['isbn_issn']      ?? '',
+            'callNumber'     => $row['call_number']    ?? '',
+            'classification' => $row['classification'] ?? '',
+            'gmd'            => $row['gmd']            ?? '',
+            'language'       => $row['language']       ?? '',
+            'badge'          => ($row['promoted'] ?? 0) ? 'Unggulan' : null,
+            'inputDate'      => $row['input_date']     ?? '',
         ];
     }
 

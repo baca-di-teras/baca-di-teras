@@ -1,0 +1,21 @@
+{
+    "contact": {
+        "phone": "+62 812-3456-7890",
+        "email": "bacaditeras@gmail.com",
+        "schedule": "Sen \u2013 Sab: 08:00 \u2013 17:00"
+    },
+    "social": [
+        {
+            "platform": "Instagram",
+            "url": "https:\/\/instagram.com\/bacaaditeras"
+        },
+        {
+            "platform": "YouTube",
+            "url": "https:\/\/youtube.com\/@bacaditeras"
+        }
+    ],
+    "policies": {
+        "privacy": "\/informasi\/kebijakan-privasi",
+        "terms": "\/syarat-ketentuan"
+    }
+}

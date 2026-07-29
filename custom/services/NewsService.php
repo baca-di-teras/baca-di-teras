@@ -28,29 +28,133 @@ class NewsService
      *
      * @return array|null
      */
-    public function getFeaturedNews(): ?array
+    public function getFeaturedNews(string $category = ''): ?array
     {
-        return $this->db->fetchOne(
-            'SELECT
-                a.article_id,
-                a.title,
-                a.slug,
-                a.excerpt,
-                a.cover_image AS image,
-                a.category,
-                a.publish_date AS date,
-                u.realname AS author,
-                l.name AS library_name
-             FROM bdt_article a
-             LEFT JOIN user u ON a.created_by = u.user_id
-             LEFT JOIN bdt_library l ON a.library_id = l.library_id
-             WHERE a.status = "published"
-               AND a.category = "berita"
-               AND a.is_featured = 1
-               AND (a.publish_date IS NULL OR a.publish_date <= NOW())
-             ORDER BY a.publish_date DESC
-             LIMIT 1'
-        );
+        if ($category) {
+            $sql = 'SELECT
+                        a.article_id,
+                        a.title,
+                        a.slug,
+                        a.excerpt,
+                        a.body,
+                        a.cover_image AS image,
+                        a.category,
+                        a.publish_date AS date,
+                        u.name AS author,
+                        u.role AS author_role,
+                        l.name AS library_name
+                     FROM bdt_article a
+                     LEFT JOIN bdt_admins u ON a.created_by = u.id
+                     LEFT JOIN bdt_library l ON a.library_id = l.library_id
+                     WHERE a.status = "published"
+                       AND a.category = ?
+                       AND a.is_featured = 1
+                       AND (a.publish_date IS NULL OR a.publish_date <= NOW())
+                     ORDER BY a.publish_date DESC
+                     LIMIT 1';
+            return $this->db->fetchOne($sql, 's', [$category]);
+        } else {
+            $sql = 'SELECT
+                        a.article_id,
+                        a.title,
+                        a.slug,
+                        a.excerpt,
+                        a.body,
+                        a.cover_image AS image,
+                        a.category,
+                        a.publish_date AS date,
+                        u.name AS author,
+                        u.role AS author_role,
+                        l.name AS library_name
+                     FROM bdt_article a
+                     LEFT JOIN bdt_admins u ON a.created_by = u.id
+                     LEFT JOIN bdt_library l ON a.library_id = l.library_id
+                     WHERE a.status = "published"
+                       AND a.category IN ("berita", "kegiatan", "pengumuman")
+                       AND a.is_featured = 1
+                       AND (a.publish_date IS NULL OR a.publish_date <= NOW())
+                     ORDER BY a.publish_date DESC
+                     LIMIT 1';
+            return $this->db->fetchOne($sql);
+        }
+    }
+
+    /**
+     * Ambil semua berita unggulan (featured news).
+     *
+     * @return array
+     */
+    public function getAllFeaturedNews(string $category = ''): array
+    {
+        if ($category) {
+            $sql = 'SELECT
+                        a.article_id,
+                        a.title,
+                        a.slug,
+                        a.excerpt,
+                        a.body,
+                        a.cover_image AS image,
+                        a.category,
+                        a.publish_date AS date,
+                        u.name AS author,
+                        u.role AS author_role,
+                        l.name AS library_name
+                     FROM bdt_article a
+                     LEFT JOIN bdt_admins u ON a.created_by = u.id
+                     LEFT JOIN bdt_library l ON a.library_id = l.library_id
+                     WHERE a.status = "published"
+                       AND a.category = ?
+                       AND a.is_featured = 1
+                       AND (a.publish_date IS NULL OR a.publish_date <= NOW())
+                     ORDER BY a.publish_date DESC';
+            return $this->db->fetchAll($sql, 's', [$category]);
+        } else {
+            $sql = 'SELECT
+                        a.article_id,
+                        a.title,
+                        a.slug,
+                        a.excerpt,
+                        a.body,
+                        a.cover_image AS image,
+                        a.category,
+                        a.publish_date AS date,
+                        u.name AS author,
+                        u.role AS author_role,
+                        l.name AS library_name
+                     FROM bdt_article a
+                     LEFT JOIN bdt_admins u ON a.created_by = u.id
+                     LEFT JOIN bdt_library l ON a.library_id = l.library_id
+                     WHERE a.status = "published"
+                       AND a.category IN ("berita", "kegiatan", "pengumuman")
+                       AND a.is_featured = 1
+                       AND (a.publish_date IS NULL OR a.publish_date <= NOW())
+                     ORDER BY a.publish_date DESC';
+            return $this->db->fetchAll($sql);
+        }
+    }
+
+    /**
+     * Hitung total berita yang dipublish (untuk pagination).
+     *
+     * @return int
+     */
+    public function countNews(string $category = ''): int
+    {
+        if ($category) {
+            $sql = 'SELECT COUNT(*) 
+                    FROM bdt_article 
+                    WHERE status = "published" 
+                      AND category = ?
+                      AND (publish_date IS NULL OR publish_date <= NOW())';
+            return (int) $this->db->fetchScalar($sql, 's', [$category]);
+        } else {
+            $sql = 'SELECT COUNT(*) 
+                    FROM bdt_article 
+                    WHERE status = "published" 
+                      AND category IN ("berita", "kegiatan", "pengumuman")
+                      AND (publish_date IS NULL OR publish_date <= NOW())';
+            return (int) $this->db->fetchScalar($sql);
+        }
     }
 
     /**
@@ -60,30 +164,78 @@ class NewsService
      * @param int $offset
      * @return array
      */
-    public function getRecentNews(int $limit = 5, int $offset = 0): array
+    public function getRecentNews(int $limit = 9, int $offset = 0, string $category = '', array $excludeIds = []): array
     {
-        return $this->db->fetchAll(
-            'SELECT
-                a.article_id,
-                a.title,
-                a.slug,
-                a.excerpt,
-                a.cover_image AS image,
-                a.category,
-                a.publish_date AS date,
-                u.realname AS author,
-                l.name AS library_name
-             FROM bdt_article a
-             LEFT JOIN user u ON a.created_by = u.user_id
-             LEFT JOIN bdt_library l ON a.library_id = l.library_id
-             WHERE a.status = "published"
-               AND a.category = "berita"
-               AND (a.publish_date IS NULL OR a.publish_date <= NOW())
-             ORDER BY a.publish_date DESC
-             LIMIT ? OFFSET ?',
-            'ii',
-            [$limit, $offset]
-        );
+        $excludeCondition = '';
+        $params = [];
+        $types = '';
+
+        if (!empty($excludeIds)) {
+            $placeholders = implode(',', array_fill(0, count($excludeIds), '?'));
+            $excludeCondition = " AND a.article_id NOT IN ($placeholders)";
+            foreach ($excludeIds as $id) {
+                $params[] = $id;
+                $types .= 'i';
+            }
+        }
+
+        if ($category) {
+            array_unshift($params, $category);
+            $types = 's' . $types;
+            $params[] = $limit;
+            $params[] = $offset;
+            $types .= 'ii';
+
+            $sql = 'SELECT
+                        a.article_id,
+                        a.title,
+                        a.slug,
+                        a.excerpt,
+                        a.body,
+                        a.cover_image AS image,
+                        a.category,
+                        a.is_featured,
+                        a.publish_date AS date,
+                        u.name AS author,
+                        u.role AS author_role,
+                        l.name AS library_name
+                    FROM bdt_article a
+                    LEFT JOIN bdt_admins u ON a.created_by = u.id
+                    LEFT JOIN bdt_library l ON a.library_id = l.library_id
+                    WHERE a.status = "published"
+                      AND a.category = ?' . $excludeCondition . '
+                      AND (a.publish_date IS NULL OR a.publish_date <= NOW())
+                    ORDER BY a.publish_date DESC
+                    LIMIT ? OFFSET ?';
+            return $this->db->fetchAll($sql, $types, $params);
+        } else {
+            $params[] = $limit;
+            $params[] = $offset;
+            $types .= 'ii';
+
+            $sql = 'SELECT
+                        a.article_id,
+                        a.title,
+                        a.slug,
+                        a.excerpt,
+                        a.body,
+                        a.cover_image AS image,
+                        a.category,
+                        a.is_featured,
+                        a.publish_date AS date,
+                        u.name AS author,
+                        u.role AS author_role,
+                        l.name AS library_name
+                    FROM bdt_article a
+                    LEFT JOIN bdt_admins u ON a.created_by = u.id
+                    LEFT JOIN bdt_library l ON a.library_id = l.library_id
+                    WHERE a.status = "published"
+                      AND a.category IN ("berita", "kegiatan", "pengumuman")' . $excludeCondition . '
+                      AND (a.publish_date IS NULL OR a.publish_date <= NOW())
+                    ORDER BY a.publish_date DESC
+                    LIMIT ? OFFSET ?';
+            return $this->db->fetchAll($sql, $types, $params);
+        }
     }
 
     /**
@@ -97,13 +249,14 @@ class NewsService
         return $this->db->fetchOne(
             'SELECT
                 a.*,
-                u.realname AS author,
+                u.name AS author,
+                u.role AS author_role,
                 l.name AS library_name
              FROM bdt_article a
-             LEFT JOIN user u ON a.created_by = u.user_id
+             LEFT JOIN bdt_admins u ON a.created_by = u.id
              LEFT JOIN bdt_library l ON a.library_id = l.library_id
              WHERE a.status = "published"
-               AND a.category = "berita"
+               AND a.category IN ("berita", "kegiatan", "pengumuman")
                AND a.slug = ?
                AND (a.publish_date IS NULL OR a.publish_date <= NOW())
              LIMIT 1',
