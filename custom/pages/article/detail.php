@@ -159,6 +159,11 @@ $tags          = $article['tags'] ?? [];
             line-height: 1.9;
             color: #333;
         }
+        /* Quill Alignment Support */
+        .bdt-art-body .ql-align-center { text-align: center; }
+        .bdt-art-body .ql-align-right { text-align: right; }
+        .bdt-art-body .ql-align-justify { text-align: justify; }
+        
         .bdt-art-body p { margin: 0 0 1.4em; }
         .bdt-art-body h2 { font-size: 1.4rem; font-weight: 700; color: #1a1a2e; margin: 2em 0 0.8em; }
         .bdt-art-body h3 { font-size: 1.15rem; font-weight: 700; color: #1a1a2e; margin: 1.5em 0 0.6em; }
@@ -340,7 +345,14 @@ $tags          = $article['tags'] ?? [];
 
                 <!-- Konten artikel -->
                 <div class="bdt-art-body" id="bdt-article-body">
-                    <?= $article['body'] ?? '' ?>
+                    <?php 
+                        $bodyHtml = $article['body'] ?? '';
+                        if (strip_tags($bodyHtml) === $bodyHtml) {
+                            echo nl2br(htmlspecialchars($bodyHtml));
+                        } else {
+                            echo $bodyHtml;
+                        }
+                    ?>
                 </div>
 
                 <!-- Library badge -->

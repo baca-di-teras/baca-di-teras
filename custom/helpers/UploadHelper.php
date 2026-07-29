@@ -79,4 +79,73 @@ class UploadHelper
         $baseUrl = defined('BASE_URL') ? BASE_URL : '/baca-di-teras';
         return rtrim($baseUrl, '/') . '/' . trim($uploadDir, '/') . '/' . $fileName;
     }
+
+    /**
+     * Upload media (image/video) for article content (Quill editor)
+     *
+     * @param array $fileArray Data from $_FILES['input_name']
+     * @param string $type 'image' or 'video'
+     * @return string|false Path file yang tersimpan atau false jika gagal
+     * @throws Exception Jika validasi gagal
+     */
+    public static function uploadArticleMedia(array $fileArray, string $type = 'image')
+    {
+        if ($fileArray['error'] !== UPLOAD_ERR_OK) {
+            if ($fileArray['error'] === UPLOAD_ERR_NO_FILE) {
+                return false;
+            }
+            throw new Exception("Terjadi kesalahan saat mengunggah file (Error Code: " . $fileArray['error'] . ")");
+        }
+
+        $uploadDir = '/custom/uploads/media/';
+        
+        if ($type === 'video') {
+            $maxSize = 20 * 1024 * 1024; // 20 MB
+            $allowedMimeTypes = ['video/mp4', 'video/webm', 'video/ogg'];
+            $mimeMap = ['video/mp4' => 'mp4', 'video/webm' => 'webm', 'video/ogg' => 'ogg'];
+        } else {
+            $maxSize = 2 * 1024 * 1024; // 2 MB
+            $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+            $mimeMap = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp', 'image/gif' => 'gif'];
+        }
+
+        if ($fileArray['size'] > $maxSize) {
+            $maxMb = $type === 'video' ? '20MB' : '2MB';
+            throw new Exception("Ukuran file tidak boleh lebih dari $maxMb.");
+        }
+
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType = finfo_file($finfo, $fileArray['tmp_name']);
+        finfo_close($finfo);
+
+        if (!in_array($mimeType, $allowedMimeTypes)) {
+            $formats = $type === 'video' ? 'MP4, WebM, OGG' : 'JPEG, PNG, WEBP, GIF';
+            throw new Exception("Format file tidak didukung. Harap unggah file $formats.");
+        }
+
+        $extension = pathinfo($fileArray['name'], PATHINFO_EXTENSION);
+        if (!$extension) {
+            $extension = $mimeMap[$mimeType] ?? ($type === 'video' ? 'mp4' : 'jpg');
+        }
+
+        $fileName = 'media_' . time() . '_' . bin2hex(random_bytes(8)) . '.' . strtolower($extension);
+        
+        $baseDir = defined('ROOT_PATH') ? ROOT_PATH : realpath(__DIR__ . '/../..');
+        $targetDir = rtrim($baseDir, '/') . '/' . trim($uploadDir, '/');
+        
+        if (!is_dir($targetDir)) {
+            if (!mkdir($targetDir, 0755, true)) {
+                throw new Exception("Gagal membuat direktori upload.");
+            }
+        }
+
+        $targetPath = $targetDir . '/' . $fileName;
+
+        if (!move_uploaded_file($fileArray['tmp_name'], $targetPath)) {
+            throw new Exception("Gagal menyimpan file ke server.");
+        }
+
+        $baseUrl = defined('BASE_URL') ? BASE_URL : '/baca-di-teras';
+        return rtrim($baseUrl, '/') . '/' . trim($uploadDir, '/') . '/' . $fileName;
+    }
 }

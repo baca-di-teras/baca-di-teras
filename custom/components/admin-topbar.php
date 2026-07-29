@@ -25,12 +25,14 @@ if (file_exists($libPath . '/custom/services/ActivityLogService.php')) {
 }
 ?>
 <header class="admin-topbar">
-    <div class="topbar-search">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
-        <input type="text" placeholder="Cari...">
-    </div>
+    <form action="<?= BASE_URL ?>/portal-admin/artikel" method="GET" class="topbar-search">
+        <button type="submit" style="background:transparent; border:none; padding:0; cursor:pointer; color:inherit; display:flex; align-items:center;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+        </button>
+        <input type="text" name="search" placeholder="Cari artikel/berita..." value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
+    </form>
 
     <div class="topbar-actions" style="position: relative;">
         <!-- Notifikasi -->
@@ -48,14 +50,12 @@ if (file_exists($libPath . '/custom/services/ActivityLogService.php')) {
             </div>
             
             <div style="padding: 12px; display: flex; flex-direction: column; gap: 12px;" id="notificationList">
-                <?php if (empty($announcements) && empty($recentUploads)): ?>
-                    <p style="margin: 16px 0; font-size: 0.85rem; color: var(--admin-text-muted); text-align: center;">Tidak ada pemberitahuan.</p>
-                <?php endif; ?>
+                <p id="emptyNotificationMsg" style="margin: 16px 0; font-size: 0.85rem; color: var(--admin-text-muted); text-align: center; display: <?= (empty($announcements) && empty($recentUploads)) ? 'block' : 'none' ?>;">Tidak ada pemberitahuan.</p>
 
                 <!-- Render Pengumuman Sistem -->
                 <?php foreach ($announcements as $announcement): ?>
-                    <div class="notification-item announcement-item" data-id="<?= $announcement['id'] ?>" style="padding: 12px; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; position: relative; transition: opacity 0.3s ease;">
-                        <button class="dismiss-btn" data-id="<?= $announcement['id'] ?>" style="position: absolute; top: 8px; right: 8px; background: transparent; border: none; cursor: pointer; color: #059669; padding: 4px; border-radius: 4px;" title="Tutup Pengumuman">
+                    <div class="notification-item" data-id="ann-<?= $announcement['id'] ?>" style="padding: 12px; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; position: relative; transition: opacity 0.3s ease;">
+                        <button class="dismiss-btn" data-id="ann-<?= $announcement['id'] ?>" style="position: absolute; top: 8px; right: 8px; background: transparent; border: none; cursor: pointer; color: #059669; padding: 4px; border-radius: 4px;" title="Tutup Pengumuman">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                             </svg>
@@ -72,14 +72,19 @@ if (file_exists($libPath . '/custom/services/ActivityLogService.php')) {
 
                 <!-- Render Konten Baru (Recent Uploads) -->
                 <?php foreach ($recentUploads as $upload): ?>
-                    <div class="notification-item" style="padding: 12px; background: #f8fafc; border: 1px solid var(--admin-border); border-radius: 8px;">
-                        <div style="display: flex; gap: 8px; margin-bottom: 4px;">
+                    <div class="notification-item" data-id="upl-<?= $upload['id'] ?>" style="padding: 12px; background: #f8fafc; border: 1px solid var(--admin-border); border-radius: 8px; position: relative; transition: opacity 0.3s ease;">
+                        <button class="dismiss-btn" data-id="upl-<?= $upload['id'] ?>" style="position: absolute; top: 8px; right: 8px; background: transparent; border: none; cursor: pointer; color: #64748b; padding: 4px; border-radius: 4px;" title="Tutup Pemberitahuan">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                        <div style="display: flex; gap: 8px; margin-bottom: 4px; padding-right: 20px;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color: #3b82f6; flex-shrink: 0; margin-top: 2px;">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
                             <span style="font-size: 0.85rem; font-weight: 600; color: #1e293b;">Konten Baru (<?= htmlspecialchars($upload['entity']) ?>)</span>
                         </div>
-                        <p style="margin: 0; font-size: 0.85rem; color: #475569; line-height: 1.4;">
+                        <p style="margin: 0; font-size: 0.85rem; color: #475569; line-height: 1.4; padding-right: 12px;">
                             <?= htmlspecialchars($upload['user_name'] ?? 'Admin') ?> telah menambahkan <?= htmlspecialchars($upload['entity']) ?>: <strong><?= htmlspecialchars($upload['entity_name']) ?></strong>
                         </p>
                         <p style="margin: 4px 0 0 0; font-size: 0.75rem; color: #94a3b8;"><?= date('d M Y, H:i', strtotime($upload['created_at'])) ?></p>
@@ -146,8 +151,8 @@ if (file_exists($libPath . '/custom/services/ActivityLogService.php')) {
         const notificationDropdown = document.getElementById('notificationDropdown');
         const notificationDot = document.getElementById('notificationDot');
         
-        // --- Notifikasi Logic ---
-        const DISMISSED_KEY = 'bdt_dismissed_announcements';
+        // --- Notifikasi Dismissal ---
+        const DISMISSED_KEY = 'bdt_dismissed_notifications';
         let dismissedIds = [];
         
         try {
@@ -158,12 +163,12 @@ if (file_exists($libPath . '/custom/services/ActivityLogService.php')) {
             dismissedIds = [];
         }
         
-        const announcementItems = document.querySelectorAll('.announcement-item');
+        const notificationItems = document.querySelectorAll('.notification-item');
         let hasUndismissed = false;
         
         // Sembunyikan item yang sudah di-dismiss
-        announcementItems.forEach(item => {
-            const id = parseInt(item.getAttribute('data-id'), 10);
+        notificationItems.forEach(item => {
+            const id = item.getAttribute('data-id');
             if (dismissedIds.includes(id)) {
                 item.style.display = 'none';
             } else {
@@ -174,37 +179,42 @@ if (file_exists($libPath . '/custom/services/ActivityLogService.php')) {
         // Jika masih ada yang belum di-dismiss, tampilkan dot merah
         if (hasUndismissed) {
             notificationDot.style.display = 'block';
+        } else {
+            const emptyMsg = document.getElementById('emptyNotificationMsg');
+            if (emptyMsg) emptyMsg.style.display = 'block';
         }
         
         // Tombol Dismiss ditekan
         document.querySelectorAll('.dismiss-btn').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation(); // Mencegah dropdown tertutup
-                const id = parseInt(this.getAttribute('data-id'), 10);
-                const item = document.querySelector(`.announcement-item[data-id="${id}"]`);
+                const id = this.getAttribute('data-id');
+                const item = document.querySelector(`.notification-item[data-id="${id}"]`);
                 
                 if (item) {
                     item.style.opacity = '0';
                     setTimeout(() => {
                         item.style.display = 'none';
+                        
+                        // Cek ulang apakah masih ada yang tersisa setelah dihilangkan
+                        let stillHasUndismissed = false;
+                        document.querySelectorAll('.notification-item').forEach(el => {
+                            if (el.style.display !== 'none' && el !== item) {
+                                stillHasUndismissed = true;
+                            }
+                        });
+                        
+                        if (!stillHasUndismissed) {
+                            notificationDot.style.display = 'none';
+                            const emptyMsg = document.getElementById('emptyNotificationMsg');
+                            if (emptyMsg) emptyMsg.style.display = 'block';
+                        }
                     }, 300);
                 }
                 
                 if (!dismissedIds.includes(id)) {
                     dismissedIds.push(id);
                     localStorage.setItem(DISMISSED_KEY, JSON.stringify(dismissedIds));
-                }
-                
-                // Cek ulang apakah masih ada yang tersisa
-                let stillHasUndismissed = false;
-                document.querySelectorAll('.announcement-item').forEach(el => {
-                    if (el.style.display !== 'none' && el !== item) {
-                        stillHasUndismissed = true;
-                    }
-                });
-                
-                if (!stillHasUndismissed) {
-                    notificationDot.style.display = 'none';
                 }
             });
         });

@@ -135,6 +135,11 @@ $categoryLabel = ArticleService::CATEGORY_LABELS[$news['category']] ?? $news['ca
             line-height: 1.9;
             color: #333;
         }
+        /* Quill Alignment Support */
+        .bdt-article-body .ql-align-center { text-align: center; }
+        .bdt-article-body .ql-align-right { text-align: right; }
+        .bdt-article-body .ql-align-justify { text-align: justify; }
+        
         .bdt-article-body p { margin: 0 0 1.4em; }
         .bdt-article-body h2 { font-size: 1.4rem; font-weight: 700; color: #1a1a2e; margin: 2em 0 0.8em; }
         .bdt-article-body h3 { font-size: 1.15rem; font-weight: 700; color: #1a1a2e; margin: 1.5em 0 0.6em; }
@@ -309,7 +314,14 @@ $categoryLabel = ArticleService::CATEGORY_LABELS[$news['category']] ?? $news['ca
                 </header>
 
                 <div class="bdt-article-body" id="bdt-news-body">
-                    <?= $news['body'] ?? '' ?>
+                    <?php 
+                        $bodyHtml = $news['body'] ?? '';
+                        if (strip_tags($bodyHtml) === $bodyHtml) {
+                            echo nl2br(htmlspecialchars($bodyHtml));
+                        } else {
+                            echo $bodyHtml;
+                        }
+                    ?>
                 </div>
 
                 <!-- Tags -->

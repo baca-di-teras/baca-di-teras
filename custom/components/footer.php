@@ -12,6 +12,13 @@
 // Base URL helper
 $baseUrl = defined('BASE_URL') ? BASE_URL : '';
 
+// Load Footer Config
+$footerConfigFile = (defined('ROOT_PATH') ? ROOT_PATH : __DIR__ . '/../..') . '/custom/config/footer.json';
+$footerConfig = [];
+if (file_exists($footerConfigFile)) {
+    $footerConfig = json_decode(file_get_contents($footerConfigFile), true) ?: [];
+}
+
 // Tautan Cepat
 $quickLinks = [
     ['label' => 'Tentang Kami',         'href' => $baseUrl . '/tentang-kami'],
@@ -20,29 +27,50 @@ $quickLinks = [
     ['label' => 'Gabung Anggota',        'href' => $baseUrl . '/daftar'],
 ];
 
-// Media Sosial
-$socialLinks = [
-    ['label' => 'Instagram',       'href' => 'https://instagram.com/bacaditeras'],
-    ['label' => 'Facebook',        'href' => 'https://facebook.com/bacaditeras'],
-    ['label' => 'Twitter / X',     'href' => 'https://x.com/bacaditeras'],
-    ['label' => 'Saluran YouTube', 'href' => 'https://youtube.com/@bacaditeras'],
-];
+// Media Sosial (dari config)
+$socialLinks = [];
+if (isset($footerConfig['social']) && is_array($footerConfig['social'])) {
+    foreach ($footerConfig['social'] as $social) {
+        $socialLinks[] = [
+            'label' => $social['platform'],
+            'href' => $social['url']
+        ];
+    }
+}
+if (empty($socialLinks)) {
+    // Default fallback
+    $socialLinks = [
+        ['label' => 'Instagram',       'href' => 'https://instagram.com/bacaditeras'],
+        ['label' => 'Facebook',        'href' => 'https://facebook.com/bacaditeras']
+    ];
+}
 
-// Informasi kontak
+// Informasi kontak (dari config)
+$phone = $footerConfig['contact']['phone'] ?? '+62 812-3456-7890';
+$email = $footerConfig['contact']['email'] ?? 'contact@desateras.id';
+$schedule = $footerConfig['contact']['schedule'] ?? 'Sen – Sab: 08:00 – 17:00';
+
 $contactInfo = [
     [
         'icon' => '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.59 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.56a16 16 0 0 0 6 6l1.62-1.62a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>',
-        'text' => '+62 812-3456-7890',
+        'text' => $phone,
+        'href' => 'tel:' . str_replace([' ', '-'], '', $phone)
     ],
     [
         'icon' => '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>',
-        'text' => 'contact@desateras.id',
+        'text' => $email,
+        'href' => 'mailto:' . $email
     ],
     [
         'icon' => '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
-        'text' => 'Sen – Sab: 08:00 – 17:00',
+        'text' => $schedule,
+        'href' => ''
     ],
 ];
+
+// Tautan Kebijakan
+$privacyPolicyUrl = !empty($footerConfig['policies']['privacy']) ? $baseUrl . $footerConfig['policies']['privacy'] : $baseUrl . '/informasi/kebijakan-privasi';
+$termsUrl = !empty($footerConfig['policies']['terms']) ? $baseUrl . $footerConfig['policies']['terms'] : $baseUrl . '/syarat-ketentuan';
 
 $currentYear = date('Y');
 ?>
@@ -162,14 +190,23 @@ $currentYear = date('Y');
                              aria-hidden="true">
                             <?= $contact['icon'] ?>
                         </svg>
-                        <span><?= htmlspecialchars($contact['text']) ?></span>
+                        <?php if (!empty($contact['href'])): ?>
+                            <a href="<?= htmlspecialchars($contact['href']) ?>" style="color: inherit; text-decoration: none;"><?= htmlspecialchars($contact['text']) ?></a>
+                        <?php else: ?>
+                            <span><?= htmlspecialchars($contact['text']) ?></span>
+                        <?php endif; ?>
                     </li>
                 <?php endforeach; ?>
             </ul>
 
             <!-- Kebijakan Privasi -->
-            <p class="bdt-footer__policy-label">Kebijakan Privasi</p>
-            <a href="<?= htmlspecialchars($baseUrl . '/syarat-ketentuan') ?>"
+            <a href="<?= htmlspecialchars($privacyPolicyUrl) ?>"
+               id="bdt-footer-privacy"
+               class="bdt-footer__policy-link">
+                Kebijakan Privasi
+            </a>
+            <br>
+            <a href="<?= htmlspecialchars($termsUrl) ?>"
                id="bdt-footer-syarat"
                class="bdt-footer__policy-link">
                 Syarat &amp; Ketentuan

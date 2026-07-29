@@ -77,18 +77,6 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
                 </div>
             </div>
 
-            <?php if (isset($_GET['success']) && $_GET['success'] === 'deleted'): ?>
-                <div style="background: #d1fae5; color: #065f46; padding: 16px; border-radius: 8px; margin-bottom: 24px; font-weight: 500;">
-                    Akun berhasil dihapus.
-                </div>
-            <?php endif; ?>
-
-            <?php if (isset($error_msg)): ?>
-                <div style="background: #fee2e2; color: #991b1b; padding: 16px; border-radius: 8px; margin-bottom: 24px; font-weight: 500;">
-                    <?= htmlspecialchars($error_msg) ?>
-                </div>
-            <?php endif; ?>
-
             <div class="card" style="padding: 0; overflow: hidden;">
                 <table class="data-table" style="width: 100%; border-collapse: collapse;">
                     <thead>

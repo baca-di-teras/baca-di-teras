@@ -55,11 +55,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } catch (Exception $e) {
             $errorMsg = $e->getMessage();
         }
+    } else {
+        $data['cover_image'] = '/custom/assets/images/news-small.png';
     }
 
     if (empty($errorMsg)) {
         if ($articleService->createArticle($data)) {
-            header("Location: " . BASE_URL . "/portal-admin/artikel");
+            $slug = empty($data['slug']) ? strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $data['title']))) : $data['slug'];
+            $slug = preg_replace('/-+/', '-', $slug);
+            header("Location: " . BASE_URL . "/portal-admin/artikel?success=upload&slug=" . urlencode($slug) . "&cat=" . urlencode($data['category']));
             exit;
         } else {
             $errorMsg = 'Gagal menyimpan artikel. Pastikan isian sudah benar.';
@@ -101,7 +105,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .upload-preview img { width: 100%; height: auto; display: block; object-fit: cover; }
         .remove-preview { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s; }
         .remove-preview:hover { background: rgba(220, 38, 38, 0.9); }
+        
+        /* Quill adjustments */
+        .ql-container { font-family: 'Inter', sans-serif; font-size: 1rem; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; }
+        .ql-toolbar { border-top-left-radius: 8px; border-top-right-radius: 8px; font-family: 'Inter', sans-serif; }
     </style>
+    <!-- Quill JS CSS -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 </head>
 <body>
 
@@ -127,18 +137,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="alert-error"><?= htmlspecialchars($errorMsg) ?></div>
             <?php endif; ?>
 
-            <form action="<?= BASE_URL ?>/portal-admin/artikel/create" method="POST" enctype="multipart/form-data">
+            <form id="articleForm" action="<?= BASE_URL ?>/portal-admin/artikel/create" method="POST" enctype="multipart/form-data">
                 <div class="form-grid">
                     <div class="left-col">
                         <div class="card">
                             <h2 class="card-title">Konten Utama</h2>
                             <div class="form-group">
-                                <label class="form-label">Judul Artikel</label>
-                                <input type="text" name="title" class="form-control" required placeholder="Masukkan judul...">
+                                <label class="form-label" style="display: flex; justify-content: space-between;">Judul Artikel <span id="titleCharCount" style="color: #6b7280; font-weight: normal;">0/120</span></label>
+                                <input type="text" id="titleInput" name="title" class="form-control" required placeholder="Masukkan judul..." maxlength="120">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Slug (Opsional)</label>
-                                <input type="text" name="slug" class="form-control" placeholder="Dikosongkan untuk generate otomatis">
+                                <input type="text" id="slugInput" name="slug" class="form-control" placeholder="Dikosongkan untuk generate otomatis">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Ringkasan (Excerpt)</label>
@@ -146,7 +156,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Isi Artikel</label>
-                                <textarea name="body" class="form-control" style="min-height: 400px;" required placeholder="Isi artikel... mendukung format HTML sederhana"></textarea>
+                                <textarea name="body" id="bodyHidden" style="display:none;" required></textarea>
+                                <div id="editor-container" style="min-height: 400px; background: white;"></div>
                             </div>
                         </div>
                     </div>
@@ -245,6 +256,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <p id="alertMessage" style="font-size: 0.9rem; color: #6b7280; margin-bottom: 24px; text-align: center;">Pesan error di sini.</p>
             <div style="display: flex; gap: 12px; justify-content: center;">
                 <button id="btnDismissAlert" style="padding: 10px 16px; border-radius: 8px; border: none; background: #dc2626; color: white; font-weight: 600; cursor: pointer; flex: 1; text-align: center;">Mengerti</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Link Modal -->
+    <div id="linkModal" class="logout-modal" style="display: none;">
+        <div class="logout-modal-backdrop" id="linkModalBackdrop"></div>
+        <div class="logout-modal-content">
+            <h3 style="font-size: 1.1rem; font-weight: 700; color: #111827; margin-bottom: 16px;">Sisipkan Tautan</h3>
+            <div class="form-group" style="margin-bottom: 16px; text-align: left;">
+                <label class="form-label">Teks Tautan</label>
+                <input type="text" id="linkText" class="form-control" placeholder="Teks yang ditampilkan">
+            </div>
+            <div class="form-group" style="margin-bottom: 24px; text-align: left;">
+                <label class="form-label">URL Tujuan</label>
+                <input type="text" id="linkUrl" class="form-control" placeholder="misal: google.com">
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button type="button" id="btnCancelLink" style="padding: 10px 16px; border-radius: 8px; border: 1px solid var(--admin-border); background: white; color: var(--admin-text-main); font-weight: 600; cursor: pointer;">Batal</button>
+                <button type="button" id="btnSaveLink" style="padding: 10px 16px; border-radius: 8px; border: none; background: var(--admin-primary); color: white; font-weight: 600; cursor: pointer;">Sisipkan</button>
             </div>
         </div>
     </div>
@@ -387,7 +418,144 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             coverFileInput.value = '';
             previewImg.src = '';
             uploadPreview.style.display = 'none';
-            uploadArea.style.display = 'block';
+            uploadArea.style.display = 'flex';
+        });
+
+        // Slug Autogeneration & Title Char Count Logic
+        const titleInput = document.getElementById("titleInput");
+        const slugInput = document.getElementById("slugInput");
+        const titleCharCount = document.getElementById("titleCharCount");
+        let isSlugCustomized = false;
+
+        if (titleInput) {
+            if (titleCharCount) {
+                titleInput.addEventListener("input", function() {
+                    titleCharCount.innerText = this.value.length + '/120';
+                });
+            }
+            if (slugInput) {
+                slugInput.addEventListener("input", function() {
+                    isSlugCustomized = true;
+                });
+
+                titleInput.addEventListener("input", function() {
+                    if (!isSlugCustomized) {
+                        let slug = titleInput.value.toLowerCase().trim()
+                            .replace(/[^a-z0-9\s-]/g, '')
+                            .replace(/\s+/g, '-')
+                            .replace(/-+/g, '-');
+                        slugInput.value = slug;
+                    }
+                });
+            }
+        }
+    </script>
+    
+    <!-- Quill JS -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Inisialisasi Quill Editor
+            var quill = new Quill('#editor-container', {
+                theme: 'snow',
+                placeholder: 'Isi artikel...',
+                modules: {
+                    toolbar: [
+                        [{ 'header': [1, 2, 3, false] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        [{ 'align': [] }],
+                        ['link'],
+                        ['clean']
+                    ]
+                }
+            });
+
+            const toolbar = quill.getModule('toolbar');
+
+            // 1. Custom Link Handler Modal Logic
+            const linkModal = document.getElementById('linkModal');
+            const linkText = document.getElementById('linkText');
+            const linkUrl = document.getElementById('linkUrl');
+            const btnSaveLink = document.getElementById('btnSaveLink');
+            const btnCancelLink = document.getElementById('btnCancelLink');
+            const linkModalBackdrop = document.getElementById('linkModalBackdrop');
+
+            let currentLinkRange = null;
+
+            function closeLinkModal() {
+                linkModal.style.display = 'none';
+                linkText.value = '';
+                linkUrl.value = '';
+                currentLinkRange = null;
+            }
+
+            btnCancelLink.addEventListener('click', closeLinkModal);
+            linkModalBackdrop.addEventListener('click', closeLinkModal);
+
+            btnSaveLink.addEventListener('click', function() {
+                let text = linkText.value.trim();
+                let url = linkUrl.value.trim();
+
+                if (!url) {
+                    showCustomAlert('URL tujuan tidak boleh kosong!');
+                    return;
+                }
+                
+                if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('/')) {
+                    url = 'https://' + url;
+                }
+
+                if (currentLinkRange.length === 0) {
+                    if (!text) {
+                        showCustomAlert('Teks tautan tidak boleh kosong!');
+                        return;
+                    }
+                    quill.insertText(currentLinkRange.index, text, 'link', url);
+                    quill.setSelection(currentLinkRange.index + text.length);
+                } else {
+                    quill.formatText(currentLinkRange.index, currentLinkRange.length, 'link', url);
+                    quill.setSelection(currentLinkRange.index + currentLinkRange.length);
+                }
+                
+                closeLinkModal();
+            });
+
+            toolbar.addHandler('link', function(value) {
+                currentLinkRange = quill.getSelection();
+                if (!currentLinkRange) return;
+
+                if (currentLinkRange.length > 0) {
+                    linkText.value = quill.getText(currentLinkRange.index, currentLinkRange.length);
+                    linkText.disabled = true; // prevent changing text if they selected something
+                    linkText.style.background = '#f3f4f6';
+                } else {
+                    linkText.value = '';
+                    linkText.disabled = false;
+                    linkText.style.background = 'white';
+                }
+
+                linkUrl.value = '';
+                linkModal.style.display = 'flex';
+                if (currentLinkRange.length === 0) {
+                    linkText.focus();
+                } else {
+                    linkUrl.focus();
+                }
+            });
+
+
+            // Form submit sync for Quill
+            const form = document.getElementById('articleForm');
+            form.addEventListener('submit', function(e) {
+                const bodyHidden = document.getElementById('bodyHidden');
+                bodyHidden.value = quill.root.innerHTML;
+                if (quill.getText().trim().length === 0) {
+                    e.preventDefault();
+                    alert("Isi artikel tidak boleh kosong!");
+                }
+            });
         });
     </script>
 </body>
