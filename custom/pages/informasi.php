@@ -64,10 +64,10 @@ $infoServices = $infoService->getServicesInfo();
                 </div>
                 <div class="bdt-info-card__content">
                     <h2 class="bdt-info-card__title"><?= htmlspecialchars($peminjaman['title']) ?></h2>
-                    <p class="bdt-info-card__desc"><?= htmlspecialchars($peminjaman['desc']) ?></p>
+                    <p class="bdt-info-card__desc"><?= htmlspecialchars($peminjaman['desc'] ?? '') ?></p>
 
                     <ul class="bdt-info-card__points" role="list">
-                        <?php foreach ($peminjaman['points'] as $point) : ?>
+                        <?php foreach ($peminjaman['points'] ?? [] as $point) : ?>
                             <li class="bdt-info-card__point-item">
                                 <!-- Check icon -->
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -78,8 +78,8 @@ $infoServices = $infoService->getServicesInfo();
                         <?php endforeach; ?>
                     </ul>
 
-                    <a href="<?= htmlspecialchars($peminjaman['action_href']) ?>" class="bdt-info-card__action-link">
-                        <?= htmlspecialchars($peminjaman['action_label']) ?> &rarr;
+                    <a href="<?= htmlspecialchars($peminjaman['action_href'] ?? '#') ?>" class="bdt-info-card__action-link">
+                        <?= htmlspecialchars($peminjaman['action_label'] ?? 'Selengkapnya') ?> &rarr;
                     </a>
                 </div>
             </div>
@@ -97,7 +97,7 @@ $infoServices = $infoService->getServicesInfo();
                 <h2 class="bdt-info-card__title"><?= htmlspecialchars($jamOp['title']) ?></h2>
                 
                 <div class="bdt-info-card__schedule">
-                    <?php foreach ($jamOp['schedule'] as $row) : ?>
+                    <?php foreach ($jamOp['schedule'] ?? [] as $row) : ?>
                         <div class="bdt-info-card__schedule-row">
                             <span class="bdt-info-card__schedule-day"><?= htmlspecialchars($row['day']) ?></span>
                             <span class="bdt-info-card__schedule-time <?= !empty($row['highlight']) ? 'bdt-info-card__schedule-time--highlight' : '' ?>">
@@ -126,9 +126,9 @@ $infoServices = $infoService->getServicesInfo();
                     </svg>
                 </div>
                 <h2 class="bdt-info-card__title"><?= htmlspecialchars($keanggotaan['title']) ?></h2>
-                <p class="bdt-info-card__desc"><?= htmlspecialchars($keanggotaan['desc']) ?></p>
-                <a href="<?= htmlspecialchars($keanggotaan['action_href']) ?>" class="bdt-info-card__action-btn">
-                    <?= htmlspecialchars($keanggotaan['action_label']) ?>
+                <p class="bdt-info-card__desc"><?= htmlspecialchars($keanggotaan['desc'] ?? '') ?></p>
+                <a href="<?= htmlspecialchars($keanggotaan['action_href'] ?? '#') ?>" class="bdt-info-card__action-btn">
+                    <?= htmlspecialchars($keanggotaan['action_label'] ?? 'Selengkapnya') ?>
                 </a>
             </div>
 
@@ -146,7 +146,7 @@ $infoServices = $infoService->getServicesInfo();
                 <h2 class="bdt-info-card__title"><?= htmlspecialchars($unduhan['title']) ?></h2>
                 
                 <div class="bdt-info-card__downloads">
-                    <?php foreach ($unduhan['files'] as $file) : ?>
+                    <?php foreach ($unduhan['files'] ?? [] as $file) : ?>
                         <a href="<?= htmlspecialchars($file['href']) ?>" class="bdt-info-card__download-item">
                             <span class="bdt-info-card__download-label">
                                 <!-- PDF Icon -->
@@ -174,10 +174,10 @@ $infoServices = $infoService->getServicesInfo();
                     </svg>
                 </div>
                 <h2 class="bdt-info-card__title"><?= htmlspecialchars($tataTertib['title']) ?></h2>
-                <p class="bdt-info-card__desc"><?= htmlspecialchars($tataTertib['desc']) ?></p>
+                <p class="bdt-info-card__desc"><?= htmlspecialchars($tataTertib['desc'] ?? '') ?></p>
                 
                 <div class="bdt-info-card__badges">
-                    <?php foreach ($tataTertib['badges'] as $badge) : ?>
+                    <?php foreach ($tataTertib['badges'] ?? [] as $badge) : ?>
                         <span class="bdt-info-badge"><?= htmlspecialchars($badge) ?></span>
                     <?php endforeach; ?>
                 </div>
@@ -219,10 +219,10 @@ $infoServices = $infoService->getServicesInfo();
                 <?php foreach ($faqList as $faq) : ?>
                     <details class="bdt-faq-item">
                         <summary class="bdt-faq-item__summary">
-                            <?= htmlspecialchars($faq['question']) ?>
+                            <?= htmlspecialchars($faq['title'] ?? '') ?>
                         </summary>
                         <div class="bdt-faq-item__content">
-                            <p><?= htmlspecialchars($faq['answer']) ?></p>
+                            <p><?= nl2br(htmlspecialchars($faq['content'] ?? '')) ?></p>
                         </div>
                     </details>
                 <?php endforeach; ?>
@@ -230,6 +230,11 @@ $infoServices = $infoService->getServicesInfo();
         </section>
 
         <!-- Help CTA Banner -->
+        <?php 
+            $jamOp = $infoServices['jam_operasional'] ?? [];
+            $waNumber = !empty($jamOp['whatsapp_number']) ? '62' . ltrim($jamOp['whatsapp_number'], '0') : '6281234567890';
+            $emailAddr = !empty($jamOp['email_address']) ? $jamOp['email_address'] : '';
+        ?>
         <section class="bdt-help-banner" aria-label="Spanduk Bantuan">
             <div class="bdt-help-banner__info">
                 <img src="<?= BASE_URL ?>/custom/assets/images/about-village.png" alt="Pustakawan" class="bdt-help-banner__avatar">
@@ -240,13 +245,24 @@ $infoServices = $infoService->getServicesInfo();
             </div>
             
             <div class="bdt-help-banner__actions">
-                <a href="https://wa.me/6281234567890" target="_blank" rel="noopener noreferrer" class="bdt-help-btn bdt-help-btn--green">
+                <a href="https://wa.me/<?= htmlspecialchars($waNumber) ?>" target="_blank" rel="noopener noreferrer" class="bdt-help-btn bdt-help-btn--green">
                     <!-- Message icon -->
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                     </svg>
                     <span><span>Hubungi via</span><span>WhatsApp</span></span>
                 </a>
+                
+                <?php if ($emailAddr): ?>
+                <a href="mailto:<?= htmlspecialchars($emailAddr) ?>" class="bdt-help-btn bdt-help-btn--white">
+                    <!-- Mail icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                        <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                    <span><span>Kirim Pesan via</span><span>Email Utama</span></span>
+                </a>
+                <?php else: ?>
                 <a href="<?= BASE_URL ?>/custom/pages/contact.php" class="bdt-help-btn bdt-help-btn--white">
                     <!-- Map/Location icon -->
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -254,8 +270,9 @@ $infoServices = $infoService->getServicesInfo();
                         <line x1="9" y1="3" x2="9" y2="18"></line>
                         <line x1="15" y1="6" x2="15" y2="21"></line>
                     </svg>
-                    <span><span>Cari Lokasi</span><span>Kami</span></span>
+                    <span><span>Kunjungi Kami</span><span>Lihat Lokasi</span></span>
                 </a>
+                <?php endif; ?>
             </div>
         </section>
 

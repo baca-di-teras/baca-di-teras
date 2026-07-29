@@ -1,0 +1,15 @@
+{
+    "maintenance": {
+        "global": false,
+        "pages": {
+            "landing": false,
+            "artikel": false,
+            "berita": false,
+            "pathfinder": false,
+            "katalog": false,
+            "informasi": false,
+            "kontak": false,
+            "profil": false
+        }
+    }
+}

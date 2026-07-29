@@ -70,6 +70,82 @@ class ArticleService
         return $data;
     }
 
+    public function getAdminArticles(array $filters = [], int $limit = 10, int $offset = 0): array
+    {
+        $sql = "SELECT a.*, 
+                (SELECT GROUP_CONCAT(tag_name SEPARATOR ',') FROM bdt_article_tag t WHERE t.article_id = a.article_id) as tags
+                FROM bdt_article a 
+                WHERE 1=1";
+        $types = "";
+        $params = [];
+
+        if (!empty($filters['category'])) {
+            $sql .= " AND a.category = ?";
+            $types .= "s";
+            $params[] = $filters['category'];
+        }
+
+        if (!empty($filters['status'])) {
+            $sql .= " AND a.status = ?";
+            $types .= "s";
+            $params[] = $filters['status'];
+        }
+
+        if (!empty($filters['search'])) {
+            $sql .= " AND (a.title LIKE ? OR a.body LIKE ? OR a.excerpt LIKE ?)";
+            $types .= "sss";
+            $searchStr = '%' . $filters['search'] . '%';
+            $params[] = $searchStr;
+            $params[] = $searchStr;
+            $params[] = $searchStr;
+        }
+
+        $sql .= " ORDER BY a.created_at DESC LIMIT ? OFFSET ?";
+        $types .= "ii";
+        $params[] = $limit;
+        $params[] = $offset;
+
+        $data = $this->db->fetchAll($sql, $types, $params);
+        foreach ($data as &$row) {
+            $row['tags'] = $row['tags'] ? explode(',', $row['tags']) : [];
+        }
+        return $data;
+    }
+
+    public function countAdminArticles(array $filters = []): int
+    {
+        $sql = "SELECT COUNT(*) FROM bdt_article WHERE 1=1";
+        $types = "";
+        $params = [];
+
+        if (!empty($filters['category'])) {
+            $sql .= " AND category = ?";
+            $types .= "s";
+            $params[] = $filters['category'];
+        }
+
+        if (!empty($filters['status'])) {
+            $sql .= " AND status = ?";
+            $types .= "s";
+            $params[] = $filters['status'];
+        }
+
+        if (!empty($filters['search'])) {
+            $sql .= " AND (title LIKE ? OR body LIKE ? OR excerpt LIKE ?)";
+            $types .= "sss";
+            $searchStr = '%' . $filters['search'] . '%';
+            $params[] = $searchStr;
+            $params[] = $searchStr;
+            $params[] = $searchStr;
+        }
+
+        if (empty($params)) {
+            return (int) $this->db->fetchScalar($sql);
+        } else {
+            return (int) $this->db->fetchScalar($sql, $types, $params);
+        }
+    }
+
     public function countPublished(string $category = ''): int
     {
         if ($category) {

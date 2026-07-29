@@ -20,7 +20,7 @@ $announcementService = new AnnouncementService();
 if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])) {
     $id = (int)$_GET['id'];
     $announcementService->deleteAnnouncement($id);
-    header("Location: " . BASE_URL . "/portal-admin/pengumuman");
+    header("Location: " . BASE_URL . "/portal-admin/pengumuman?success=deleted");
     exit;
 }
 

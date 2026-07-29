@@ -22,11 +22,74 @@ $admin_active_page = 'info';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
     $info_id = (int)$_POST['info_id'];
     $infoService->deleteInformation($info_id);
-    header("Location: " . BASE_URL . "/portal-admin/informasi");
+    header("Location: " . BASE_URL . "/portal-admin/informasi?success=deleted");
     exit;
 }
 
+// ── Handle Reorder AJAX ──────────────────────────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'reorder') {
+    $orderData = json_decode($_POST['orderData'] ?? '[]', true);
+    if (is_array($orderData) && count($orderData) > 0) {
+        foreach ($orderData as $item) {
+            $infoService->getDb()->execute("UPDATE bdt_information SET sort_order = ? WHERE info_id = ?", 'ii', [(int)$item['order'], (int)$item['id']]);
+        }
+        echo json_encode(['success' => true]);
+        exit;
+    }
+}
+
 $informations = $infoService->getAllInformation();
+
+$peminjamanHeader = null;
+$tataTertibHeader = null;
+
+$groupedInformations = [
+    'peminjaman' => [],
+    'jam_operasional' => [],
+    'unduhan' => [],
+    'tata_tertib' => [],
+    'faq' => [],
+    'keanggotaan' => []
+];
+
+foreach ($informations as $info) {
+    if ($info['id_name'] === 'peminjaman_header') {
+        $peminjamanHeader = $info;
+    } elseif ($info['id_name'] === 'tata_tertib_header') {
+        $tataTertibHeader = $info;
+    } elseif ($info['id_name'] === 'peminjaman_point') {
+        $groupedInformations['peminjaman'][] = $info;
+    } elseif ($info['id_name'] === 'tata_tertib_point') {
+        $groupedInformations['tata_tertib'][] = $info;
+    } elseif ($info['id_name'] === 'jam_operasional') {
+        $groupedInformations['jam_operasional'][] = $info;
+    } elseif ($info['id_name'] === 'unduhan') {
+        $groupedInformations['unduhan'][] = $info;
+    } elseif ($info['id_name'] === 'tata_tertib') {
+        $groupedInformations['tata_tertib'][] = $info;
+    } elseif ($info['type'] === 'faq') {
+        $groupedInformations['faq'][] = $info;
+    } elseif ($info['id_name'] === 'keanggotaan') {
+        $groupedInformations['keanggotaan'][] = $info;
+    }
+}
+
+// Sort peminjaman and tata_tertib points by sort_order
+usort($groupedInformations['peminjaman'], function($a, $b) {
+    return (int)$a['sort_order'] - (int)$b['sort_order'];
+});
+usort($groupedInformations['tata_tertib'], function($a, $b) {
+    return (int)$a['sort_order'] - (int)$b['sort_order'];
+});
+
+$typeLabels = [
+    'peminjaman' => 'Panduan Peminjaman',
+    'jam_operasional' => 'Jam Operasional',
+    'unduhan' => 'Unduhan',
+    'tata_tertib' => 'Tata Tertib',
+    'faq' => 'FAQ (Tanya Jawab)',
+    'keanggotaan' => 'Konfigurasi Link Keanggotaan'
+];
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -71,79 +134,216 @@ $informations = $infoService->getAllInformation();
             <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
                 <div class="page-title">
                     <h1 style="font-size: 1.5rem; font-weight: 700; margin: 0 0 8px 0;">Manajemen Informasi</h1>
-                    <p style="color: var(--admin-text-muted); margin: 0; font-size: 0.95rem;">Kelola FAQ, layanan, aturan, dan file unduhan.</p>
-                </div>
-                <div>
-                    <a href="<?= BASE_URL ?>/portal-admin/informasi/create" class="btn-primary" style="display: inline-flex; align-items: center; gap: 8px; background-color: var(--admin-primary); color: white; padding: 10px 16px; border-radius: 8px; text-decoration: none; font-weight: 600;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
-                        Tambah Informasi
-                    </a>
+                    <p style="color: var(--admin-text-muted); margin: 0; font-size: 0.95rem;">Kelola FAQ, layanan, aturan, dan file unduhan secara terpisah.</p>
                 </div>
             </div>
 
-            <div class="table-wrapper">
-                <table class="admin-table">
-                    <thead>
+            <?php if (empty($informations)): ?>
+                <div class="table-wrapper">
+                    <table class="admin-table">
                         <tr>
-                            <th>Tipe</th>
-                            <th>Judul</th>
-                            <th>Status</th>
-                            <th>Urutan</th>
-                            <th style="text-align: right;">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (empty($informations)): ?>
-                        <tr>
-                            <td colspan="5" style="text-align: center; padding: 32px; color: var(--admin-text-muted);">
+                            <td style="text-align: center; padding: 32px; color: var(--admin-text-muted);">
                                 Belum ada data informasi.
                             </td>
                         </tr>
-                        <?php else: ?>
-                            <?php foreach ($informations as $info): ?>
-                            <tr>
-                                <td>
-                                    <?php 
-                                        $badgeClass = 'badge-lainnya';
-                                        if ($info['type'] == 'faq') $badgeClass = 'badge-faq';
-                                        if ($info['type'] == 'service') $badgeClass = 'badge-service';
-                                        if ($info['type'] == 'download') $badgeClass = 'badge-download';
-                                    ?>
-                                    <span class="badge <?= $badgeClass ?>"><?= strtoupper($info['type']) ?></span>
-                                </td>
-                                <td>
-                                    <div style="font-weight: 600; margin-bottom: 4px;"><?= htmlspecialchars($info['title']) ?></div>
-                                    <div style="font-size: 0.8rem; color: var(--admin-text-muted); max-width: 400px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                        <?= htmlspecialchars(strip_tags($info['content'] ?? '')) ?>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="badge <?= $info['status'] === 'aktif' ? 'badge-aktif' : 'badge-nonaktif' ?>">
-                                        <?= ucfirst($info['status']) ?>
-                                    </span>
-                                </td>
-                                <td><?= (int)$info['sort_order'] ?></td>
-                                <td style="text-align: right;">
-                                    <a href="<?= BASE_URL ?>/portal-admin/informasi/edit?id=<?= $info['info_id'] ?>" class="btn-action btn-edit" title="Edit">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                    </table>
+                </div>
+            <?php else: ?>
+                <?php foreach ($typeLabels as $typeKey => $typeLabel): ?>
+                    <?php if (isset($groupedInformations[$typeKey])): ?>
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; margin: 32px 0 16px; padding-bottom: 8px;">
+                            <div>
+                                <h2 style="font-size: 1.1rem; font-weight: 700; color: #1a1a2e; margin: 0; border: none; padding: 0;"><?= $typeLabel ?></h2>
+                                <?php if ($typeKey === 'peminjaman' && $peminjamanHeader): ?>
+                                    <p style="margin: 4px 0 0; font-size: 0.85rem; color: #666; max-width: 600px;"><?= htmlspecialchars($peminjamanHeader['content']) ?></p>
+                                <?php elseif ($typeKey === 'tata_tertib' && $tataTertibHeader): ?>
+                                    <p style="margin: 4px 0 0; font-size: 0.85rem; color: #666; max-width: 600px;"><?= htmlspecialchars($tataTertibHeader['content']) ?></p>
+                                <?php endif; ?>
+                            </div>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <?php if ($typeKey === 'peminjaman' || $typeKey === 'tata_tertib'): ?>
+                                    <button class="btn-save-order btn-primary" data-type="<?= $typeKey ?>" style="display: none; align-items: center; gap: 6px; background-color: #f59e0b; color: white; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer;">
+                                        Simpan Urutan
+                                    </button>
+                                <?php endif; ?>
+
+                                <?php if ($typeKey === 'peminjaman'): ?>
+                                    <a href="<?= BASE_URL ?>/portal-admin/informasi/edit-peminjaman-header<?= $peminjamanHeader ? '?id='.$peminjamanHeader['info_id'] : '' ?>" class="btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; background-color: white; border: 1px solid var(--admin-border); color: var(--admin-text-main); padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                        Edit Judul & Narasi
                                     </a>
-                                    <form action="<?= BASE_URL ?>/portal-admin/informasi" method="POST" style="display: inline-block;" onsubmit="return confirm('Yakin ingin menghapus informasi ini?');">
-                                        <input type="hidden" name="action" value="delete">
-                                        <input type="hidden" name="info_id" value="<?= $info['info_id'] ?>">
-                                        <button type="submit" class="btn-action btn-delete" title="Hapus">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
+                                    <a href="<?= BASE_URL ?>/portal-admin/informasi/create-<?= $typeKey ?>" class="btn-primary" style="display: inline-flex; align-items: center; gap: 6px; background-color: var(--admin-primary); color: white; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                                        Tambah Poin
+                                    </a>
+                                <?php elseif ($typeKey === 'tata_tertib'): ?>
+                                    <a href="<?= BASE_URL ?>/portal-admin/informasi/edit-tata_tertib-header<?= $tataTertibHeader ? '?id='.$tataTertibHeader['info_id'] : '' ?>" class="btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; background-color: white; border: 1px solid var(--admin-border); color: var(--admin-text-main); padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                        Edit Judul & Narasi
+                                    </a>
+                                    <a href="<?= BASE_URL ?>/portal-admin/informasi/create-<?= $typeKey ?>" class="btn-primary" style="display: inline-flex; align-items: center; gap: 6px; background-color: var(--admin-primary); color: white; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                                        Tambah Poin
+                                    </a>
+                                <?php elseif ($typeKey === 'jam_operasional'): ?>
+                                    <?php $jo = $groupedInformations[$typeKey][0] ?? null; ?>
+                                    <?php if ($jo): ?>
+                                        <a href="<?= BASE_URL ?>/portal-admin/informasi/edit-jam_operasional?id=<?= $jo['info_id'] ?>" class="btn-primary" style="display: inline-flex; align-items: center; gap: 6px; background-color: var(--admin-primary); color: white; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                            Edit Jadwal
+                                        </a>
+                                    <?php else: ?>
+                                        <a href="<?= BASE_URL ?>/portal-admin/informasi/create-jam_operasional" class="btn-primary" style="display: inline-flex; align-items: center; gap: 6px; background-color: var(--admin-primary); color: white; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                                            Tambah Jadwal
+                                        </a>
+                                    <?php endif; ?>
+                                <?php else: ?>
+                                    <a href="<?= BASE_URL ?>/portal-admin/informasi/create-<?= $typeKey ?>" class="btn-primary" style="display: inline-flex; align-items: center; gap: 6px; background-color: var(--admin-primary); color: white; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                                        Tambah <?= $typeLabel ?>
+                                    </a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <?php if ($typeKey !== 'jam_operasional'): ?>
+                        <div class="table-wrapper">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <?php if ($typeKey === 'peminjaman' || $typeKey === 'tata_tertib'): ?>
+                                        <th style="width: 5%;"></th> <!-- Drag icon -->
+                                        <?php endif; ?>
+                                        <th style="width: 10%;">Tipe</th>
+                                        <th style="width: <?= ($typeKey === 'peminjaman' || $typeKey === 'tata_tertib') ? '45%' : '50%' ?>;">Judul</th>
+                                        <th style="width: 15%;">Status</th>
+                                        <th style="width: 10%;">Urutan</th>
+                                        <th style="width: 15%; text-align: right;">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="<?= ($typeKey === 'peminjaman' || $typeKey === 'tata_tertib') ? 'sortable-tbody' : '' ?>" data-type="<?= $typeKey ?>">
+                                    <?php foreach ($groupedInformations[$typeKey] as $info): ?>
+                                    <tr data-id="<?= $info['info_id'] ?>">
+                                        <?php if ($typeKey === 'peminjaman' || $typeKey === 'tata_tertib'): ?>
+                                        <td style="cursor: grab; color: #aaa;" class="drag-handle">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" /></svg>
+                                        </td>
+                                        <?php endif; ?>
+                                        <td>
+                                            <?php 
+                                                $badgeClass = 'badge-lainnya';
+                                                if ($info['type'] == 'faq') $badgeClass = 'badge-faq';
+                                                if ($info['type'] == 'service') $badgeClass = 'badge-service';
+                                                if ($info['type'] == 'download') $badgeClass = 'badge-download';
+                                                if ($info['type'] == 'schedule') $badgeClass = 'badge-service';
+                                                if ($info['type'] == 'rule') $badgeClass = 'badge-lainnya';
+                                            ?>
+                                            <span class="badge <?= $badgeClass ?>"><?= strtoupper($info['type']) ?></span>
+                                        </td>
+                                        <td>
+                                            <div style="font-weight: 600; margin-bottom: 4px;"><?= htmlspecialchars($info['title']) ?></div>
+                                            <div style="font-size: 0.8rem; color: var(--admin-text-muted); max-width: 400px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                <?= htmlspecialchars(strip_tags($info['content'] ?? '')) ?>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge <?= $info['status'] === 'aktif' ? 'badge-aktif' : 'badge-nonaktif' ?>">
+                                                <?= ucfirst($info['status']) ?>
+                                            </span>
+                                        </td>
+                                        <td><?= (int)$info['sort_order'] ?></td>
+                                        <td style="text-align: right;">
+                                            <a href="<?= BASE_URL ?>/portal-admin/informasi/edit-<?= $typeKey ?>?id=<?= $info['info_id'] ?>" class="btn-action btn-edit" title="Edit">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                            </a>
+                                            <form action="<?= BASE_URL ?>/portal-admin/informasi" method="POST" style="display: inline-block;" onsubmit="return confirm('Yakin ingin menghapus informasi ini?');">
+                                                <input type="hidden" name="action" value="delete">
+                                                <input type="hidden" name="info_id" value="<?= $info['info_id'] ?>">
+                                                <button type="submit" class="btn-action btn-delete" title="Hapus">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
                         <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            <?php endif; ?>
 
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sortables = document.querySelectorAll('.sortable-tbody');
+            let orderChanges = {};
+
+            sortables.forEach(tbody => {
+                const type = tbody.dataset.type;
+                new Sortable(tbody, {
+                    animation: 150,
+                    handle: '.drag-handle', // Allow dragging on entire row or specific handle
+                    onEnd: function (evt) {
+                        const rows = tbody.querySelectorAll('tr');
+                        const orderData = [];
+                        rows.forEach((row, index) => {
+                            orderData.push({
+                                id: row.dataset.id,
+                                order: index + 1
+                            });
+                            // Update text visual urutan di kolom
+                            const orderCol = row.querySelector('td:nth-last-child(2)');
+                            if (orderCol) orderCol.innerText = index + 1;
+                        });
+
+                        orderChanges[type] = orderData;
+                        
+                        // Show save button
+                        const btnSave = document.querySelector('.btn-save-order[data-type="'+type+'"]');
+                        if (btnSave) {
+                            btnSave.style.display = 'inline-flex';
+                        }
+                    }
+                });
+            });
+
+            // Handle save order buttons
+            document.querySelectorAll('.btn-save-order').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const type = this.dataset.type;
+                    const orderData = orderChanges[type];
+                    if (!orderData) return;
+                    
+                    btn.innerText = 'Menyimpan...';
+
+                    const formData = new FormData();
+                    formData.append('action', 'reorder');
+                    formData.append('orderData', JSON.stringify(orderData));
+
+                    fetch('<?= BASE_URL ?>/portal-admin/informasi', {
+                        method: 'POST',
+                        body: formData
+                    }).then(res => res.json()).then(data => {
+                        if (!data.success) {
+                            alert('Gagal mengurutkan data.');
+                            btn.innerText = 'Simpan Urutan';
+                        } else {
+                            btn.style.display = 'none';
+                            btn.innerText = 'Simpan Urutan';
+                        }
+                    }).catch(err => {
+                        console.error(err);
+                        alert('Terjadi kesalahan jaringan.');
+                        btn.innerText = 'Simpan Urutan';
+                    });
+                });
+            });
+        });
+    </script>
 </body>
 </html>

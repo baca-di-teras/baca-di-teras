@@ -22,7 +22,7 @@ $admin_active_page = 'library';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
     $library_id = (int)$_POST['library_id'];
     $libraryService->deleteLibrary($library_id);
-    header("Location: " . BASE_URL . "/portal-admin/perpustakaan");
+    header("Location: " . BASE_URL . "/portal-admin/perpustakaan?success=deleted");
     exit;
 }
 

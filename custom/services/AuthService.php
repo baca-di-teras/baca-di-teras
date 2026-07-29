@@ -63,6 +63,8 @@ class AuthService
             $_SESSION['admin_username'] = $admin['username'];
             $_SESSION['admin_name'] = $admin['name'];
             $_SESSION['admin_role'] = $admin['role'];
+            $_SESSION['admin_language'] = $admin['language'] ?? 'id';
+            $_SESSION['admin_theme'] = $admin['theme'] ?? 'light';
             return true;
         }
 
@@ -91,6 +93,8 @@ class AuthService
         unset($_SESSION['admin_username']);
         unset($_SESSION['admin_name']);
         unset($_SESSION['admin_role']);
+        unset($_SESSION['admin_language']);
+        unset($_SESSION['admin_theme']);
         session_destroy();
     }
 

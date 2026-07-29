@@ -99,13 +99,30 @@ $router->get('/portal-admin/perpustakaan', 'custom/pages/admin/manage_library.ph
 $router->get('/portal-admin/perpustakaan/create', 'custom/pages/admin/create_library.php');
 $router->get('/portal-admin/perpustakaan/edit', 'custom/pages/admin/edit_library.php');
 $router->get('/portal-admin/informasi', 'custom/pages/admin/manage_info.php');
-$router->get('/portal-admin/informasi/create', 'custom/pages/admin/create_info.php');
-$router->get('/portal-admin/informasi/edit', 'custom/pages/admin/edit_info.php');
+// Specific CMS routes for each info type
+$router->get('/portal-admin/informasi/create-faq', 'custom/pages/admin/create_info_faq.php');
+$router->get('/portal-admin/informasi/edit-faq', 'custom/pages/admin/edit_info_faq.php');
+$router->get('/portal-admin/informasi/create-peminjaman', 'custom/pages/admin/create_info_peminjaman.php');
+$router->get('/portal-admin/informasi/edit-peminjaman', 'custom/pages/admin/edit_info_peminjaman.php');
+$router->get('/portal-admin/informasi/edit-peminjaman-header', 'custom/pages/admin/edit_info_peminjaman_header.php');
+$router->get('/portal-admin/informasi/create-jam_operasional', 'custom/pages/admin/create_info_jam_operasional.php');
+$router->get('/portal-admin/informasi/edit-jam_operasional', 'custom/pages/admin/edit_info_jam_operasional.php');
+$router->get('/portal-admin/informasi/create-unduhan', 'custom/pages/admin/create_info_unduhan.php');
+$router->get('/portal-admin/informasi/edit-unduhan', 'custom/pages/admin/edit_info_unduhan.php');
+$router->get('/portal-admin/informasi/create-tata_tertib', 'custom/pages/admin/create_info_tata_tertib.php');
+$router->get('/portal-admin/informasi/edit-tata_tertib', 'custom/pages/admin/edit_info_tata_tertib.php');
+$router->get('/portal-admin/informasi/edit-tata_tertib-header', 'custom/pages/admin/edit_info_tata_tertib_header.php');
+$router->get('/portal-admin/informasi/create-keanggotaan', 'custom/pages/admin/create_info_keanggotaan.php');
+$router->get('/portal-admin/informasi/edit-keanggotaan', 'custom/pages/admin/edit_info_keanggotaan.php');
 $router->get('/portal-admin/profil-desa', 'custom/pages/admin/manage_profile.php');
 
 $router->get('/portal-admin/akun', 'custom/pages/admin/manage_accounts.php');
 $router->get('/portal-admin/akun/tambah', 'custom/pages/admin/create_account.php');
 $router->get('/portal-admin/akun/edit', 'custom/pages/admin/edit_account.php');
+
+// Settings & Backup
+$router->get('/portal-admin/settings', 'custom/pages/admin/settings.php');
+$router->get('/portal-admin/settings/backup', 'custom/pages/admin/settings.php'); // we can handle backup in the same file or a separate one, but let's route it to settings.php with action=backup or a new file backup.php. Let's make a dedicated route just in case.
 
 // Aktivitas & Pengumuman
 $router->get('/portal-admin/aktivitas', 'custom/pages/admin/manage_activity.php');

@@ -22,11 +22,26 @@ $admin_active_page = 'article';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
     $article_id = (int)$_POST['article_id'];
     $articleService->deleteArticle($article_id);
-    header("Location: " . BASE_URL . "/portal-admin/artikel");
+    header("Location: " . BASE_URL . "/portal-admin/artikel?success=deleted");
     exit;
 }
 
-$articles = $articleService->getAllArticles();
+$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$per_page = isset($_GET['per_page']) ? max(1, (int)$_GET['per_page']) : 10;
+$filter_cat = $_GET['category'] ?? '';
+$filter_status = $_GET['status'] ?? '';
+$search_query = $_GET['search'] ?? '';
+
+$filters = [];
+if ($filter_cat) $filters['category'] = $filter_cat;
+if ($filter_status) $filters['status'] = $filter_status;
+if ($search_query) $filters['search'] = $search_query;
+
+$offset = ($page - 1) * $per_page;
+$total = $articleService->countAdminArticles($filters);
+$total_pages = max(1, ceil($total / $per_page));
+
+$articles = $articleService->getAdminArticles($filters, $per_page, $offset);
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -58,7 +73,22 @@ $articles = $articleService->getAllArticles();
 
         .article-thumb { width: 64px; height: 48px; object-fit: cover; border-radius: 6px; background-color: #f3f4f6; }
         .featured-icon { color: #f59e0b; display: inline-block; vertical-align: middle; margin-left: 4px; }
+        
+        .filter-bar { display: flex; gap: 12px; margin-bottom: 24px; align-items: center; background: white; padding: 16px; border-radius: 12px; border: 1px solid var(--admin-border); flex-wrap: wrap; }
+        .filter-select { padding: 8px 12px; border: 1px solid var(--admin-border); border-radius: 6px; font-size: 0.9rem; font-family: 'Inter', sans-serif; outline: none; }
+        .filter-select:focus { border-color: var(--admin-primary); }
+        .filter-btn { padding: 8px 16px; background: var(--admin-primary); color: white; border: none; border-radius: 6px; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
+        .filter-btn:hover { opacity: 0.9; }
+
+        .pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; }
+        .pagination-info { font-size: 0.9rem; color: var(--admin-text-muted); }
+        .pagination-links { display: flex; gap: 8px; }
+        .pagination-links a, .pagination-links span { padding: 8px 12px; border: 1px solid var(--admin-border); border-radius: 6px; font-size: 0.9rem; text-decoration: none; color: var(--admin-text-main); background: white; }
+        .pagination-links a:hover { background: #f9fafb; }
+        .pagination-links span.active { background: var(--admin-primary); color: white; border-color: var(--admin-primary); }
     </style>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 
@@ -81,6 +111,39 @@ $articles = $articleService->getAllArticles();
                     </a>
                 </div>
             </div>
+
+            <!-- Filter & Pagination Settings -->
+            <form method="GET" class="filter-bar">
+                <?php if (!empty($search_query)): ?>
+                    <input type="hidden" name="search" value="<?= htmlspecialchars($search_query) ?>">
+                <?php endif; ?>
+                
+                <select name="per_page" class="filter-select">
+                    <option value="10" <?= $per_page == 10 ? 'selected' : '' ?>>10 per halaman</option>
+                    <option value="25" <?= $per_page == 25 ? 'selected' : '' ?>>25 per halaman</option>
+                    <option value="50" <?= $per_page == 50 ? 'selected' : '' ?>>50 per halaman</option>
+                    <option value="100" <?= $per_page == 100 ? 'selected' : '' ?>>100 per halaman</option>
+                </select>
+
+                <select name="category" class="filter-select">
+                    <option value="">Semua Kategori</option>
+                    <option value="berita" <?= $filter_cat == 'berita' ? 'selected' : '' ?>>Berita</option>
+                    <option value="kegiatan" <?= $filter_cat == 'kegiatan' ? 'selected' : '' ?>>Kegiatan</option>
+                    <option value="pengumuman" <?= $filter_cat == 'pengumuman' ? 'selected' : '' ?>>Pengumuman</option>
+                    <option value="resensi" <?= $filter_cat == 'resensi' ? 'selected' : '' ?>>Resensi</option>
+                    <option value="literasi" <?= $filter_cat == 'literasi' ? 'selected' : '' ?>>Literasi</option>
+                    <option value="lainnya" <?= $filter_cat == 'lainnya' ? 'selected' : '' ?>>Lainnya</option>
+                </select>
+
+                <select name="status" class="filter-select">
+                    <option value="">Semua Status</option>
+                    <option value="published" <?= $filter_status == 'published' ? 'selected' : '' ?>>Published</option>
+                    <option value="draft" <?= $filter_status == 'draft' ? 'selected' : '' ?>>Draft</option>
+                    <option value="archived" <?= $filter_status == 'archived' ? 'selected' : '' ?>>Archived</option>
+                </select>
+
+                <button type="submit" class="filter-btn">Terapkan Filter</button>
+            </form>
 
             <div class="table-wrapper">
                 <table class="admin-table">
@@ -168,6 +231,39 @@ $articles = $articleService->getAllArticles();
                     </tbody>
                 </table>
             </div>
+
+            <!-- Pagination UI -->
+            <?php if ($total_pages > 1): ?>
+            <div class="pagination">
+                <div class="pagination-info">
+                    Menampilkan <?= min($offset + 1, $total) ?> - <?= min($offset + $per_page, $total) ?> dari <?= $total ?> artikel
+                </div>
+                <div class="pagination-links">
+                    <?php 
+                        $queryString = $_GET;
+                        // Hapus param page untuk dirakit ulang
+                        unset($queryString['page']);
+                        $qs = http_build_query($queryString);
+                        $qs = $qs ? '&' . $qs : '';
+                    ?>
+                    <?php if ($page > 1): ?>
+                        <a href="?page=<?= $page - 1 ?><?= $qs ?>">Sebelumnya</a>
+                    <?php endif; ?>
+                    
+                    <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                        <?php if ($i == $page): ?>
+                            <span class="active"><?= $i ?></span>
+                        <?php else: ?>
+                            <a href="?page=<?= $i ?><?= $qs ?>"><?= $i ?></a>
+                        <?php endif; ?>
+                    <?php endfor; ?>
+
+                    <?php if ($page < $total_pages): ?>
+                        <a href="?page=<?= $page + 1 ?><?= $qs ?>">Selanjutnya</a>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <?php endif; ?>
 
         </div>
     </div>
