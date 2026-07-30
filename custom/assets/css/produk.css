@@ -1,0 +1,276 @@
+/**
+ * CSS untuk Halaman Galeri Produk
+ * Premium & Modern UI Design
+ */
+
+ :root {
+    --produk-primary: #1b5e20; /* Hijau Baca Di Teras */
+    --produk-secondary: #4caf50;
+    --produk-bg: #fcfbf9;
+    --produk-card-bg: #ffffff;
+    --produk-text-dark: #1f2937;
+    --produk-text-light: #6b7280;
+    --produk-border: #e5e7eb;
+    --produk-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+    --produk-shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --produk-radius: 16px;
+    --produk-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.produk-page {
+    background-color: var(--produk-bg);
+}
+
+/* Header */
+.produk-header {
+    text-align: center;
+    padding: 60px 20px 20px;
+    margin-bottom: 20px;
+}
+
+.produk-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--produk-primary);
+    margin: 0;
+    letter-spacing: -0.025em;
+    position: relative;
+    display: inline-block;
+}
+
+.produk-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 4px;
+    background: var(--produk-secondary);
+    border-radius: 2px;
+}
+
+/* Container */
+.produk-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 20px 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 60px;
+}
+
+/* Produk Item - Base */
+.produk-item {
+    display: grid;
+    gap: 24px;
+    align-items: stretch;
+    opacity: 0;
+    animation: fadeIn 0.8s forwards ease-out;
+}
+
+@keyframes fadeIn {
+    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: translateY(20px); }
+}
+
+/* Gambar */
+.produk-img-large, .produk-img-small {
+    border-radius: var(--produk-radius);
+    overflow: hidden;
+    background: var(--produk-card-bg);
+    box-shadow: var(--produk-shadow);
+    transition: var(--produk-transition);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.produk-img-large img, .produk-img-small img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.produk-item:hover .produk-img-large img,
+.produk-item:hover .produk-img-small img {
+    transform: scale(1.05);
+}
+
+.produk-img-large:hover, .produk-img-small:hover {
+    box-shadow: var(--produk-shadow-hover);
+}
+
+.produk-placeholder {
+    color: #9ca3af;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    background: #f3f4f6;
+}
+
+/* Text Card */
+.produk-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: var(--produk-radius);
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-shadow: var(--produk-shadow);
+    transition: var(--produk-transition);
+}
+
+.produk-item:hover .produk-card {
+    box-shadow: var(--produk-shadow-hover);
+    transform: translateY(-5px);
+}
+
+.produk-group {
+    display: inline-block;
+    padding: 6px 12px;
+    background: rgba(76, 175, 80, 0.1);
+    color: var(--produk-secondary);
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 20px;
+    margin-bottom: 16px;
+    align-self: flex-start;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.produk-name {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--produk-text-dark);
+    margin: 0 0 16px 0;
+    line-height: 1.2;
+}
+
+.produk-desc {
+    color: var(--produk-text-light);
+    line-height: 1.7;
+    font-size: 1rem;
+    margin: 0;
+}
+
+/* Icon Box */
+.produk-icon-box {
+    background: var(--produk-primary);
+    border-radius: var(--produk-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: var(--produk-shadow);
+    transition: var(--produk-transition);
+}
+
+.produk-icon-box-light {
+    background: var(--produk-secondary);
+}
+
+.produk-icon-box svg {
+    width: 48px;
+    height: 48px;
+    opacity: 0.8;
+}
+
+.produk-item:hover .produk-icon-box {
+    transform: scale(1.05) rotate(5deg);
+}
+
+/* Layout Variations (CSS Grid) */
+
+/* Desktop Grid definitions */
+@media (min-width: 992px) {
+    /* Layout A: Large Image Left, Text Right, Icon Box Top Right, Small Img Bottom Right */
+    .layout-a {
+        grid-template-columns: 7fr 2fr 3fr;
+        grid-template-rows: 1fr 1fr;
+        grid-template-areas:
+            "large card icon"
+            "large card small1";
+        height: 450px;
+    }
+    
+    .layout-a .produk-img-large { grid-area: large; }
+    .layout-a .produk-card { grid-area: card; margin-left: -40px; margin-top: 40px; margin-bottom: 40px; z-index: 2; }
+    .layout-a .produk-icon-box { grid-area: icon; }
+    .layout-a .produk-img-small-1 { grid-area: small1; }
+
+
+    /* Layout B: Text Left, Large Img Right, 2 Small Imgs far left */
+    .layout-b {
+        grid-template-columns: 2fr 4fr 6fr;
+        grid-template-rows: 1fr 1fr;
+        grid-template-areas:
+            "small1 card large"
+            "small2 card large";
+        height: 450px;
+    }
+    
+    .layout-b .produk-img-small-1 { grid-area: small1; }
+    .layout-b .produk-img-small-2 { grid-area: small2; }
+    .layout-b .produk-card { grid-area: card; margin-right: -40px; margin-top: 40px; margin-bottom: 40px; z-index: 2; }
+    .layout-b .produk-img-large { grid-area: large; }
+
+
+    /* Layout C: Large Img Right, Text Left, Small Img Top Left, Icon Bottom Left */
+    .layout-c {
+        grid-template-columns: 3fr 3fr 6fr;
+        grid-template-rows: 1fr 1fr;
+        grid-template-areas:
+            "small1 card large"
+            "icon card large";
+        height: 450px;
+    }
+
+    .layout-c .produk-img-small-1 { grid-area: small1; }
+    .layout-c .produk-icon-box { grid-area: icon; }
+    .layout-c .produk-card { grid-area: card; margin-right: -40px; margin-top: 40px; margin-bottom: 40px; z-index: 2; }
+    .layout-c .produk-img-large { grid-area: large; }
+}
+
+/* Tablet / Mobile Layout */
+@media (max-width: 991px) {
+    .produk-item {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+        gap: 16px;
+    }
+
+    .produk-img-large {
+        height: 300px;
+    }
+
+    .produk-img-small {
+        height: 200px;
+        display: none; /* Hide small images on mobile to keep it clean */
+    }
+
+    .produk-icon-box {
+        display: none; /* Hide icons on mobile */
+    }
+
+    .produk-card {
+        padding: 24px;
+        margin: 0;
+        z-index: auto;
+        transform: translateY(-20px);
+        margin-bottom: -20px;
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+    }
+
+    .produk-item:hover .produk-card {
+        transform: translateY(-20px);
+    }
+}

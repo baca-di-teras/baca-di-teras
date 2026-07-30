@@ -65,6 +65,7 @@ class AuthService
             $_SESSION['admin_role'] = $admin['role'];
             $_SESSION['admin_language'] = $admin['language'] ?? 'id';
             $_SESSION['admin_theme'] = $admin['theme'] ?? 'light';
+            $_SESSION['admin_last_activity'] = time(); // Waktu login awal
             return true;
         }
 
@@ -79,7 +80,19 @@ class AuthService
     public function isLoggedIn(): bool
     {
         $this->initSession();
-        return isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
+        
+        if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true) {
+            // Cek expiration (3 jam = 10800 detik)
+            if (isset($_SESSION['admin_last_activity']) && (time() - $_SESSION['admin_last_activity'] > 10800)) {
+                $this->logout();
+                return false;
+            }
+            // Perbarui waktu aktivitas terakhir
+            $_SESSION['admin_last_activity'] = time();
+            return true;
+        }
+        
+        return false;
     }
 
     /**
@@ -95,6 +108,7 @@ class AuthService
         unset($_SESSION['admin_role']);
         unset($_SESSION['admin_language']);
         unset($_SESSION['admin_theme']);
+        unset($_SESSION['admin_last_activity']);
         session_destroy();
     }
 
