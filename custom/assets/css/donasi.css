@@ -1,0 +1,362 @@
+/* ============================================================
+   Donasi Page — Styles
+   File    : donasi.css
+   Project : Baca Di Teras
+   ============================================================ */
+
+/* ── Page Layout ────────────────────────────────────────────── */
+.donasi-page {
+    background: #f7f6f5;
+    color: #202124;
+    min-height: 100vh;
+}
+
+/* ── Hero Section (Green Banner) ─────────────────────────────── */
+.donasi-hero {
+    background: #2d6a2d;
+    padding: 56px 0;
+}
+
+.donasi-hero__inner {
+    width: min(calc(100% - 80px), 1100px);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 48px;
+    align-items: center;
+}
+
+/* Left — text content */
+.donasi-hero__text {
+    color: #fff;
+}
+
+.donasi-hero__eyebrow {
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.75);
+    margin: 0 0 12px;
+}
+
+.donasi-hero__title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0 0 20px;
+    line-height: 1.3;
+}
+
+.donasi-hero__desc {
+    font-size: 0.95rem;
+    line-height: 1.75;
+    color: rgba(255,255,255,0.9);
+    margin: 0 0 16px;
+    max-width: 560px;
+}
+
+.donasi-hero__desc:last-child {
+    margin-bottom: 0;
+}
+
+/* Right — QR Card */
+.donasi-hero__qr-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    width: 240px;
+    flex-shrink: 0;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+}
+
+.donasi-hero__qr-img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 6px;
+    margin-bottom: 16px;
+}
+
+.donasi-hero__qr-bank {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #202124;
+    margin: 0 0 2px;
+}
+
+.donasi-hero__qr-norek {
+    font-size: 0.85rem;
+    color: #4b5563;
+    margin: 0 0 2px;
+}
+
+.donasi-hero__qr-name {
+    font-size: 0.82rem;
+    color: #4b5563;
+    margin: 0 0 10px;
+}
+
+.donasi-hero__qr-meta {
+    font-size: 0.78rem;
+    color: #6b7280;
+    line-height: 1.55;
+    margin: 0;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 10px;
+}
+
+/* ── Section Wrapper ─────────────────────────────────────────── */
+.donasi-section {
+    width: min(calc(100% - 80px), 1100px);
+    margin: 0 auto;
+    padding: 56px 0;
+}
+
+.donasi-section + .donasi-section {
+    padding-top: 0;
+}
+
+/* ── Section Title ───────────────────────────────────────────── */
+.donasi-section__title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #202124;
+    text-align: center;
+    margin: 0 0 36px;
+}
+
+/* ── Partners Grid ───────────────────────────────────────────── */
+.donasi-partners {
+    padding-bottom: 48px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.donasi-partners__grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 16px 24px;
+    align-items: center;
+    justify-items: center;
+}
+
+.donasi-partner-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    position: relative;
+}
+
+.donasi-partner-item a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.donasi-partner-item img {
+    max-width: 72px;
+    max-height: 72px;
+    object-fit: contain;
+    filter: grayscale(0.1);
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.donasi-partner-item img:hover {
+    transform: scale(1.08);
+    filter: grayscale(0);
+}
+
+.donasi-partner-item--placeholder {
+    background: #f3f4f6;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    color: #9ca3af;
+    text-align: center;
+    font-weight: 600;
+    padding: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+/* ── Donatur Section ─────────────────────────────────────────── */
+.donasi-donatur {
+    padding-top: 48px;
+}
+
+.donasi-donatur__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.donasi-donatur__count {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #202124;
+}
+
+.donasi-donatur__sort {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    color: #4b5563;
+}
+
+.donasi-donatur__sort select {
+    font-size: 0.875rem;
+    color: #202124;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 6px 10px;
+    background: #fff;
+    cursor: pointer;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.donasi-donatur__sort select:focus {
+    border-color: #2d6a2d;
+}
+
+/* Donatur Name List — two-column grid */
+.donasi-donatur__list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border-top: 1px solid #e5e7eb;
+}
+
+.donasi-donatur__item {
+    padding: 14px 0;
+    font-size: 0.92rem;
+    color: #374151;
+    border-bottom: 1px solid #e5e7eb;
+    font-weight: 500;
+}
+
+.donasi-donatur__item:nth-child(odd) {
+    padding-right: 32px;
+    border-right: 1px solid #e5e7eb;
+}
+
+.donasi-donatur__item:nth-child(even) {
+    padding-left: 32px;
+}
+
+/* ── Pagination ──────────────────────────────────────────────── */
+.donasi-pagination {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 28px;
+    justify-content: flex-start;
+}
+
+.donasi-pagination__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 34px;
+    padding: 0 8px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    text-decoration: none;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    cursor: pointer;
+}
+
+.donasi-pagination__btn:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+}
+
+.donasi-pagination__btn--active {
+    background: #2d6a2d;
+    color: #fff;
+    border-color: #2d6a2d;
+}
+
+.donasi-pagination__btn--active:hover {
+    background: #245524;
+}
+
+.donasi-pagination__ellipsis {
+    font-size: 0.875rem;
+    color: #6b7280;
+    padding: 0 4px;
+}
+
+/* ── Empty States ────────────────────────────────────────────── */
+.donasi-empty {
+    text-align: center;
+    color: #6b7280;
+    padding: 40px 0;
+    font-size: 0.95rem;
+}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+    .donasi-partners__grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .donasi-hero__inner {
+        width: calc(100% - 40px);
+        grid-template-columns: 1fr;
+        gap: 32px;
+    }
+
+    .donasi-hero__qr-card {
+        width: 100%;
+        max-width: 280px;
+        margin: 0 auto;
+    }
+
+    .donasi-section {
+        width: calc(100% - 40px);
+        padding: 36px 0;
+    }
+
+    .donasi-partners__grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .donasi-donatur__list {
+        grid-template-columns: 1fr;
+    }
+
+    .donasi-donatur__item:nth-child(odd) {
+        padding-right: 0;
+        border-right: none;
+    }
+
+    .donasi-donatur__item:nth-child(even) {
+        padding-left: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .donasi-partners__grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .donasi-section__title {
+        font-size: 1.3rem;
+    }
+}

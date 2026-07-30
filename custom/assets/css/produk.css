@@ -1,0 +1,272 @@
+/* custom/assets/css/produk.css */
+.produk-page {
+    background-color: #fcfbf9;
+    padding-top: 100px;
+    padding-bottom: 60px;
+}
+
+.produk-header {
+    text-align: center;
+    margin-bottom: 48px;
+    padding: 0 20px;
+}
+
+.produk-title {
+    color: var(--color-primary-dark, #064e3b);
+    font-size: 2.25rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.produk-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+}
+
+/* Base Grid untuk setiap item produk */
+.produk-item {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: minmax(180px, auto);
+    gap: 16px;
+}
+
+/* Elemen-elemen dalam produk */
+.produk-img-large {
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.produk-img-large img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+}
+
+.produk-img-large:hover img {
+    transform: scale(1.05);
+}
+
+.produk-img-small {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.produk-img-small img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+}
+
+.produk-img-small:hover img {
+    transform: scale(1.05);
+}
+
+/* Text Card */
+.produk-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+}
+
+.produk-group {
+    background: #e6f2e9;
+    color: #166534;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border-radius: 99px;
+    display: inline-block;
+    width: fit-content;
+    margin-bottom: 16px;
+    letter-spacing: 0.05em;
+}
+
+.produk-name {
+    color: #166534;
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0 0 16px 0;
+    line-height: 1.2;
+}
+
+.produk-desc {
+    color: #4b5563;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Green Icon Box */
+.produk-icon-box {
+    background: #166534;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    transition: background 0.2s;
+}
+.produk-icon-box:hover {
+    background: #14532d;
+}
+.produk-icon-box svg {
+    width: 32px;
+    height: 32px;
+}
+.produk-icon-box-light {
+    background: #eef2ed;
+    color: #166534;
+}
+.produk-icon-box-light:hover {
+    background: #e2e8e0;
+}
+
+/* LAYOUT PATTERNS */
+
+/* Pattern A: Large Image Left */
+.layout-a .produk-img-large {
+    grid-column: 1 / 3;
+    grid-row: 1 / 3;
+}
+.layout-a .produk-img-small-1 {
+    grid-column: 3 / 4;
+    grid-row: 1 / 2;
+}
+.layout-a .produk-card {
+    grid-column: 4 / 5;
+    grid-row: 1 / 3; /* Lebar dan tinggi dinamis */
+}
+.layout-a .produk-img-small-2 {
+    grid-column: 3 / 4;
+    grid-row: 2 / 3;
+}
+.layout-a .produk-icon-box {
+    grid-column: 4 / 5;
+    grid-row: 2 / 3; 
+    /* Namun jika card rowspan 2, icon box tdk perlu, 
+       atau card rowspan 1, icon box row 2 */
+}
+/* Revisi Pattern A untuk mirip Tas Pustaka */
+.layout-a .produk-card {
+    grid-column: 4 / 5;
+    grid-row: 1 / 2;
+}
+.layout-a .produk-icon-box {
+    grid-column: 4 / 5;
+    grid-row: 2 / 3;
+}
+
+
+/* Pattern B: Large Image Center */
+.layout-b .produk-card {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+}
+.layout-b .produk-img-large {
+    grid-column: 2 / 4;
+    grid-row: 1 / 3;
+}
+.layout-b .produk-img-small-1 {
+    grid-column: 4 / 5;
+    grid-row: 1 / 2;
+}
+.layout-b .produk-img-small-2 {
+    grid-column: 4 / 5;
+    grid-row: 2 / 3;
+}
+
+/* Pattern C: Large Image Left, Different blocks */
+.layout-c .produk-img-large {
+    grid-column: 1 / 3;
+    grid-row: 1 / 3;
+}
+.layout-c .produk-img-small-1 {
+    grid-column: 3 / 4;
+    grid-row: 1 / 2;
+}
+.layout-c .produk-card {
+    grid-column: 4 / 5;
+    grid-row: 1 / 3;
+}
+.layout-c .produk-icon-box {
+    grid-column: 3 / 4;
+    grid-row: 2 / 3;
+}
+
+/* Fallbacks jika gambar tidak lengkap */
+.produk-placeholder {
+    background: #e5e7eb;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
+    font-size: 0.8rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .produk-item {
+        grid-template-columns: repeat(2, 1fr);
+        grid-auto-rows: auto;
+    }
+    
+    .layout-a .produk-img-large,
+    .layout-b .produk-img-large,
+    .layout-c .produk-img-large {
+        grid-column: 1 / 3;
+        grid-row: auto;
+        aspect-ratio: 16/9;
+    }
+    
+    .layout-a .produk-card,
+    .layout-b .produk-card,
+    .layout-c .produk-card {
+        grid-column: 1 / 3;
+        grid-row: auto;
+    }
+    
+    .layout-a .produk-img-small-1,
+    .layout-a .produk-img-small-2,
+    .layout-b .produk-img-small-1,
+    .layout-b .produk-img-small-2,
+    .layout-c .produk-img-small-1,
+    .layout-c .produk-img-small-2 {
+        grid-column: span 1;
+        grid-row: auto;
+        aspect-ratio: 1;
+    }
+    
+    .layout-a .produk-icon-box,
+    .layout-b .produk-icon-box,
+    .layout-c .produk-icon-box {
+        grid-column: span 1;
+        grid-row: auto;
+    }
+}
+
+@media (max-width: 640px) {
+    .produk-item {
+        grid-template-columns: 1fr;
+    }
+    .produk-item > * {
+        grid-column: 1 / -1 !important;
+        grid-row: auto !important;
+    }
+    .produk-img-small-1, .produk-img-small-2, .produk-icon-box {
+        aspect-ratio: 21/9;
+    }
+}

@@ -79,6 +79,8 @@ $router->get('/artikel/{slug}', 'custom/pages/article/detail.php');
 
 $router->get('/informasi', 'custom/pages/informasi.php');
 $router->get('/kontak',    'custom/pages/contact.php');
+$router->get('/donasi',    'custom/pages/donasi.php');
+$router->get('/produk',    'custom/pages/produk.php');
 
 // ============================================================
 // PATHFINDER
@@ -128,6 +130,15 @@ $router->get('/portal-admin/settings/backup', 'custom/pages/admin/settings.php')
 $router->get('/portal-admin/aktivitas', 'custom/pages/admin/manage_activity.php');
 $router->get('/portal-admin/pengumuman', 'custom/pages/admin/manage_announcements.php');
 $router->get('/portal-admin/pengumuman/tambah', 'custom/pages/admin/create_announcement.php');
+
+// Donasi
+$router->get('/portal-admin/donasi', 'custom/pages/admin/manage_donasi.php');
+$router->get('/portal-admin/donasi/tambah-donatur', 'custom/pages/admin/create_donatur.php');
+$router->get('/portal-admin/donasi/tambah-partner', 'custom/pages/admin/create_donasi_partner.php');
+
+// Produk
+$router->get('/portal-admin/produk', 'custom/pages/admin/manage_produk.php');
+$router->get('/portal-admin/produk/tambah', 'custom/pages/admin/create_produk.php');
 
 // Pathfinder Admin Modules
 $router->get('/portal-admin/pathfinder', 'custom/pages/pathfinder/managepathfinder.php');
