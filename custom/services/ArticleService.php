@@ -7,7 +7,7 @@
  * Version : 1.0.0
  */
 
-require_once __DIR__ . '/../helpers/database.php';
+require_once __DIR__ . '/../helpers/Database.php';
 require_once __DIR__ . '/ActivityLogService.php';
 
 class ArticleService
@@ -326,6 +326,10 @@ class ArticleService
 
     public function deleteArticle(int $article_id): bool
     {
+        // Ambil judul artikel sebelum dihapus untuk keperluan log
+        $article = $this->getArticleById($article_id);
+        $title = $article ? $article['title'] : "ID: $article_id";
+
         $sql = "DELETE FROM bdt_article WHERE article_id = ?";
         $stmt = $this->db->getConnection()->prepare($sql);
         if (!$stmt) return false;
@@ -335,7 +339,7 @@ class ArticleService
         $stmt->close();
 
         if ($result) {
-            $this->activityLog->log('menghapus', 'Artikel', "ID: $article_id");
+            $this->activityLog->log('menghapus', 'Artikel', $title);
         }
 
         return $result;
@@ -549,3 +553,4 @@ class ArticleService
         );
     }
 }
+

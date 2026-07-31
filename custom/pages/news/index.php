@@ -629,3 +629,4 @@ $baseUrl      = defined('BASE_URL') ? BASE_URL : '';
 
 </body>
 </html>
+

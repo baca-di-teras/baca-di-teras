@@ -389,3 +389,4 @@ $imageSrc   = (str_starts_with($book['image'], 'http') || str_starts_with($book[
 
 </body>
 </html>
+

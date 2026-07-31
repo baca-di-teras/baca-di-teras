@@ -389,15 +389,37 @@
 
 /* ---------- Dropdown (Mobile) ---------- */
 .bdt-mobile-dropdown-toggle {
-    color: #777;
-    font-weight: 600;
-    cursor: default;
+    color: #40493d;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
+.bdt-mobile-dropdown-toggle::after {
+    content: "";
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid #777;
+    transition: transform 0.3s;
+    margin-right: 12px;
+}
+.bdt-mobile-dropdown.is-open .bdt-mobile-dropdown-toggle::after {
+    transform: rotate(180deg);
+}
+
 .bdt-mobile-dropdown-menu {
     list-style: none;
     padding-left: 16px;
     border-left: 2px solid #eee;
     margin: 4px 0 8px 16px;
+    display: none;
+}
+.bdt-mobile-dropdown.is-open .bdt-mobile-dropdown-menu {
+    display: block;
 }
 .bdt-mobile-dropdown-menu .bdt-navbar__mobile-link {
     padding: 8px 14px;

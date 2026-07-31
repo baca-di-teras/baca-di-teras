@@ -143,8 +143,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="card">
                             <h2 class="card-title">Konten Utama</h2>
                             <div class="form-group">
-                                <label class="form-label" style="display: flex; justify-content: space-between;">Judul Artikel <span id="titleCharCount" style="color: #6b7280; font-weight: normal;">0/120</span></label>
-                                <input type="text" id="titleInput" name="title" class="form-control" required placeholder="Masukkan judul..." maxlength="120">
+                                <label class="form-label" style="display: flex; justify-content: space-between;">Judul Artikel <span id="titleCharCount" style="color: #6b7280; font-weight: normal;">0/180</span></label>
+                                <input type="text" id="titleInput" name="title" class="form-control" required placeholder="Masukkan judul..." maxlength="180">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Slug (Opsional)</label>
@@ -188,7 +188,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                             <div class="form-group">
                                 <label class="form-label">Tanggal Publikasi</label>
-                                <input type="datetime-local" name="publish_date" class="form-control">
+                                <input type="datetime-local" name="publish_date" class="form-control" value="<?= date('Y-m-d\TH:i') ?>">
                             </div>
                             
                             <div class="form-group">
@@ -430,7 +430,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (titleInput) {
             if (titleCharCount) {
                 titleInput.addEventListener("input", function() {
-                    titleCharCount.innerText = this.value.length + '/120';
+                    titleCharCount.innerText = this.value.length + '/180';
                 });
             }
             if (slugInput) {

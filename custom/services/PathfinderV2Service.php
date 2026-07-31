@@ -13,7 +13,7 @@
  *   pathfinder_external_resources, pathfinder_related_books
  */
 
-require_once __DIR__ . '/../helpers/database.php';
+require_once __DIR__ . '/../helpers/Database.php';
 require_once __DIR__ . '/ActivityLogService.php';
 
 class PathfinderV2Service
@@ -390,3 +390,4 @@ class PathfinderV2Service
         }
     }
 }
+

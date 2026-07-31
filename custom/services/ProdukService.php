@@ -121,3 +121,4 @@ class ProdukService {
         return $this->db->execute($sql, 'i', [$id]);
     }
 }
+

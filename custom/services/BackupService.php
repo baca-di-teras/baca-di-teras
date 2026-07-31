@@ -3,7 +3,7 @@
  * Backup Service
  */
 
-require_once __DIR__ . '/../helpers/database.php';
+require_once __DIR__ . '/../helpers/Database.php';
 
 class BackupService
 {
@@ -89,3 +89,4 @@ class BackupService
         return $output;
     }
 }
+

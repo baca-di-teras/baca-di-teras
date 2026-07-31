@@ -481,3 +481,4 @@ $baseUrl = defined('BASE_URL') ? BASE_URL : '';
 <?php include $libPath . '/custom/components/footer.php'; ?>
 </body>
 </html>
+

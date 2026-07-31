@@ -56,14 +56,14 @@ $admin_active_page = 'activity';
             </div>
 
             <div class="card" style="padding: 0; overflow: hidden;">
-                <table class="data-table" style="width: 100%; border-collapse: collapse;">
+                <table class="data-table" style="width: 100%; border-collapse: collapse; table-layout: fixed;">
                     <thead>
                         <tr style="background: #f9fafb; border-bottom: 1px solid var(--admin-border); text-align: left;">
-                            <th style="padding: 16px; font-weight: 600; color: var(--admin-text-muted); font-size: 0.85rem; text-transform: uppercase;">Waktu</th>
-                            <th style="padding: 16px; font-weight: 600; color: var(--admin-text-muted); font-size: 0.85rem; text-transform: uppercase;">Admin</th>
-                            <th style="padding: 16px; font-weight: 600; color: var(--admin-text-muted); font-size: 0.85rem; text-transform: uppercase;">Aksi</th>
-                            <th style="padding: 16px; font-weight: 600; color: var(--admin-text-muted); font-size: 0.85rem; text-transform: uppercase;">Entitas</th>
-                            <th style="padding: 16px; font-weight: 600; color: var(--admin-text-muted); font-size: 0.85rem; text-transform: uppercase;">Keterangan</th>
+                            <th style="padding: 16px; font-weight: 600; color: var(--admin-text-muted); font-size: 0.85rem; text-transform: uppercase; width: 15%;">Waktu</th>
+                            <th style="padding: 16px; font-weight: 600; color: var(--admin-text-muted); font-size: 0.85rem; text-transform: uppercase; width: 25%;">Admin</th>
+                            <th style="padding: 16px; font-weight: 600; color: var(--admin-text-muted); font-size: 0.85rem; text-transform: uppercase; width: 10%;">Aksi</th>
+                            <th style="padding: 16px; font-weight: 600; color: var(--admin-text-muted); font-size: 0.85rem; text-transform: uppercase; width: 10%;">Entitas</th>
+                            <th style="padding: 16px; font-weight: 600; color: var(--admin-text-muted); font-size: 0.85rem; text-transform: uppercase; width: 40%;">Keterangan</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -92,7 +92,7 @@ $admin_active_page = 'activity';
                                     <td style="padding: 16px; font-weight: 500; color: var(--admin-text-main);">
                                         <?= htmlspecialchars($log['entity']) ?>
                                     </td>
-                                    <td style="padding: 16px; color: var(--admin-text-muted); font-size: 0.9rem;">
+                                    <td style="padding: 16px; color: var(--admin-text-muted); font-size: 0.9rem; word-wrap: break-word; overflow-wrap: break-word; line-height: 1.5;">
                                         <?= htmlspecialchars($log['entity_name']) ?>
                                     </td>
                                 </tr>

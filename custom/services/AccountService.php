@@ -5,7 +5,7 @@
  * Mengelola data akun admin/user untuk portal Baca Di Teras.
  */
 
-require_once __DIR__ . '/../helpers/database.php';
+require_once __DIR__ . '/../helpers/Database.php';
 require_once __DIR__ . '/ActivityLogService.php';
 
 class AccountService
@@ -143,6 +143,9 @@ class AccountService
             return false; // Tidak boleh menghapus diri sendiri
         }
 
+        $account = $this->getAccountById($id);
+        $name = $account ? $account['name'] : "ID: $id";
+
         $sql = "DELETE FROM bdt_admins WHERE id = ?";
         $stmt = $this->db->getConnection()->prepare($sql);
         
@@ -153,9 +156,12 @@ class AccountService
         $stmt->close();
 
         if ($success) {
-            $this->activityLog->log('menghapus', 'Akun', "ID: $id");
+            try {
+                $this->activityLog->log('menghapus', 'Akun', $name);
+            } catch (Exception $e) {}
         }
 
         return $success;
     }
 }
+

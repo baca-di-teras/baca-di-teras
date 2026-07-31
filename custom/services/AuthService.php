@@ -9,7 +9,7 @@
  * Mengelola autentikasi login admin untuk modul custom.
  */
 
-require_once __DIR__ . '/../helpers/database.php';
+require_once __DIR__ . '/../helpers/Database.php';
 
 class AuthService
 {
@@ -174,3 +174,4 @@ class AuthService
         }
     }
 }
+

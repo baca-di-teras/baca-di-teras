@@ -153,8 +153,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="card">
                             <h2 class="card-title">Konten Utama</h2>
                             <div class="form-group">
-                                <label class="form-label" style="display: flex; justify-content: space-between;">Judul Artikel <span id="titleCharCount" style="color: #6b7280; font-weight: normal;"><?= strlen($article['title']) ?>/120</span></label>
-                                <input type="text" id="titleInput" name="title" class="form-control" required value="<?= htmlspecialchars($article['title']) ?>" maxlength="120">
+                                <label class="form-label" style="display: flex; justify-content: space-between;">Judul Artikel <span id="titleCharCount" style="color: #6b7280; font-weight: normal;"><?= strlen($article['title']) ?>/180</span></label>
+                                <input type="text" id="titleInput" name="title" class="form-control" required value="<?= htmlspecialchars($article['title']) ?>" maxlength="180">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Slug</label>
@@ -455,7 +455,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         const titleCharCount = document.getElementById("titleCharCount");
         if (titleInput && titleCharCount) {
             titleInput.addEventListener("input", function() {
-                titleCharCount.innerText = this.value.length + '/120';
+                titleCharCount.innerText = this.value.length + '/180';
             });
         }
     </script>

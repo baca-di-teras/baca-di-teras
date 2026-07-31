@@ -519,3 +519,4 @@ $mapsUrl   = $profile['google_maps_url'] ?? '';
 <?php include $libPath . '/custom/components/footer.php'; ?>
 </body>
 </html>
+
