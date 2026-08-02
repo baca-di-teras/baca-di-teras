@@ -1,10 +1,10 @@
 /**
  * CSS untuk Halaman Galeri Produk
- * Premium & Modern UI Design
+ * Abstract Scattered Masonry Design
  */
 
  :root {
-    --produk-primary: #1b5e20; /* Hijau Baca Di Teras */
+    --produk-primary: #1b5e20;
     --produk-secondary: #4caf50;
     --produk-bg: #fcfbf9;
     --produk-card-bg: #ffffff;
@@ -51,94 +51,54 @@
 }
 
 /* Container */
-.produk-container {
+.produk-stack-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px 20px 80px;
     display: flex;
     flex-direction: column;
-    gap: 60px;
+    gap: 80px;
+    overflow-x: hidden; /* prevent horizontal scroll on desktop from overlapping items */
 }
 
-/* Produk Item - Base */
-.produk-item {
-    display: grid;
-    gap: 24px;
-    align-items: stretch;
-    opacity: 0;
-    animation: fadeIn 0.8s forwards ease-out;
-}
-
-@keyframes fadeIn {
-    to { opacity: 1; transform: translateY(0); }
-    from { opacity: 0; transform: translateY(20px); }
-}
-
-/* Gambar */
-.produk-img-large, .produk-img-small {
-    border-radius: var(--produk-radius);
-    overflow: hidden;
-    background: var(--produk-card-bg);
-    box-shadow: var(--produk-shadow);
-    transition: var(--produk-transition);
+/* Row (Baris Produk) */
+.produk-stack-row {
     position: relative;
     display: flex;
-    align-items: center;
+    align-items: stretch;
     justify-content: center;
+    min-height: 350px;
 }
 
-.produk-img-large img, .produk-img-small img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.5s ease;
-}
-
-.produk-item:hover .produk-img-large img,
-.produk-item:hover .produk-img-small img {
-    transform: scale(1.05);
-}
-
-.produk-img-large:hover, .produk-img-small:hover {
-    box-shadow: var(--produk-shadow-hover);
-}
-
-.produk-placeholder {
-    color: #9ca3af;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    background: #f3f4f6;
-}
-
-/* Text Card */
-.produk-card {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
+/* Item Dasar */
+.stack-item {
+    position: relative;
     border-radius: var(--produk-radius);
+    /* Gunakan trick delay z-index saat kursor keluar agar tidak 'menabrak' (clipping) ke belakang layar */
+    transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s, box-shadow 0.5s, z-index 0s 0.5s;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    cursor: pointer;
+    background: #fff;
+}
+
+/* Kartu Info */
+.stack-text-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.7);
     padding: 40px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    box-shadow: var(--produk-shadow);
-    transition: var(--produk-transition);
+    width: 380px;
+    flex-shrink: 0;
 }
 
-.produk-item:hover .produk-card {
-    box-shadow: var(--produk-shadow-hover);
-    transform: translateY(-5px);
-}
-
-.produk-group {
+.stack-badge {
     display: inline-block;
     padding: 6px 12px;
-    background: rgba(76, 175, 80, 0.1);
-    color: var(--produk-secondary);
     font-size: 0.875rem;
-    font-weight: 600;
+    font-weight: 700;
     border-radius: 20px;
     margin-bottom: 16px;
     align-self: flex-start;
@@ -146,31 +106,220 @@
     letter-spacing: 0.05em;
 }
 
-.produk-name {
+.stack-title {
     font-size: 2rem;
-    font-weight: 700;
+    font-weight: 800;
     color: var(--produk-text-dark);
     margin: 0 0 16px 0;
     line-height: 1.2;
 }
 
-.produk-desc {
+.stack-desc {
     color: var(--produk-text-light);
     line-height: 1.7;
     font-size: 1rem;
     margin: 0;
+    /* Limit lines */
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
-/* Icon Box */
-.produk-icon-box {
-    background: var(--produk-primary);
-    border-radius: var(--produk-radius);
+/* Kartu Gambar */
+.stack-img {
+    width: 320px;
+    flex-shrink: 0;
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.stack-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.stack-img-badge {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    padding: 6px 14px;
     color: white;
-    box-shadow: var(--produk-shadow);
-    transition: var(--produk-transition);
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px);
+    z-index: 10;
+}
+
+/* --- OVERLAP LOGIC --- */
+@media (min-width: 992px) {
+    
+    /* Ganjil (Kiri ke Kanan) */
+    .stack-left {
+        flex-direction: row;
+        justify-content: flex-start;
+        padding-left: 50px;
+    }
+    .stack-left .stack-item {
+        margin-left: -120px;
+    }
+    .stack-left .stack-item:first-child {
+        margin-left: 0;
+    }
+
+    /* Genap (Kanan ke Kiri) */
+    .stack-right {
+        flex-direction: row-reverse;
+        justify-content: flex-start;
+        padding-right: 50px;
+    }
+    .stack-right .stack-item {
+        margin-right: -120px;
+    }
+    .stack-right .stack-item:first-child {
+        margin-right: 0;
+    }
+
+    /* Z-Index defaults */
+    .produk-stack-row .stack-item:nth-child(1) { z-index: 40; }
+    .produk-stack-row .stack-item:nth-child(2) { z-index: 30; }
+    .produk-stack-row .stack-item:nth-child(3) { z-index: 20; }
+    .produk-stack-row .stack-item:nth-child(4) { z-index: 10; }
+
+    /* Natural Rotation */
+    .produk-stack-row .stack-img:nth-child(2) { transform: rotate(3deg) translateY(10px); }
+    .produk-stack-row .stack-img:nth-child(3) { transform: rotate(-4deg) translateY(5px); }
+    .produk-stack-row .stack-img:nth-child(4) { transform: rotate(2deg) translateY(15px); }
+    
+    /* Hover Effects */
+    .produk-stack-row:hover .stack-item {
+        /* Saat row di-hover, item lain redup untuk fokus */
+        opacity: 0.85; 
+    }
+    
+    .produk-stack-row .stack-item:hover {
+        z-index: 100 !important;
+        /* Tarik ke atas cukup jauh (translateY) agar tidak menabrak sebelum membesar */
+        transform: rotate(0deg) scale(1.08) translateY(-30px) !important;
+        opacity: 1;
+        box-shadow: 0 30px 50px -15px rgba(0,0,0,0.3);
+        /* Z-index langsung berubah saat masuk hover (delay 0s) */
+        transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s, box-shadow 0.5s, z-index 0s 0s;
+    }
+}
+
+/* --- MOBILE & TABLET LAYOUT (Carousel/Scroll Snap) --- */
+@media (max-width: 991px) {
+    .produk-stack-container {
+        gap: 40px;
+        padding: 20px 0 60px; /* remove horizontal padding for full bleed scroll */
+    }
+    .produk-stack-row {
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: visible;
+        padding: 20px;
+        scroll-snap-type: x mandatory;
+        scroll-padding: 20px;
+        -webkit-overflow-scrolling: touch;
+        gap: 20px; /* spacing instead of negative margin */
+        padding-bottom: 40px; /* room for shadow */
+    }
+    /* Hide scrollbar */
+    .produk-stack-row::-webkit-scrollbar { display: none; }
+    .produk-stack-row { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    .stack-item {
+        scroll-snap-align: start;
+        width: 85vw; /* take up most of the screen */
+        max-width: 320px;
+    }
+    .stack-img {
+        height: 400px;
+    }
+    
+    /* Reset all translations and rotations */
+    .stack-left, .stack-right {
+        flex-direction: row; /* force LTR on mobile for scrolling naturally */
+    }
+    .stack-left .stack-item, .stack-right .stack-item {
+        margin-left: 0;
+        margin-right: 0;
+    }
+    .produk-stack-row .stack-img {
+        transform: none !important;
+    }
+    .produk-stack-row .stack-item:hover {
+        transform: translateY(-5px) !important; /* simple hover for mobile if any */
+        box-shadow: 0 15px 30px -10px rgba(0,0,0,0.15);
+    }
+}
+
+/* --- LIGHTBOX MODAL --- */
+.produk-lightbox {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    padding-top: 50px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.produk-lightbox.show {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 1;
+}
+
+.produk-lightbox .lightbox-content {
+    margin: auto;
+    display: block;
+    max-width: 90%;
+    max-height: 85vh;
+    border-radius: var(--produk-radius);
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+    animation: zoomIn 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.produk-lightbox .lightbox-close {
+    position: absolute;
+    top: 30px;
+    right: 40px;
+    color: #fff;
+    font-size: 40px;
+    font-weight: bold;
+    transition: 0.3s;
+    cursor: pointer;
+    z-index: 10000;
+}
+
+.produk-lightbox .lightbox-close:hover,
+.produk-lightbox .lightbox-close:focus {
+    color: #ccc;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+@keyframes zoomIn {
+    from {transform: scale(0.9); opacity: 0;}
+    to {transform: scale(1); opacity: 1;}
 }
 
 .produk-icon-box-light {
@@ -178,99 +327,11 @@
 }
 
 .produk-icon-box svg {
-    width: 48px;
-    height: 48px;
+    width: 64px;
+    height: 64px;
     opacity: 0.8;
 }
 
-.produk-item:hover .produk-icon-box {
+.produk-icon-box:hover {
     transform: scale(1.05) rotate(5deg);
-}
-
-/* Layout Variations (CSS Grid) */
-
-/* Desktop Grid definitions */
-@media (min-width: 992px) {
-    /* Layout A: Large Image Left, Text Right, Icon Box Top Right, Small Img Bottom Right */
-    .layout-a {
-        grid-template-columns: 7fr 2fr 3fr;
-        grid-template-rows: 1fr 1fr;
-        grid-template-areas:
-            "large card icon"
-            "large card small1";
-        height: 450px;
-    }
-    
-    .layout-a .produk-img-large { grid-area: large; }
-    .layout-a .produk-card { grid-area: card; margin-left: -40px; margin-top: 40px; margin-bottom: 40px; z-index: 2; }
-    .layout-a .produk-icon-box { grid-area: icon; }
-    .layout-a .produk-img-small-1 { grid-area: small1; }
-
-
-    /* Layout B: Text Left, Large Img Right, 2 Small Imgs far left */
-    .layout-b {
-        grid-template-columns: 2fr 4fr 6fr;
-        grid-template-rows: 1fr 1fr;
-        grid-template-areas:
-            "small1 card large"
-            "small2 card large";
-        height: 450px;
-    }
-    
-    .layout-b .produk-img-small-1 { grid-area: small1; }
-    .layout-b .produk-img-small-2 { grid-area: small2; }
-    .layout-b .produk-card { grid-area: card; margin-right: -40px; margin-top: 40px; margin-bottom: 40px; z-index: 2; }
-    .layout-b .produk-img-large { grid-area: large; }
-
-
-    /* Layout C: Large Img Right, Text Left, Small Img Top Left, Icon Bottom Left */
-    .layout-c {
-        grid-template-columns: 3fr 3fr 6fr;
-        grid-template-rows: 1fr 1fr;
-        grid-template-areas:
-            "small1 card large"
-            "icon card large";
-        height: 450px;
-    }
-
-    .layout-c .produk-img-small-1 { grid-area: small1; }
-    .layout-c .produk-icon-box { grid-area: icon; }
-    .layout-c .produk-card { grid-area: card; margin-right: -40px; margin-top: 40px; margin-bottom: 40px; z-index: 2; }
-    .layout-c .produk-img-large { grid-area: large; }
-}
-
-/* Tablet / Mobile Layout */
-@media (max-width: 991px) {
-    .produk-item {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto;
-        gap: 16px;
-    }
-
-    .produk-img-large {
-        height: 300px;
-    }
-
-    .produk-img-small {
-        height: 200px;
-        display: none; /* Hide small images on mobile to keep it clean */
-    }
-
-    .produk-icon-box {
-        display: none; /* Hide icons on mobile */
-    }
-
-    .produk-card {
-        padding: 24px;
-        margin: 0;
-        z-index: auto;
-        transform: translateY(-20px);
-        margin-bottom: -20px;
-        border-top-left-radius: 0;
-        border-top-right-radius: 0;
-    }
-
-    .produk-item:hover .produk-card {
-        transform: translateY(-20px);
-    }
 }

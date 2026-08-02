@@ -21,7 +21,7 @@ class ProdukService {
      * Mengambil daftar produk untuk halaman publik (hanya yang visible)
      */
     public function getPublicProduk() {
-        $sql = "SELECT * FROM bdt_produk WHERE is_visible = 1 ORDER BY created_at DESC";
+        $sql = "SELECT * FROM bdt_produk WHERE status = 'publish' ORDER BY created_at DESC";
         return $this->db->fetchAll($sql);
     }
 
@@ -42,23 +42,37 @@ class ProdukService {
     }
 
     /**
+     * Toggle status (draft/publish)
+     */
+    public function toggleVisibility($id) {
+        // Find current status
+        $sql = "SELECT status FROM bdt_produk WHERE produk_id = ?";
+        $produk = $this->db->fetchOne($sql, 'i', [$id]);
+        if (!$produk) return false;
+        
+        // Simple toggle for manage table: draft -> publish, anything else -> draft
+        $newStatus = ($produk['status'] === 'draft' || $produk['status'] === 'archive') ? 'publish' : 'draft';
+        
+        $sql = "UPDATE bdt_produk SET status = ? WHERE produk_id = ?";
+        return $this->db->execute($sql, 'si', [$newStatus, $id]);
+    }
+
+    /**
      * Menambahkan produk baru
      */
     public function createProduk($data) {
-        $sql = "INSERT INTO bdt_produk (title, group_name, description, image_1, image_2, image_3, is_visible)
+        $sql = "INSERT INTO bdt_produk (title, group_name, description, image_1, image_2, image_3, status)
                 VALUES (?, ?, ?, ?, ?, ?, ?)";
         
-        $params = [
+        return $this->db->execute($sql, 'sssssss', [
             $data['title'],
             $data['group_name'],
             $data['description'],
             $data['image_1'],
             $data['image_2'] ?? null,
             $data['image_3'] ?? null,
-            $data['is_visible'] ?? 1
-        ];
-
-        return $this->db->execute($sql, 'ssssssi', $params);
+            $data['status']
+        ]);
     }
 
     /**
@@ -77,7 +91,7 @@ class ProdukService {
             'image_1'     => 's',
             'image_2'     => 's',
             'image_3'     => 's',
-            'is_visible'  => 'i'
+            'status'      => 's'
         ];
 
         foreach ($data as $key => $value) {

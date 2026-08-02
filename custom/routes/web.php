@@ -141,6 +141,7 @@ $router->get('/portal-admin/donasi/edit-partner', 'custom/pages/admin/edit_donas
 // Produk
 $router->get('/portal-admin/produk', 'custom/pages/admin/manage_produk.php');
 $router->get('/portal-admin/produk/tambah', 'custom/pages/admin/create_produk.php');
+$router->get('/portal-admin/produk/edit', 'custom/pages/admin/edit_produk.php');
 
 // Pathfinder Admin Modules
 $router->get('/portal-admin/pathfinder', 'custom/pages/pathfinder/managepathfinder.php');

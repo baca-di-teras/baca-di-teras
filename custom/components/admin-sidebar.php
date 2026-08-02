@@ -74,6 +74,9 @@ $base_url = defined('BASE_URL') ? BASE_URL : '/baca-di-teras';
             </svg>
             <span class="nav-text">Donasi</span>
         </a>
+        <?php endif; ?>
+
+        <?php if (in_array($_SESSION['admin_role'] ?? '', ['super_admin', 'admin', 'kontributor'])): ?>
         <a href="<?= $base_url ?>/portal-admin/produk" class="admin-nav-item <?= $admin_active_page === 'produk' ? 'active' : '' ?>">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />

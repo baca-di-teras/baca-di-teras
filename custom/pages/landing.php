@@ -37,8 +37,27 @@ $villageService = new VillageService();
 $libraryList  = $libraryService->getFeatured(5);
 $stats        = $libraryService->getOverallStats();
 $bookList     = $bookService->getLatest(6);
+
 $featuredNews = $newsService->getFeaturedNews();
-$newsList     = $newsService->getRecentNews(3, 0);
+$newsList     = $newsService->getRecentNews(4, 0); // Fetch 4 to account for potential duplicates
+
+// Fallback jika tidak ada featured news
+if (!$featuredNews && !empty($newsList)) {
+    $featuredNews = array_shift($newsList);
+}
+
+// Hapus duplikasi jika featured news muncul di recent news
+if ($featuredNews) {
+    foreach ($newsList as $k => $news) {
+        if ($news['article_id'] == $featuredNews['article_id']) {
+            unset($newsList[$k]);
+            break;
+        }
+    }
+}
+// Pastikan newsList hanya berisi 3 item
+$newsList = array_slice($newsList, 0, 3);
+
 $featureList  = $villageService->getFeatures();
 
 ?>

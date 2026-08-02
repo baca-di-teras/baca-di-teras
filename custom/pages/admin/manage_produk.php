@@ -14,11 +14,13 @@ if (!defined('BASE_URL')) {
 $libPath = defined('ROOT_PATH') ? ROOT_PATH : __DIR__ . '/../../..';
 require_once $libPath . '/custom/services/AuthService.php';
 require_once $libPath . '/custom/services/ProdukService.php';
+require_once $libPath . '/custom/services/ActivityLogService.php';
 
 $auth = new AuthService();
-$auth->requireRole(['super_admin', 'admin']);
+$auth->requireRole(['super_admin', 'admin', 'kontributor']);
 
 $produkService = new ProdukService();
+$activityService = new ActivityLogService();
 
 // ── Handle POST Actions ────────────────────────────────────────
 $successMsg = '';
@@ -30,7 +32,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Hapus Produk
     if ($action === 'delete_produk' && isset($_POST['produk_id'])) {
         $id = (int) $_POST['produk_id'];
+        $produkToDelete = $produkService->getProdukById($id);
         if ($produkService->deleteProduk($id)) {
+            if ($produkToDelete) {
+                $activityService->log('menghapus', 'Produk', $produkToDelete['title']);
+            }
             $successMsg = 'Produk berhasil dihapus.';
         } else {
             $errorMsg = 'Gagal menghapus produk.';
@@ -104,7 +110,7 @@ $admin_active_page = 'produk';
                         <tr style="background:#f9fafb; border-bottom:1px solid var(--admin-border); text-align:left;">
                             <th style="padding:14px 16px; font-weight:600; color:var(--admin-text-muted); font-size:0.82rem; text-transform:uppercase;">Gambar Utama</th>
                             <th style="padding:14px 16px; font-weight:600; color:var(--admin-text-muted); font-size:0.82rem; text-transform:uppercase;">Judul Produk</th>
-                            <th style="padding:14px 16px; font-weight:600; color:var(--admin-text-muted); font-size:0.82rem; text-transform:uppercase;">Kelompok</th>
+                            <th style="padding:14px 16px; font-weight:600; color:var(--admin-text-muted); font-size:0.82rem; text-transform:uppercase;">Dibuat Oleh</th>
                             <th style="padding:14px 16px; font-weight:600; color:var(--admin-text-muted); font-size:0.82rem; text-transform:uppercase;">Status</th>
                             <th style="padding:14px 16px; font-weight:600; color:var(--admin-text-muted); font-size:0.82rem; text-transform:uppercase; text-align:right;">Aksi</th>
                         </tr>
@@ -137,15 +143,18 @@ $admin_active_page = 'produk';
                                         <input type="hidden" name="action" value="toggle_produk">
                                         <input type="hidden" name="produk_id" value="<?= $p['produk_id'] ?>">
                                         <button type="submit" style="border:none; background:none; cursor:pointer; padding:0;">
-                                            <?php if ($p['is_visible']): ?>
-                                                <span style="display:inline-block; padding:3px 10px; border-radius:9999px; font-size:0.75rem; font-weight:600; background:#d1fae5; color:#065f46;">Tampil</span>
+                                            <?php if ($p['status'] === 'publish'): ?>
+                                                <span style="display:inline-block; padding:3px 10px; border-radius:9999px; font-size:0.75rem; font-weight:600; background:#d1fae5; color:#065f46;">Publish</span>
+                                            <?php elseif ($p['status'] === 'archive'): ?>
+                                                <span style="display:inline-block; padding:3px 10px; border-radius:9999px; font-size:0.75rem; font-weight:600; background:#fef3c7; color:#92400e;">Archive</span>
                                             <?php else: ?>
-                                                <span style="display:inline-block; padding:3px 10px; border-radius:9999px; font-size:0.75rem; font-weight:600; background:#f3f4f6; color:#6b7280;">Tersembunyi</span>
+                                                <span style="display:inline-block; padding:3px 10px; border-radius:9999px; font-size:0.75rem; font-weight:600; background:#f3f4f6; color:#6b7280;">Draft</span>
                                             <?php endif; ?>
                                         </button>
                                     </form>
                                 </td>
                                 <td style="padding:14px 16px; text-align:right;">
+                                    <a href="<?= BASE_URL ?>/portal-admin/produk/edit?id=<?= $p['produk_id'] ?>" style="color:var(--admin-primary); text-decoration:none; font-size:0.9rem; font-weight:600; margin-right:12px;">Edit</a>
                                     <form method="post" style="display:inline;" onsubmit="return confirm('Hapus produk ini beserta seluruh gambarnya?')">
                                         <input type="hidden" name="action" value="delete_produk">
                                         <input type="hidden" name="produk_id" value="<?= $p['produk_id'] ?>">

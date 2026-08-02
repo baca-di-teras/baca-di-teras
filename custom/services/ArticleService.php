@@ -233,8 +233,8 @@ class ArticleService
         $this->db->getConnection()->begin_transaction();
 
         try {
-            $sql = "INSERT INTO bdt_article (title, slug, excerpt, body, cover_image, category, status, publish_date, is_featured, is_pinned, created_by) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO bdt_article (title, slug, excerpt, body, cover_image, additional_images, category, status, publish_date, is_featured, is_pinned, created_by) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             
             $stmt = $this->db->getConnection()->prepare($sql);
             if (!$stmt) throw new Exception("Prepare failed");
@@ -244,6 +244,7 @@ class ArticleService
             $excerpt = $data['excerpt'] ?? '';
             $body = $data['body'] ?? '';
             $cover_image = $data['cover_image'] ?? null;
+            $additional_images = $data['additional_images'] ?? null;
             $category = $data['category'] ?? 'berita';
             $status = $data['status'] ?? 'draft';
             $publish_date = $data['publish_date'] ?? date('Y-m-d H:i:s');
@@ -251,7 +252,7 @@ class ArticleService
             $is_pinned = $data['is_pinned'] ?? 0;
             $created_by = $data['created_by'] ?? null;
 
-            $stmt->bind_param('ssssssssiii', $title, $slug, $excerpt, $body, $cover_image, $category, $status, $publish_date, $is_featured, $is_pinned, $created_by);
+            $stmt->bind_param('sssssssssiii', $title, $slug, $excerpt, $body, $cover_image, $additional_images, $category, $status, $publish_date, $is_featured, $is_pinned, $created_by);
             
             if (!$stmt->execute()) {
                 throw new Exception("Execute failed: " . $stmt->error);
@@ -283,7 +284,7 @@ class ArticleService
 
         try {
             $sql = "UPDATE bdt_article 
-                    SET title = ?, slug = ?, excerpt = ?, body = ?, cover_image = ?, category = ?, status = ?, publish_date = ?, is_featured = ?, is_pinned = ? 
+                    SET title = ?, slug = ?, excerpt = ?, body = ?, cover_image = ?, additional_images = ?, category = ?, status = ?, publish_date = ?, is_featured = ?, is_pinned = ? 
                     WHERE article_id = ?";
             
             $stmt = $this->db->getConnection()->prepare($sql);
@@ -294,13 +295,14 @@ class ArticleService
             $excerpt = $data['excerpt'] ?? '';
             $body = $data['body'] ?? '';
             $cover_image = $data['cover_image'] ?? null;
+            $additional_images = $data['additional_images'] ?? null;
             $category = $data['category'] ?? 'berita';
             $status = $data['status'] ?? 'draft';
             $publish_date = $data['publish_date'] ?? date('Y-m-d H:i:s');
             $is_featured = $data['is_featured'] ?? 0;
             $is_pinned = $data['is_pinned'] ?? 0;
 
-            $stmt->bind_param('ssssssssiii', $title, $slug, $excerpt, $body, $cover_image, $category, $status, $publish_date, $is_featured, $is_pinned, $article_id);
+            $stmt->bind_param('sssssssssiii', $title, $slug, $excerpt, $body, $cover_image, $additional_images, $category, $status, $publish_date, $is_featured, $is_pinned, $article_id);
             
             if (!$stmt->execute()) {
                 throw new Exception("Execute failed: " . $stmt->error);

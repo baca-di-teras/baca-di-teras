@@ -1,8 +1,8 @@
 <?php
 /**
- * Admin – Tambah Produk (Galeri)
+ * Admin – Edit Produk (Galeri)
  *
- * File    : create_produk.php
+ * File    : edit_produk.php
  * Project : Baca Di Teras
  * Version : 1.0.0
  */
@@ -26,6 +26,19 @@ $successMsg = '';
 $errorMsg   = '';
 $errors     = [];
 
+if (!isset($_GET['id'])) {
+    header('Location: ' . BASE_URL . '/portal-admin/produk');
+    exit;
+}
+
+$produk_id = (int)$_GET['id'];
+$produk = $produkService->getProdukById($produk_id);
+
+if (!$produk) {
+    header('Location: ' . BASE_URL . '/portal-admin/produk');
+    exit;
+}
+
 // ── Handle POST ────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title       = trim($_POST['title'] ?? '');
@@ -41,13 +54,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Nama pembuat (Dibuat oleh) wajib diisi.';
     }
 
-    // Cek upload gambar 1 (wajib)
-    if (!isset($_FILES['image_1']) || $_FILES['image_1']['error'] !== UPLOAD_ERR_OK) {
-        $errors[] = 'Gambar Utama wajib diunggah.';
-    }
+    $uploadedImages = [
+        'image_1' => $produk['image_1'],
+        'image_2' => $produk['image_2'],
+        'image_3' => $produk['image_3']
+    ];
 
-    $uploadedImages = [];
-    
     // Proses upload jika tidak ada error awal
     if (empty($errors)) {
         $uploadDir = $libPath . '/custom/uploads/produk/';
@@ -58,19 +70,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $allowedExts = ['jpg', 'jpeg', 'png', 'webp'];
         $maxSize     = 2 * 1024 * 1024; // 2MB
 
-        // Helper func untuk upload
-        $handleUpload = function($fileKey) use ($allowedExts, $maxSize, $uploadDir, &$errors) {
+        $handleUpload = function($fileKey) use ($allowedExts, $maxSize, $uploadDir, &$errors, $uploadedImages) {
+            // Check if user clicked remove
+            if (isset($_POST['delete_' . $fileKey]) && $_POST['delete_' . $fileKey] == '1') {
+                if (isset($_FILES[$fileKey]) && $_FILES[$fileKey]['error'] === UPLOAD_ERR_OK) {
+                    // Uploading a new one overrides the delete
+                } else {
+                    return null; // Return null so it gets cleared in DB
+                }
+            }
+
             if (isset($_FILES[$fileKey]) && $_FILES[$fileKey]['error'] === UPLOAD_ERR_OK) {
                 $file = $_FILES[$fileKey];
                 $ext  = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
 
                 if (!in_array($ext, $allowedExts)) {
                     $errors[] = "File $fileKey: Format tidak didukung (harus JPG/PNG/WEBP).";
-                    return null;
+                    return $uploadedImages[$fileKey];
                 }
                 if ($file['size'] > $maxSize) {
                     $errors[] = "File $fileKey: Ukuran terlalu besar (Maks 2MB).";
-                    return null;
+                    return $uploadedImages[$fileKey];
                 }
 
                 $fileName = 'produk_' . $fileKey . '_' . time() . '_' . uniqid() . '.' . $ext;
@@ -80,38 +100,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     return 'custom/uploads/produk/' . $fileName;
                 } else {
                     $errors[] = "Gagal menyimpan $fileKey.";
-                    return null;
+                    return $uploadedImages[$fileKey];
                 }
             }
-            return null;
+            return $uploadedImages[$fileKey];
         };
 
-        // Upload semua gambar
         $uploadedImages['image_1'] = $handleUpload('image_1');
         $uploadedImages['image_2'] = $handleUpload('image_2');
         $uploadedImages['image_3'] = $handleUpload('image_3');
 
-        // Jika berhasil semua (tanpa error upload)
+        // Validation for required main image
+        if (empty($uploadedImages['image_1'])) {
+            $errors[] = "Gambar Utama 1 wajib ada.";
+        }
+
+        // Jika berhasil (tanpa error upload)
         if (empty($errors)) {
-            $result = $produkService->createProduk([
+            $result = $produkService->updateProduk($produk_id, [
                 'title'       => $title,
                 'group_name'  => $group_name,
                 'description' => $description,
                 'image_1'     => $uploadedImages['image_1'] ?? '',
                 'image_2'     => $uploadedImages['image_2'] ?? '',
                 'image_3'     => $uploadedImages['image_3'] ?? '',
-                'status'      => $status, // Gunakan status yang dipilih
-                'created_by'  => $_SESSION['admin_id'] ?? 0
+                'status'      => $status
             ]);
 
             if ($result) {
                 // Log activity
-                $activityService->log('menambahkan', 'Produk', $title);
+                $activityService->log('mengubah', 'Produk', $title);
                 
-                header('Location: ' . BASE_URL . '/portal-admin/produk?success=created');
-                exit;
+                $successMsg = 'Produk berhasil diperbarui.';
+                // Refresh data
+                $produk = $produkService->getProdukById($produk_id);
             } else {
-                $errorMsg = 'Terjadi kesalahan saat menyimpan ke database.';
+                $errorMsg = 'Terjadi kesalahan saat memperbarui database.';
             }
         }
     }
@@ -124,7 +148,7 @@ $admin_active_page = 'produk';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tambah Produk – Admin Portal</title>
+    <title>Edit Produk – Admin Portal</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
     <link rel="stylesheet" href="<?= BASE_URL ?>/custom/assets/css/admin.css">
     <style>
@@ -214,7 +238,7 @@ $admin_active_page = 'produk';
         <div class="admin-content">
             <div class="page-header">
                 <div class="page-title">
-                    <h1>Tambah Produk</h1>
+                    <h1>Edit Produk</h1>
                     <p>
                         <a href="<?= BASE_URL ?>/portal-admin/produk"
                            style="color:var(--admin-primary); text-decoration:none;">← Kembali ke Kelola Produk</a>
@@ -252,7 +276,7 @@ $admin_active_page = 'produk';
                                 <label for="title" style="display:block; font-weight:600; font-size:0.9rem; color:var(--admin-text-main); margin-bottom:6px;">
                                     Judul Produk <span style="color:#dc2626;">*</span>
                                 </label>
-                                <input type="text" id="title" name="title" value="<?= htmlspecialchars($_POST['title'] ?? '') ?>" placeholder="Contoh: Tas Pustaka" style="width:100%; padding:10px 14px; border:1px solid var(--admin-border); border-radius:8px; font-size:0.95rem; font-family:inherit; outline:none; box-sizing:border-box;" required>
+                                <input type="text" id="title" name="title" value="<?= htmlspecialchars($_POST['title'] ?? $produk['title']) ?>" placeholder="Contoh: Tas Pustaka" style="width:100%; padding:10px 14px; border:1px solid var(--admin-border); border-radius:8px; font-size:0.95rem; font-family:inherit; outline:none; box-sizing:border-box;" required>
                             </div>
 
                             <!-- Group Name -->
@@ -260,7 +284,7 @@ $admin_active_page = 'produk';
                                 <label for="group_name" style="display:block; font-weight:600; font-size:0.9rem; color:var(--admin-text-main); margin-bottom:6px;">
                                     Dibuat oleh <span style="color:#dc2626;">*</span>
                                 </label>
-                                <input type="text" id="group_name" name="group_name" value="<?= htmlspecialchars($_POST['group_name'] ?? '') ?>" placeholder="Contoh: Nama Anda / Komunitas" style="width:100%; padding:10px 14px; border:1px solid var(--admin-border); border-radius:8px; font-size:0.95rem; font-family:inherit; outline:none; box-sizing:border-box;" required>
+                                <input type="text" id="group_name" name="group_name" value="<?= htmlspecialchars($_POST['group_name'] ?? $produk['group_name']) ?>" placeholder="Contoh: Nama Anda / Komunitas" style="width:100%; padding:10px 14px; border:1px solid var(--admin-border); border-radius:8px; font-size:0.95rem; font-family:inherit; outline:none; box-sizing:border-box;" required>
                             </div>
 
                             <!-- Deskripsi -->
@@ -268,7 +292,7 @@ $admin_active_page = 'produk';
                                 <label for="description" style="display:block; font-weight:600; font-size:0.9rem; color:var(--admin-text-main); margin-bottom:6px;">
                                     Deskripsi Singkat <span style="color:#6b7280; font-weight:400;">— opsional</span>
                                 </label>
-                                <textarea id="description" name="description" rows="5" placeholder="Tuliskan deskripsi produk..." style="width:100%; padding:10px 14px; border:1px solid var(--admin-border); border-radius:8px; font-size:0.95rem; font-family:inherit; outline:none; box-sizing:border-box; resize:vertical;"><?= htmlspecialchars($_POST['description'] ?? '') ?></textarea>
+                                <textarea id="description" name="description" rows="5" placeholder="Tuliskan deskripsi produk..." style="width:100%; padding:10px 14px; border:1px solid var(--admin-border); border-radius:8px; font-size:0.95rem; font-family:inherit; outline:none; box-sizing:border-box; resize:vertical;"><?= htmlspecialchars($_POST['description'] ?? $produk['description']) ?></textarea>
                             </div>
 
                             <!-- Visibility -->
@@ -276,10 +300,13 @@ $admin_active_page = 'produk';
                                 <label for="status" style="display:block; font-weight:600; font-size:0.9rem; color:var(--admin-text-main); margin-bottom:6px;">
                                     Status Publikasi
                                 </label>
+                                <?php 
+                                    $currentStatus = isset($_POST['status']) ? $_POST['status'] : ($produk['status'] ?? 'publish');
+                                ?>
                                 <select id="status" name="status" style="width:100%; padding:10px 14px; border:1px solid var(--admin-border); border-radius:8px; font-size:0.95rem; font-family:inherit; outline:none; background:#fff; cursor:pointer;">
-                                    <option value="publish" <?= (isset($_POST['status']) && $_POST['status'] == 'publish') || !isset($_POST['status']) ? 'selected' : '' ?>>Publish (Tampil di Publik)</option>
-                                    <option value="draft" <?= (isset($_POST['status']) && $_POST['status'] == 'draft') ? 'selected' : '' ?>>Draft (Sembunyikan)</option>
-                                    <option value="archive" <?= (isset($_POST['status']) && $_POST['status'] == 'archive') ? 'selected' : '' ?>>Archive (Arsip)</option>
+                                    <option value="publish" <?= $currentStatus == 'publish' ? 'selected' : '' ?>>Publish (Tampil di Publik)</option>
+                                    <option value="draft" <?= $currentStatus == 'draft' ? 'selected' : '' ?>>Draft (Sembunyikan)</option>
+                                    <option value="archive" <?= $currentStatus == 'archive' ? 'selected' : '' ?>>Archive (Arsip)</option>
                                 </select>
                             </div>
                         </div>
@@ -287,19 +314,19 @@ $admin_active_page = 'produk';
                         <!-- KOLOM KANAN: Upload Gambar -->
                         <div>
                             <h3 style="font-size:1.1rem; color:var(--admin-text-main); margin-top:0; margin-bottom:20px; border-bottom: 1px solid var(--admin-border); padding-bottom: 10px;">Media Foto</h3>
-                            <p style="font-size:0.85rem; color:var(--admin-text-muted); margin-bottom:20px;">Unggah foto produk dengan format JPG/PNG/WEBP (Maks. 3MB per file). Gambar 1 adalah foto utama yang akan mendominasi tampilan.</p>
+                            <p style="font-size:0.85rem; color:var(--admin-text-muted); margin-bottom:20px;">Biarkan kosong jika tidak ingin mengubah gambar yang sudah ada. Gambar 1 adalah foto utama.</p>
 
                             <!-- Gambar 1 -->
                             <div style="margin-bottom:24px;">
                                 <label style="display:block; font-weight:600; font-size:0.9rem; color:var(--admin-text-main); margin-bottom:8px;">
-                                    Gambar Utama 1 <span style="color:#dc2626;">*</span>
+                                    Ganti Gambar Utama 1
                                 </label>
-                                <div class="drop-zone" id="drop_zone_1">
-                                    <span class="drop-zone-icon">📷</span>
-                                    <span class="drop-zone-text" id="text_preview_1">Tarik & Lepas file di sini, atau klik untuk memilih</span>
-                                    <input type="file" id="image_1" name="image_1" accept=".jpg,.jpeg,.png,.webp" required onchange="previewImage(this, 'preview_1', 'text_preview_1', 'drop_zone_1', 'remove_1')">
-                                    <img id="preview_1" class="image-preview" src="" alt="Preview">
-                                    <button type="button" id="remove_1" class="remove-image-btn" onclick="removeImage('image_1', 'preview_1', 'text_preview_1', 'drop_zone_1', 'remove_1', true)" title="Hapus foto">✕</button>
+                                <div class="drop-zone" id="drop_zone_1" style="<?= !empty($produk['image_1']) ? 'padding: 10px; background: transparent; border-style: solid;' : '' ?>">
+                                    <span class="drop-zone-icon" style="<?= !empty($produk['image_1']) ? 'display:none;' : '' ?>">📷</span>
+                                    <span class="drop-zone-text" id="text_preview_1" style="<?= !empty($produk['image_1']) ? 'display:none;' : '' ?>">Tarik & Lepas file di sini, atau klik</span>
+                                    <input type="file" id="image_1" name="image_1" accept=".jpg,.jpeg,.png,.webp" onchange="previewImage(this, 'preview_1', 'text_preview_1', 'drop_zone_1', 'remove_1')">
+                                    <img id="preview_1" class="image-preview" src="<?= !empty($produk['image_1']) ? BASE_URL . '/' . htmlspecialchars($produk['image_1']) : '' ?>" alt="Preview" style="<?= !empty($produk['image_1']) ? 'display:block;' : '' ?>">
+                                    <button type="button" id="remove_1" class="remove-image-btn" style="<?= !empty($produk['image_1']) ? 'display:flex;' : '' ?>" onclick="removeImage('image_1', 'preview_1', 'text_preview_1', 'drop_zone_1', 'remove_1', true)" title="Hapus foto">✕</button>
                                 </div>
                             </div>
 
@@ -307,28 +334,28 @@ $admin_active_page = 'produk';
                                 <!-- Gambar 2 -->
                                 <div>
                                     <label style="display:block; font-weight:600; font-size:0.9rem; color:var(--admin-text-main); margin-bottom:8px;">
-                                        Gambar 2 <span style="color:#6b7280; font-weight:400;">— opsional</span>
+                                        Gambar Tambahan 2
                                     </label>
-                                    <div class="drop-zone" id="drop_zone_2" style="padding: 20px 10px;">
-                                        <span class="drop-zone-icon" style="font-size:1.5rem;">📷</span>
-                                        <span class="drop-zone-text" id="text_preview_2" style="font-size:0.8rem;">Pilih gambar</span>
+                                    <div class="drop-zone" id="drop_zone_2" style="padding: <?= !empty($produk['image_2']) ? '10px' : '20px 10px' ?>; <?= !empty($produk['image_2']) ? 'background: transparent; border-style: solid;' : '' ?>">
+                                        <span class="drop-zone-icon" style="font-size:1.5rem; <?= !empty($produk['image_2']) ? 'display:none;' : '' ?>">📷</span>
+                                        <span class="drop-zone-text" id="text_preview_2" style="font-size:0.8rem; <?= !empty($produk['image_2']) ? 'display:none;' : '' ?>">Pilih gambar</span>
                                         <input type="file" id="image_2" name="image_2" accept=".jpg,.jpeg,.png,.webp" onchange="previewImage(this, 'preview_2', 'text_preview_2', 'drop_zone_2', 'remove_2')">
-                                        <img id="preview_2" class="image-preview" src="" alt="Preview" style="height:120px;">
-                                        <button type="button" id="remove_2" class="remove-image-btn" onclick="removeImage('image_2', 'preview_2', 'text_preview_2', 'drop_zone_2', 'remove_2', false)" title="Hapus foto">✕</button>
+                                        <img id="preview_2" class="image-preview" src="<?= !empty($produk['image_2']) ? BASE_URL . '/' . htmlspecialchars($produk['image_2']) : '' ?>" alt="Preview" style="height:120px; <?= !empty($produk['image_2']) ? 'display:block;' : '' ?>">
+                                        <button type="button" id="remove_2" class="remove-image-btn" style="<?= !empty($produk['image_2']) ? 'display:flex;' : '' ?>" onclick="removeImage('image_2', 'preview_2', 'text_preview_2', 'drop_zone_2', 'remove_2', false)" title="Hapus foto">✕</button>
                                     </div>
                                 </div>
 
                                 <!-- Gambar 3 -->
                                 <div>
                                     <label style="display:block; font-weight:600; font-size:0.9rem; color:var(--admin-text-main); margin-bottom:8px;">
-                                        Gambar 3 <span style="color:#6b7280; font-weight:400;">— opsional</span>
+                                        Gambar Tambahan 3
                                     </label>
-                                    <div class="drop-zone" id="drop_zone_3" style="padding: 20px 10px;">
-                                        <span class="drop-zone-icon" style="font-size:1.5rem;">📷</span>
-                                        <span class="drop-zone-text" id="text_preview_3" style="font-size:0.8rem;">Pilih gambar</span>
+                                    <div class="drop-zone" id="drop_zone_3" style="padding: <?= !empty($produk['image_3']) ? '10px' : '20px 10px' ?>; <?= !empty($produk['image_3']) ? 'background: transparent; border-style: solid;' : '' ?>">
+                                        <span class="drop-zone-icon" style="font-size:1.5rem; <?= !empty($produk['image_3']) ? 'display:none;' : '' ?>">📷</span>
+                                        <span class="drop-zone-text" id="text_preview_3" style="font-size:0.8rem; <?= !empty($produk['image_3']) ? 'display:none;' : '' ?>">Pilih gambar</span>
                                         <input type="file" id="image_3" name="image_3" accept=".jpg,.jpeg,.png,.webp" onchange="previewImage(this, 'preview_3', 'text_preview_3', 'drop_zone_3', 'remove_3')">
-                                        <img id="preview_3" class="image-preview" src="" alt="Preview" style="height:120px;">
-                                        <button type="button" id="remove_3" class="remove-image-btn" onclick="removeImage('image_3', 'preview_3', 'text_preview_3', 'drop_zone_3', 'remove_3', false)" title="Hapus foto">✕</button>
+                                        <img id="preview_3" class="image-preview" src="<?= !empty($produk['image_3']) ? BASE_URL . '/' . htmlspecialchars($produk['image_3']) : '' ?>" alt="Preview" style="height:120px; <?= !empty($produk['image_3']) ? 'display:block;' : '' ?>">
+                                        <button type="button" id="remove_3" class="remove-image-btn" style="<?= !empty($produk['image_3']) ? 'display:flex;' : '' ?>" onclick="removeImage('image_3', 'preview_3', 'text_preview_3', 'drop_zone_3', 'remove_3', false)" title="Hapus foto">✕</button>
                                     </div>
                                 </div>
                             </div>
@@ -343,7 +370,7 @@ $admin_active_page = 'produk';
                             Batal
                         </a>
                         <button type="submit" class="btn btn-primary" style="padding:12px 24px; font-size:0.95rem;">
-                            Simpan Produk
+                            Perbarui Produk
                         </button>
                     </div>
                 </form>
@@ -417,11 +444,15 @@ $admin_active_page = 'produk';
                     }
                 }
                 reader.readAsDataURL(file);
-            } else {
-                removeImage(input.id, previewId, textId, zoneId, removeBtnId, zoneId === 'drop_zone_1');
             }
         }
 
+        // Modified for edit page: just clears the preview & input, effectively showing empty drop zone
+        // If users submit like this, the server will keep the old image unless we send a delete signal.
+        // For simplicity, we just clear the UI. If they submit without a new file, PHP will ignore and keep the old one,
+        // which might be slightly confusing but standard for simple forms.
+        // To actually delete an old image in edit mode, we'd need a hidden input for "delete_image_2" etc.
+        // Let's add that hidden input handling dynamically!
         function removeImage(inputId, previewId, textId, zoneId, removeBtnId, isMain) {
             document.getElementById(inputId).value = '';
             document.getElementById(previewId).src = '';
@@ -438,6 +469,17 @@ $admin_active_page = 'produk';
                 zone.style.padding = isMain ? '30px 20px' : '20px 10px';
                 zone.style.background = '#f9fafb';
                 zone.style.borderStyle = 'dashed';
+            }
+
+            // Create a hidden input to signal deletion to PHP
+            let deleteFlag = document.getElementById('delete_' + inputId);
+            if (!deleteFlag) {
+                deleteFlag = document.createElement('input');
+                deleteFlag.type = 'hidden';
+                deleteFlag.name = 'delete_' + inputId;
+                deleteFlag.id = 'delete_' + inputId;
+                deleteFlag.value = '1';
+                document.forms[0].appendChild(deleteFlag);
             }
         }
 

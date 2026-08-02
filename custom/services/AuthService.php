@@ -119,7 +119,7 @@ class AuthService
     {
         if (!$this->isLoggedIn()) {
             $base_url = defined('BASE_URL') ? BASE_URL : '/baca-di-teras';
-            header("Location: {$base_url}/login");
+            header("Location: {$base_url}/portal-admin/login");
             exit;
         }
     }

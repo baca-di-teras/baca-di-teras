@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galeri Produk – Baca Di Teras</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="/custom/assets/css/navbar.css">
+    <link rel="stylesheet" href="/custom/assets/css/footer.css">
+    <link rel="stylesheet" href="/custom/assets/css/produk.css">
+    <style>
+        html, body { margin: 0; background: #fcfbf9; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="produk-page">
+    
+<!-- Navbar Stylesheet -->
+<link rel="stylesheet" href="/custom/assets/css/navbar.css">
+
+<!-- ============================================================
+     Navbar Component
+     ============================================================ -->
+<header class="bdt-navbar" id="bdt-navbar" role="banner">
+    <div class="bdt-navbar__container">
+
+        <!-- Logo -->
+        <a href="/"
+           class="bdt-navbar__logo"
+           id="bdt-navbar-logo"
+           aria-label="Baca Di Teras – Halaman Utama">
+            <img src="/custom/assets/images/logo.png"
+                 alt="Logo Baca Di Teras"
+                 class="bdt-navbar__logo-img"
+                 width="120"
+                 height="40">
+        </a>
+
+        <!-- Desktop Navigation Menu -->
+        <nav aria-label="Menu Utama">
+            <ul class="bdt-navbar__nav" id="bdt-navbar-nav" role="list">
+                                                        <li class="bdt-navbar__nav-item">
+                        <a href="/"
+                           id="bdt-nav-beranda"
+                           class="bdt-navbar__nav-link"
+                                                      >
+                            Beranda                        </a>
+                    </li>
+                                                                                                <li class="bdt-navbar__nav-item bdt-dropdown">
+                        <a href="javascript:void(0)" class="bdt-navbar__nav-link bdt-dropdown-toggle">
+                            Tentang                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:4px;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </a>
+                        <ul class="bdt-dropdown-menu">
+                                                        <li>
+                                <a href="/profil" 
+                                   class="bdt-dropdown-item"
+                                   >
+                                    Profil Desa                                </a>
+                            </li>
+                                                        <li>
+                                <a href="/informasi" 
+                                   class="bdt-dropdown-item"
+                                   >
+                                    Informasi                                </a>
+                            </li>
+                                                    </ul>
+                    </li>
+                                                                                                <li class="bdt-navbar__nav-item bdt-dropdown">
+                        <a href="javascript:void(0)" class="bdt-navbar__nav-link bdt-dropdown-toggle">
+                            Layanan                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:4px;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </a>
+                        <ul class="bdt-dropdown-menu">
+                                                        <li>
+                                <a href="/perpustakaan" 
+                                   class="bdt-dropdown-item"
+                                   >
+                                    Perpustakaan                                </a>
+                            </li>
+                                                        <li>
+                                <a href="/pathfinder" 
+                                   class="bdt-dropdown-item"
+                                   >
+                                    Pathfinder                                </a>
+                            </li>
+                                                    </ul>
+                    </li>
+                                                                            <li class="bdt-navbar__nav-item">
+                        <a href="/katalog"
+                           id="bdt-nav-katalog"
+                           class="bdt-navbar__nav-link"
+                                                      >
+                            Katalog                        </a>
+                    </li>
+                                                                                                <li class="bdt-navbar__nav-item bdt-dropdown">
+                        <a href="javascript:void(0)" class="bdt-navbar__nav-link bdt-dropdown-toggle">
+                            Rilis                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:4px;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </a>
+                        <ul class="bdt-dropdown-menu">
+                                                        <li>
+                                <a href="/artikel" 
+                                   class="bdt-dropdown-item"
+                                   >
+                                    Artikel                                </a>
+                            </li>
+                                                        <li>
+                                <a href="/berita" 
+                                   class="bdt-dropdown-item"
+                                   >
+                                    Berita                                </a>
+                            </li>
+                                                        <li>
+                                <a href="/media" 
+                                   class="bdt-dropdown-item"
+                                   >
+                                    Media                                </a>
+                            </li>
+                                                    </ul>
+                    </li>
+                                                                            <li class="bdt-navbar__nav-item">
+                        <a href="/produk"
+                           id="bdt-nav-produk"
+                           class="bdt-navbar__nav-link active"
+                                                      aria-current="page">
+                            Produk                        </a>
+                    </li>
+                                                                            <li class="bdt-navbar__nav-item">
+                        <a href="/donasi"
+                           id="bdt-nav-donasi"
+                           class="bdt-navbar__nav-link"
+                                                      >
+                            Donasi                        </a>
+                    </li>
+                                                </ul>
+        </nav>
+
+        <!-- Desktop Right Actions -->
+        <div class="bdt-navbar__actions" aria-label="Aksi tambahan">
+
+            <!-- Kontak -->
+            <a href="/kontak"
+               id="bdt-navbar-kontak"
+               class="bdt-navbar__kontak"
+               aria-label="Halaman Kontak">
+                <!-- Location pin icon (inline SVG) -->
+                <svg class="bdt-navbar__kontak-icon"
+                     xmlns="http://www.w3.org/2000/svg"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     stroke-linejoin="round"
+                     aria-hidden="true">
+                    <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                </svg>
+                Kontak
+            </a>
+
+            <!-- Login Keanggotaan Button -->
+            <a href="/slims/index.php?p=member"
+               id="bdt-navbar-login"
+               class="bdt-navbar__btn-login"
+               aria-label="Login Keanggotaan">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                Masuk
+            </a>
+        </div>
+
+        <!-- Hamburger Button (Mobile) -->
+        <button class="bdt-navbar__hamburger"
+                id="bdt-navbar-hamburger"
+                type="button"
+                aria-label="Buka menu navigasi"
+                aria-expanded="false"
+                aria-controls="bdt-navbar-mobile-menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+    </div><!-- /.bdt-navbar__container -->
+
+    <!-- Mobile Menu -->
+    <div class="bdt-navbar__mobile-menu"
+         id="bdt-navbar-mobile-menu"
+         role="navigation"
+         aria-label="Menu Mobile">
+
+        <!-- Mobile Nav Links -->
+        <ul class="bdt-navbar__mobile-nav" role="list">
+                                            <li>
+                    <a href="/"
+                       id="bdt-mobile-nav-beranda"
+                       class="bdt-navbar__mobile-link"
+                                              >
+                        Beranda                    </a>
+                </li>
+                                                                            <li class="bdt-mobile-dropdown">
+                    <span class="bdt-navbar__mobile-link bdt-mobile-dropdown-toggle">
+                        Tentang                    </span>
+                    <ul class="bdt-mobile-dropdown-menu" style="display: none;">
+                                                <li>
+                            <a href="/profil"
+                               id="bdt-mobile-nav-profil"
+                               class="bdt-navbar__mobile-link"
+                               >
+                                Profil Desa                            </a>
+                        </li>
+                                                <li>
+                            <a href="/informasi"
+                               id="bdt-mobile-nav-informasi"
+                               class="bdt-navbar__mobile-link"
+                               >
+                                Informasi                            </a>
+                        </li>
+                                            </ul>
+                </li>
+                                                                            <li class="bdt-mobile-dropdown">
+                    <span class="bdt-navbar__mobile-link bdt-mobile-dropdown-toggle">
+                        Layanan                    </span>
+                    <ul class="bdt-mobile-dropdown-menu" style="display: none;">
+                                                <li>
+                            <a href="/perpustakaan"
+                               id="bdt-mobile-nav-perpustakaan"
+                               class="bdt-navbar__mobile-link"
+                               >
+                                Perpustakaan                            </a>
+                        </li>
+                                                <li>
+                            <a href="/pathfinder"
+                               id="bdt-mobile-nav-pathfinder"
+                               class="bdt-navbar__mobile-link"
+                               >
+                                Pathfinder                            </a>
+                        </li>
+                                            </ul>
+                </li>
+                                                            <li>
+                    <a href="/katalog"
+                       id="bdt-mobile-nav-katalog"
+                       class="bdt-navbar__mobile-link"
+                                              >
+                        Katalog                    </a>
+                </li>
+                                                                            <li class="bdt-mobile-dropdown">
+                    <span class="bdt-navbar__mobile-link bdt-mobile-dropdown-toggle">
+                        Rilis                    </span>
+                    <ul class="bdt-mobile-dropdown-menu" style="display: none;">
+                                                <li>
+                            <a href="/artikel"
+                               id="bdt-mobile-nav-artikel"
+                               class="bdt-navbar__mobile-link"
+                               >
+                                Artikel                            </a>
+                        </li>
+                                                <li>
+                            <a href="/berita"
+                               id="bdt-mobile-nav-berita"
+                               class="bdt-navbar__mobile-link"
+                               >
+                                Berita                            </a>
+                        </li>
+                                                <li>
+                            <a href="/media"
+                               id="bdt-mobile-nav-media"
+                               class="bdt-navbar__mobile-link"
+                               >
+                                Media                            </a>
+                        </li>
+                                            </ul>
+                </li>
+                                                            <li>
+                    <a href="/produk"
+                       id="bdt-mobile-nav-produk"
+                       class="bdt-navbar__mobile-link active"
+                                              aria-current="page">
+                        Produk                    </a>
+                </li>
+                                                            <li>
+                    <a href="/donasi"
+                       id="bdt-mobile-nav-donasi"
+                       class="bdt-navbar__mobile-link"
+                                              >
+                        Donasi                    </a>
+                </li>
+                                    </ul>
+
+        <div class="bdt-navbar__mobile-divider" aria-hidden="true"></div>
+
+        <!-- Mobile Actions -->
+        <div class="bdt-navbar__mobile-actions">
+            <a href="/kontak"
+               id="bdt-mobile-kontak"
+               class="bdt-navbar__mobile-kontak">
+                <svg class="bdt-navbar__kontak-icon"
+                     xmlns="http://www.w3.org/2000/svg"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     stroke-linejoin="round"
+                     aria-hidden="true">
+                    <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                </svg>
+                Kontak
+            </a>
+            <a href="/slims/index.php?p=member"
+               id="bdt-mobile-login"
+               class="bdt-navbar__btn-login--mobile">
+                Masuk
+            </a>
+        </div>
+
+    </div><!-- /.bdt-navbar__mobile-menu -->
+</header>
+<!-- ============================================================
+     End Navbar Component
+     ============================================================ -->
+
+<!-- Navbar Script -->
+<script>
+(function () {
+    'use strict';
+
+    var hamburger  = document.getElementById('bdt-navbar-hamburger');
+    var mobileMenu = document.getElementById('bdt-navbar-mobile-menu');
+
+    if (!hamburger || !mobileMenu) return;
+
+    /**
+     * toggleMobileMenu – membuka / menutup mobile menu
+     */
+    function toggleMobileMenu() {
+        var isOpen = mobileMenu.classList.toggle('is-open');
+        hamburger.classList.toggle('is-open', isOpen);
+        hamburger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        hamburger.setAttribute('aria-label', isOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi');
+    }
+
+    hamburger.addEventListener('click', toggleMobileMenu);
+
+    // Tutup mobile menu saat klik di luar navbar
+    document.addEventListener('click', function (e) {
+        var navbar = document.getElementById('bdt-navbar');
+        if (navbar && !navbar.contains(e.target)) {
+            mobileMenu.classList.remove('is-open');
+            hamburger.classList.remove('is-open');
+            hamburger.setAttribute('aria-expanded', 'false');
+            hamburger.setAttribute('aria-label', 'Buka menu navigasi');
+        }
+    });
+
+    // Dropdown toggle mobile
+    var mobileDropdownToggles = document.querySelectorAll('.bdt-mobile-dropdown-toggle');
+    mobileDropdownToggles.forEach(function(toggle) {
+        toggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            var parentLi = this.closest('.bdt-mobile-dropdown');
+            var menu = parentLi.querySelector('.bdt-mobile-dropdown-menu');
+            parentLi.classList.toggle('is-open');
+            if (parentLi.classList.contains('is-open')) {
+                menu.style.display = 'block';
+            } else {
+                menu.style.display = 'none';
+            }
+        });
+    });
+
+    // Tutup mobile menu saat resize ke desktop
+    window.addEventListener('resize', function () {
+        if (window.innerWidth > 768) {
+            mobileMenu.classList.remove('is-open');
+            hamburger.classList.remove('is-open');
+            hamburger.setAttribute('aria-expanded', 'false');
+        }
+    });
+}());
+</script>
+
+    <div class="produk-header">
+        <h1 class="produk-title">Galeri Produk</h1>
+    </div>
+
+    <section class="produk-container" aria-label="Katalog Produk">
+                    <div style="text-align:center; color:#6b7280; padding:60px 20px;">
+                <p>Belum ada produk yang ditampilkan saat ini.</p>
+            </div>
+            </section>
+
+    
+<!-- Footer Stylesheet -->
+<link rel="stylesheet" href="/custom/assets/css/footer.css">
+
+<!-- ============================================================
+     Footer Component
+     ============================================================ -->
+<footer class="bdt-footer" id="bdt-footer" role="contentinfo">
+
+    <!-- Main Grid -->
+    <div class="bdt-footer__main">
+
+        <!-- Kolom 1: Brand -->
+        <div class="bdt-footer__col" id="bdt-footer-col-brand">
+            <h2 class="bdt-footer__brand-name">Baca Di Teras</h2>
+            <p class="bdt-footer__brand-desc">
+                Portal Literasi Digital Desa Teras.
+                Memberdayakan masyarakat kami
+                melalui pengetahuan dan konektivitas.
+            </p>
+
+            <!-- Icon Buttons -->
+            <div class="bdt-footer__brand-icons">
+
+                <!-- Share / Community Icon -->
+                <a href="/komunitas"
+                   id="bdt-footer-icon-share"
+                   class="bdt-footer__icon-btn"
+                   aria-label="Komunitas Baca Di Teras">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="2"
+                         stroke-linecap="round"
+                         stroke-linejoin="round"
+                         aria-hidden="true">
+                        <circle cx="18" cy="5" r="3"/>
+                        <circle cx="6" cy="12" r="3"/>
+                        <circle cx="18" cy="19" r="3"/>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                    </svg>
+                </a>
+
+                <!-- Globe / Website Icon -->
+                <a href="/"
+                   id="bdt-footer-icon-globe"
+                   class="bdt-footer__icon-btn"
+                   aria-label="Website Baca Di Teras">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="2"
+                         stroke-linecap="round"
+                         stroke-linejoin="round"
+                         aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="2" y1="12" x2="22" y2="12"/>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                    </svg>
+                </a>
+            </div><!-- /.bdt-footer__brand-icons -->
+        </div><!-- /.bdt-footer__col (brand) -->
+
+        <!-- Kolom 2: Tautan Cepat -->
+        <div class="bdt-footer__col" id="bdt-footer-col-links">
+            <h3 class="bdt-footer__col-title">Tautan Cepat</h3>
+            <ul class="bdt-footer__links" role="list">
+                                    <li>
+                        <a href="/tentang-kami"
+                           id="bdt-footer-link-tentang-kami">
+                            Tentang Kami                        </a>
+                    </li>
+                                    <li>
+                        <a href="/perpustakaan"
+                           id="bdt-footer-link-jaringan-perpustakaan">
+                            Jaringan Perpustakaan                        </a>
+                    </li>
+                                    <li>
+                        <a href="/katalog"
+                           id="bdt-footer-link-katalog-digital">
+                            Katalog Digital                        </a>
+                    </li>
+                                    <li>
+                        <a href="/daftar"
+                           id="bdt-footer-link-gabung-anggota">
+                            Gabung Anggota                        </a>
+                    </li>
+                            </ul>
+        </div><!-- /.bdt-footer__col (links) -->
+
+        <!-- Kolom 3: Media Sosial -->
+        <div class="bdt-footer__col" id="bdt-footer-col-social">
+            <h3 class="bdt-footer__col-title">Media Sosial</h3>
+            <ul class="bdt-footer__links" role="list">
+                                    <li>
+                        <a href="https://instagram.com/bacaaditeras"
+                           id="bdt-footer-social-instagram"
+                           target="_blank"
+                           rel="noopener noreferrer">
+                            Instagram                        </a>
+                    </li>
+                                    <li>
+                        <a href="https://youtube.com/@bacaditeras"
+                           id="bdt-footer-social-youtube"
+                           target="_blank"
+                           rel="noopener noreferrer">
+                            YouTube                        </a>
+                    </li>
+                            </ul>
+        </div><!-- /.bdt-footer__col (social) -->
+
+        <!-- Kolom 4: Kontak -->
+        <div class="bdt-footer__col" id="bdt-footer-col-contact">
+            <h3 class="bdt-footer__col-title">Kontak</h3>
+
+            <ul class="bdt-footer__contact-list" role="list">
+                                    <li class="bdt-footer__contact-item">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2"
+                             stroke-linecap="round"
+                             stroke-linejoin="round"
+                             aria-hidden="true">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.59 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.56a16 16 0 0 0 6 6l1.62-1.62a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>                        </svg>
+                                                    <a href="tel:+6281234567890" style="color: inherit; text-decoration: none;">+62 812-3456-7890</a>
+                                            </li>
+                                    <li class="bdt-footer__contact-item">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2"
+                             stroke-linecap="round"
+                             stroke-linejoin="round"
+                             aria-hidden="true">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>                        </svg>
+                                                    <a href="mailto:bacaditeras@gmail.com" style="color: inherit; text-decoration: none;">bacaditeras@gmail.com</a>
+                                            </li>
+                                    <li class="bdt-footer__contact-item">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2"
+                             stroke-linecap="round"
+                             stroke-linejoin="round"
+                             aria-hidden="true">
+                            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>                        </svg>
+                                                    <span>Sen – Sab: 08:00 – 17:00</span>
+                                            </li>
+                            </ul>
+
+            <!-- Kebijakan Privasi -->
+            <a href="/informasi/kebijakan-privasi"
+               id="bdt-footer-privacy"
+               class="bdt-footer__policy-link">
+                Kebijakan Privasi
+            </a>
+            <br>
+            <a href="/syarat-ketentuan"
+               id="bdt-footer-syarat"
+               class="bdt-footer__policy-link">
+                Syarat &amp; Ketentuan
+            </a>
+
+        </div><!-- /.bdt-footer__col (contact) -->
+
+    </div><!-- /.bdt-footer__main -->
+
+    <!-- KKN Info Section -->
+    <div class="bdt-footer__kkn-section">
+        <div class="bdt-footer__kkn-logos">
+            <img src="/custom/assets/images/logo_undip.png" alt="Universitas Diponegoro" class="bdt-footer__logo-undip">
+			<img src="/custom/assets/images/logo_jateng.png" alt="Provinsi Jawa Tengah" class="bdt-footer__logo-jateng">
+            <img src="/custom/assets/images/logo_boyolali.png" alt="Kabupaten Boyolali" class="bdt-footer__logo-boyolali">
+        </div>
+        <p class="bdt-footer__kkn-text">
+            Baca di Teras &ndash; Portal Literasi Digital Desa Teras merupakan inisiatif Program KKN Tematik Literasi (IDBU-13) yang didanai oleh Universitas Diponegoro. Program ini bekerja sama dengan Dinas Arsip dan Perpustakaan Provinsi Jawa Tengah dan Pemerintah Desa Teras sebagai bagian dari upaya mendukung budaya literasi dan akses informasi bagi masyarakat.
+        </p>
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="bdt-footer__bottom">
+        <div class="bdt-footer__bottom-inner">
+            <p class="bdt-footer__copyright">
+                &copy; 2026 Desa Teras. Portal Literasi Digital. Memberdayakan Masyarakat.
+            </p>
+        </div>
+    </div><!-- /.bdt-footer__bottom -->
+
+</footer>
+<!-- ============================================================
+     End Footer Component
+     ============================================================ -->
+</body>
+</html>

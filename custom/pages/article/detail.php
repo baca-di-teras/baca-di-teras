@@ -146,6 +146,94 @@ $tags          = $article['tags'] ?? [];
             box-shadow: 0 8px 32px rgba(0,0,0,0.1);
         }
 
+        /* Slider */
+        .bdt-slider-container {
+            position: relative;
+            width: 100%;
+            height: 420px;
+            margin-bottom: 32px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            background: #000;
+        }
+        .bdt-slider {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .bdt-slider::-webkit-scrollbar { display: none; }
+        .bdt-slider-item {
+            flex: 0 0 100%;
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* Changed to contain to show full image without cropping */
+            background: #000; /* Added background */
+            scroll-snap-align: center;
+            border-radius: 0;
+            margin-bottom: 0;
+            box-shadow: none;
+        }
+        .bdt-slider-nav {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            transform: translateY(-50%);
+            padding: 0 16px;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .bdt-slider-btn {
+            background: rgba(255, 255, 255, 0.7);
+            color: #1a1a2e;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            pointer-events: auto;
+            backdrop-filter: blur(4px);
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .bdt-slider-btn:hover { background: rgba(255, 255, 255, 0.95); transform: scale(1.05); }
+        .bdt-slider-dots {
+            position: absolute;
+            bottom: 16px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .bdt-slider-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            transition: background 0.2s, transform 0.2s;
+            cursor: pointer;
+            pointer-events: auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .bdt-slider-dot.active {
+            background: #fff;
+            transform: scale(1.3);
+        }
+
         /* Header */
         .bdt-art-tag {
             display: inline-block;
@@ -318,6 +406,11 @@ $tags          = $article['tags'] ?? [];
         @media (max-width: 600px) {
             .bdt-art-meta, .bdt-article-meta { gap: 12px; }
             .bdt-share-buttons { margin-left: 0; padding-left: 0; border-left: none; width: 100%; margin-top: 8px; padding-top: 12px; border-top: 1px dashed #eee; }
+            
+            /* Responsive adjustments for mobile view */
+            .bdt-art-cover { height: 220px; border-radius: 12px; }
+            .bdt-art-title { font-size: 1.5rem; }
+            .bdt-art-body { font-size: 0.95rem; line-height: 1.7; }
         }
     </style>
 </head>
@@ -346,11 +439,47 @@ $tags          = $article['tags'] ?? [];
 
             <!-- Main Article -->
             <article id="bdt-article-detail">
-                <img src="<?= htmlspecialchars($coverImage) ?>"
-                     alt="<?= htmlspecialchars($article['title']) ?>"
-                     class="bdt-art-cover"
-                     width="800" height="420"
-                     loading="eager">
+                <?php 
+                    $additionalImages = !empty($article['additional_images']) ? json_decode($article['additional_images'], true) : [];
+                    if (!empty($additionalImages) && is_array($additionalImages)): 
+                        $allSliderImages = array_merge([$coverImage], $additionalImages);
+                ?>
+                    <div class="bdt-slider-container">
+                        <div class="bdt-slider">
+                            <?php foreach($allSliderImages as $index => $img): ?>
+                                <?php 
+                                    $imgUrl = $img;
+                                    if (strpos($imgUrl, '/custom/') === 0 && strpos($imgUrl, $baseUrl) !== 0) {
+                                        $imgUrl = rtrim($baseUrl, '/') . $imgUrl;
+                                    }
+                                ?>
+                                <img src="<?= htmlspecialchars($imgUrl) ?>"
+                                     alt="<?= htmlspecialchars($article['title']) ?> - Foto <?= $index + 1 ?>"
+                                     class="bdt-art-cover bdt-slider-item"
+                                     loading="<?= $index === 0 ? 'eager' : 'lazy' ?>">
+                            <?php endforeach; ?>
+                        </div>
+                        <div class="bdt-slider-nav">
+                            <button class="bdt-slider-btn prev" aria-label="Previous image">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                            </button>
+                            <button class="bdt-slider-btn next" aria-label="Next image">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                            </button>
+                        </div>
+                        <div class="bdt-slider-dots">
+                            <?php foreach($allSliderImages as $index => $img): ?>
+                                <span class="bdt-slider-dot <?= $index === 0 ? 'active' : '' ?>" data-index="<?= $index ?>"></span>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                <?php else: ?>
+                    <img src="<?= htmlspecialchars($coverImage) ?>"
+                         alt="<?= htmlspecialchars($article['title']) ?>"
+                         class="bdt-art-cover"
+                         width="800" height="420"
+                         loading="eager">
+                <?php endif; ?>
 
                 <header>
                     <span class="bdt-art-tag"><?= htmlspecialchars($categoryLabel) ?></span>
@@ -556,7 +685,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.body.appendChild(lightbox);
 
     document.addEventListener('click', function(e) {
-        if (e.target.tagName === 'IMG' && (e.target.closest('.bdt-art-body') || e.target.closest('.bdt-article-body') || e.target.closest('.bdt-news-body') || e.target.classList.contains('bdt-article-cover'))) {
+        if (e.target.tagName === 'IMG' && (e.target.closest('.bdt-art-body') || e.target.closest('.bdt-article-body') || e.target.closest('.bdt-news-body') || e.target.classList.contains('bdt-article-cover') || e.target.classList.contains('bdt-art-cover'))) {
             imgNode.src = e.target.src;
             lightbox.classList.add('show');
         } else if (e.target.closest('.bdt-lightbox')) {
@@ -564,6 +693,107 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => imgNode.src = '', 300); // clear after transition
         }
     });
+    // Slider Logic
+    const sliderContainer = document.querySelector('.bdt-slider-container');
+    if (sliderContainer) {
+        const slider = sliderContainer.querySelector('.bdt-slider');
+        const prevBtn = sliderContainer.querySelector('.prev');
+        const nextBtn = sliderContainer.querySelector('.next');
+        const dots = sliderContainer.querySelectorAll('.bdt-slider-dot');
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+        let autoSlideInterval;
+
+        const updateDots = () => {
+            const index = Math.round(slider.scrollLeft / slider.clientWidth);
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('active', i === index);
+            });
+        };
+
+        const slideNext = () => {
+            let newScrollLeft = slider.scrollLeft + slider.clientWidth;
+            if (newScrollLeft >= slider.scrollWidth - 10) { // Allow for some pixel rounding
+                newScrollLeft = 0;
+            }
+            slider.scrollTo({ left: newScrollLeft, behavior: 'smooth' });
+        };
+
+        const slidePrev = () => {
+            let newScrollLeft = slider.scrollLeft - slider.clientWidth;
+            if (newScrollLeft < 0) {
+                newScrollLeft = slider.scrollWidth - slider.clientWidth;
+            }
+            slider.scrollTo({ left: newScrollLeft, behavior: 'smooth' });
+        };
+
+        const startAutoSlide = () => {
+            stopAutoSlide(); // Ensure we don't have multiple intervals
+            autoSlideInterval = setInterval(slideNext, 3500); // 3.5 seconds
+        };
+
+        const stopAutoSlide = () => {
+            if (autoSlideInterval) {
+                clearInterval(autoSlideInterval);
+            }
+        };
+
+        slider.addEventListener('scroll', () => {
+            requestAnimationFrame(updateDots);
+        });
+
+        prevBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            slidePrev();
+            stopAutoSlide();
+            startAutoSlide(); // reset timer
+        });
+
+        nextBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            slideNext();
+            stopAutoSlide();
+            startAutoSlide(); // reset timer
+        });
+
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                slider.scrollTo({ left: slider.clientWidth * index, behavior: 'smooth' });
+                stopAutoSlide();
+                startAutoSlide();
+            });
+        });
+
+        // Drag to scroll
+        slider.addEventListener('mousedown', (e) => {
+            isDown = true;
+            startX = e.pageX - slider.offsetLeft;
+            scrollLeft = slider.scrollLeft;
+            stopAutoSlide();
+        });
+        slider.addEventListener('mouseleave', () => {
+            isDown = false;
+            startAutoSlide();
+        });
+        slider.addEventListener('mouseup', () => {
+            isDown = false;
+            startAutoSlide();
+        });
+        slider.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - slider.offsetLeft;
+            const walk = (x - startX) * 2;
+            slider.scrollLeft = scrollLeft - walk;
+        });
+
+        sliderContainer.addEventListener('touchstart', stopAutoSlide);
+        sliderContainer.addEventListener('touchend', startAutoSlide);
+
+        // Start auto slide initially
+        startAutoSlide();
+    }
 });
 </script>
 </body>
