@@ -98,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($articleService->updateArticle($article_id, $data)) {
             $slug = empty($data['slug']) ? strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $data['title']))) : $data['slug'];
             $slug = preg_replace('/-+/', '-', $slug);
-            header("Location: " . BASE_URL . "/portal-admin/artikel?success=edit&slug=" . urlencode($slug) . "&cat=" . urlencode($data['category']));
+            header("Location: " . BASE_URL . "/portal-admin/artikel?success=edit&slug=" . urlencode($slug) . "&cat=" . urlencode($data['category']) . "&status=" . urlencode($data['status']));
             exit;
         } else {
             $errorMsg = 'Gagal menyimpan artikel. Pastikan isian sudah benar.';

@@ -259,3 +259,39 @@ if (file_exists($libPath . '/custom/services/ActivityLogService.php')) {
     });
 </script>
 
+<!-- Global Loading Overlay -->
+<div id="bdt-global-loader" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255, 255, 255, 0.85); z-index: 999999; align-items: center; justify-content: center; flex-direction: column; backdrop-filter: blur(4px);">
+    <div style="width: 50px; height: 50px; border: 4px solid var(--admin-border, #e5e7eb); border-top-color: var(--admin-primary, #059669); border-radius: 50%; animation: bdt-spin-loader 1s linear infinite;"></div>
+    <p style="margin-top: 16px; font-weight: 600; font-size: 1rem; color: var(--admin-text-main, #111827);">Sedang memproses...</p>
+    <p style="margin-top: 4px; font-size: 0.85rem; color: var(--admin-text-muted, #6b7280);">Harap tunggu sebentar.</p>
+</div>
+<style>
+@keyframes bdt-spin-loader { 
+    0% { transform: rotate(0deg); } 
+    100% { transform: rotate(360deg); } 
+}
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const loader = document.getElementById('bdt-global-loader');
+        // Find all POST forms except the search form (just in case search becomes POST)
+        const forms = document.querySelectorAll('form[method="POST"], form[method="post"]');
+        
+        forms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                // If the form has built-in HTML5 validation, check it first
+                if (form.checkValidity && !form.checkValidity()) {
+                    return; // Let the browser show the default validation tooltip
+                }
+                
+                // Tunda sedikit untuk mengecek apakah submit dicegat oleh skrip lain (seperti konfirmasi)
+                setTimeout(() => {
+                    if (!e.defaultPrevented) {
+                        loader.style.display = 'flex';
+                    }
+                }, 20);
+            });
+        });
+    });
+</script>

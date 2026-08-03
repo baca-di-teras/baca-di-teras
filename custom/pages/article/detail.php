@@ -412,6 +412,39 @@ $tags          = $article['tags'] ?? [];
             .bdt-art-title { font-size: 1.5rem; }
             .bdt-art-body { font-size: 0.95rem; line-height: 1.7; }
         }
+
+        /* Print Style adjustments */
+        .bdt-print-logo, .bdt-print-footer { display: none; }
+        @media print {
+            body { background: #fff !important; color: #000 !important; }
+            .bdt-navbar, footer, .bdt-breadcrumb, .bdt-art-sidebar, .bdt-share-buttons, 
+            .bdt-slider-nav, .bdt-slider-dots, .bdt-btn-print { 
+                display: none !important; 
+            }
+            .bdt-print-logo { display: block !important; text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 15px; }
+            .bdt-print-logo img { height: 60px; width: auto; }
+            .bdt-print-footer { display: block !important; margin-top: 40px; padding-top: 20px; border-top: 2px solid #000; font-size: 10pt; color: #333 !important; page-break-inside: avoid; }
+            .bdt-print-footer p { margin: 4px 0 !important; }
+            .bdt-art-page { padding: 0 !important; margin: 0 !important; }
+            .bdt-art-layout { display: block !important; }
+            .bdt-container { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+            
+            /* Show only first image if it's a slider */
+            .bdt-slider-container { height: auto !important; margin-bottom: 20px !important; box-shadow: none !important; }
+            .bdt-slider { overflow: visible !important; }
+            .bdt-slider-item { display: none !important; }
+            .bdt-slider-item:first-child { display: block !important; position: static !important; max-height: 400px !important; object-fit: contain !important; }
+            .bdt-art-cover { max-height: 400px !important; object-fit: contain !important; page-break-inside: avoid; }
+            
+            .bdt-art-title { font-size: 24pt !important; margin-bottom: 10px !important; color: #000 !important; }
+            .bdt-art-meta { border-bottom: 2px solid #000 !important; margin-bottom: 20px !important; padding-bottom: 10px !important; }
+            .bdt-art-body { font-size: 12pt !important; line-height: 1.6 !important; color: #000 !important; }
+            
+            h1, h2, h3, h4, h5, h6 { page-break-after: avoid; }
+            .bdt-art-body img { max-width: 100% !important; height: auto !important; page-break-inside: avoid; }
+            p, blockquote, ul, ol { page-break-inside: avoid; }
+            a { text-decoration: none !important; color: #000 !important; }
+        }
     </style>
 </head>
 <body>
@@ -439,6 +472,12 @@ $tags          = $article['tags'] ?? [];
 
             <!-- Main Article -->
             <article id="bdt-article-detail">
+                
+                <!-- Print Logo -->
+                <div class="bdt-print-logo">
+                    <img src="<?= htmlspecialchars($baseUrl . '/custom/assets/images/logo.png') ?>" alt="Logo Baca Di Teras">
+                </div>
+
                 <?php 
                     $additionalImages = !empty($article['additional_images']) ? json_decode($article['additional_images'], true) : [];
                     if (!empty($additionalImages) && is_array($additionalImages)): 
@@ -542,6 +581,11 @@ $tags          = $article['tags'] ?? [];
                                 <button onclick="navigator.clipboard.writeText('<?= urldecode($shareUrl) ?>'); alert('Tautan berhasil disalin!');" class="bdt-share-btn" title="Salin Tautan" style="border:none; cursor:pointer;">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1h-3a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>
                                 </button>
+                                <?php if (in_array($article['category'], ArticleService::ARTICLE_CATEGORIES)) : ?>
+                                <button onclick="window.print()" class="bdt-share-btn bdt-btn-print" title="Cetak / Unduh Artikel" style="border:none; cursor:pointer; margin-left: 8px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                                </button>
+                                <?php endif; ?>
                             </div>
                         </span>
                         <span>
@@ -589,6 +633,13 @@ $tags          = $article['tags'] ?? [];
                     <?php endforeach; ?>
                 </div>
                 <?php endif; ?>
+
+                <!-- Print Footer -->
+                <div class="bdt-print-footer">
+                    <p><strong>Dokumen Resmi Baca Di Teras</strong></p>
+                    <p>Sumber: <?= htmlspecialchars($absoluteUrl) ?></p>
+                    <p>Dicetak pada: <?= date('d/m/Y H:i') ?> WIB</p>
+                </div>
 
             </article>
 

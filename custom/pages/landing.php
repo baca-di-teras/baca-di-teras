@@ -72,6 +72,8 @@ $featureList  = $villageService->getFeatures();
     <title>Baca Di Teras – Portal Literasi Digital Desa Teras</title>
     <!-- Landing Page CSS -->
     <link rel="stylesheet" href="<?= BASE_URL ?>/custom/assets/css/landing.css">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7364553263461216" crossorigin="anonymous">
+    </script>
 </head>
 <body>
 

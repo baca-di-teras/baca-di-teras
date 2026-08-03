@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($articleService->createArticle($data)) {
             $slug = empty($data['slug']) ? strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $data['title']))) : $data['slug'];
             $slug = preg_replace('/-+/', '-', $slug);
-            header("Location: " . BASE_URL . "/portal-admin/artikel?success=upload&slug=" . urlencode($slug) . "&cat=" . urlencode($data['category']));
+            header("Location: " . BASE_URL . "/portal-admin/artikel?success=upload&slug=" . urlencode($slug) . "&cat=" . urlencode($data['category']) . "&status=" . urlencode($data['status']));
             exit;
         } else {
             $errorMsg = 'Gagal menyimpan artikel. Pastikan isian sudah benar.';
@@ -167,7 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Isi Artikel</label>
-                                <textarea name="body" id="bodyHidden" style="display:none;" required></textarea>
+                                <textarea name="body" id="bodyHidden" style="display:none;"></textarea>
                                 <div id="editor-container" style="min-height: 400px; background: white;"></div>
                             </div>
                         </div>
@@ -807,7 +807,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 bodyHidden.value = quill.root.innerHTML;
                 if (quill.getText().trim().length === 0) {
                     e.preventDefault();
-                    alert("Isi artikel tidak boleh kosong!");
+                    showCustomAlert("Isi artikel tidak boleh kosong!");
                 }
             });
         });
