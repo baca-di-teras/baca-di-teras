@@ -9,21 +9,26 @@ if (!defined('BASE_URL')) {
 
 $libPath = defined('ROOT_PATH') ? ROOT_PATH : __DIR__ . '/../../..';
 require_once $libPath . '/custom/services/AuthService.php';
-require_once $libPath . '/custom/services/PathfinderService.php';
+require_once $libPath . '/custom/services/PathfinderV2Service.php';
 require_once $libPath . '/custom/services/ArticleService.php';
+require_once $libPath . '/custom/services/LibraryService.php';
 
 // Auth Check
 $auth = new AuthService();
 $auth->requireRole(['super_admin', 'admin', 'kontributor']);
 
-$pfService = new PathfinderService();
+$pfService = new PathfinderV2Service();
 $articleService = new ArticleService();
+$libraryService = new LibraryService();
+$db = Database::getInstance();
 
-$pathfinders = $pfService->getAllPathfinders(); 
-$categories = $pfService->getCategories();
+$pathfinders = $pfService->getAllAdminTopics(); 
 
-$total_categories = count($categories);
 $total_pathfinders = count($pathfinders);
+$total_articles = $articleService->countAdminArticles();
+$libStats = $libraryService->getOverallStats();
+$total_libraries = $libStats['totalPerpustakaan'] ?? 0;
+$total_visitors = (int)$db->fetchScalar("SELECT SUM(view_count) FROM bdt_article");
 
 $role = $_SESSION['admin_role'] ?? '';
 $mixed_updates = [];
@@ -47,10 +52,10 @@ if (in_array($role, ['super_admin', 'admin'])) {
     foreach ($recent_pathfinders as $pf) {
         $mixed_updates[] = [
             'type'  => 'pathfinder',
-            'title' => $pf['title'],
-            'date'  => strtotime($pf['updated_at']),
-            'label' => $pf['category_label'] ?? 'Umum',
-            'desc'  => $pf['description'] ?? '',
+            'title' => $pf['name'],
+            'date'  => strtotime($pf['updated_at'] ?? $pf['created_at']),
+            'label' => $pf['category_name'] ?? 'Umum',
+            'desc'  => strip_tags($pf['description'] ?? ''),
             'icon'  => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>'
         ];
     }
@@ -63,6 +68,39 @@ usort($mixed_updates, function($a, $b) {
 
 // Take top 4
 $mixed_updates = array_slice($mixed_updates, 0, 4);
+
+// Volume Konten Data (Last 4 Months)
+$chartData = [];
+$currentMonth = (int)date('n');
+$currentYear = (int)date('Y');
+$monthsName = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
+
+for ($i = 3; $i >= 0; $i--) {
+    $m = $currentMonth - $i;
+    $y = $currentYear;
+    if ($m <= 0) {
+        $m += 12;
+        $y -= 1;
+    }
+    
+    // Count articles
+    $sqlArt = "SELECT COUNT(*) FROM bdt_article WHERE MONTH(created_at) = ? AND YEAR(created_at) = ?";
+    $countArt = (int)$db->fetchScalar($sqlArt, 'ii', [$m, $y]);
+    
+    // Count pathfinders
+    $sqlPf = "SELECT COUNT(*) FROM bdt_pathfinder WHERE MONTH(created_at) = ? AND YEAR(created_at) = ?";
+    $countPf = (int)$db->fetchScalar($sqlPf, 'ii', [$m, $y]);
+    
+    $total = $countArt + $countPf;
+    $chartData[] = [
+        'label' => $monthsName[$m - 1],
+        'total' => $total,
+        'is_current' => ($i === 0)
+    ];
+}
+
+$maxVolume = max(array_column($chartData, 'total'));
+if ($maxVolume == 0) $maxVolume = 1; // prevent division by zero
 
 $admin_active_page = 'dashboard';
 ?>
@@ -114,24 +152,24 @@ $admin_active_page = 'dashboard';
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 24px; margin-bottom: 24px;">
                 <div class="card" style="position: relative;">
                     <div style="font-size: 0.75rem; color: var(--admin-text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Total Artikel & Berita</div>
-                    <div style="font-size: 2rem; font-weight: 700; color: var(--admin-text-main); line-height: 1;">42</div>
+                    <div style="font-size: 2rem; font-weight: 700; color: var(--admin-text-main); line-height: 1;"><?= number_format($total_articles, 0, ',', '.') ?></div>
                 </div>
 
                 <?php if (in_array($_SESSION['admin_role'] ?? '', ['super_admin', 'admin'])): ?>
                 <div class="card" style="position: relative;">
                     <div style="font-size: 0.75rem; color: var(--admin-text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Total Pathfinder</div>
-                    <div style="font-size: 2rem; font-weight: 700; color: var(--admin-text-main); line-height: 1;"><?= $total_pathfinders ?></div>
+                    <div style="font-size: 2rem; font-weight: 700; color: var(--admin-text-main); line-height: 1;"><?= number_format($total_pathfinders, 0, ',', '.') ?></div>
                 </div>
                 <?php endif; ?>
 
                 <div class="card" style="position: relative;">
                     <div style="font-size: 0.75rem; color: var(--admin-text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Perpustakaan Desa</div>
-                    <div style="font-size: 2rem; font-weight: 700; color: var(--admin-text-main); line-height: 1;">6</div>
+                    <div style="font-size: 2rem; font-weight: 700; color: var(--admin-text-main); line-height: 1;"><?= number_format($total_libraries, 0, ',', '.') ?></div>
                 </div>
 
                 <div class="card" style="background: var(--admin-primary); color: white; border: none; position: relative;">
-                    <div style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; opacity: 0.9;">Pengunjung Hari Ini</div>
-                    <div style="font-size: 2rem; font-weight: 700; line-height: 1;">1,492</div>
+                    <div style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; opacity: 0.9;">Total Pengunjung / Pembaca</div>
+                    <div style="font-size: 2rem; font-weight: 700; line-height: 1;"><?= number_format($total_visitors, 0, ',', '.') ?></div>
                 </div>
             </div>
 
@@ -179,23 +217,23 @@ $admin_active_page = 'dashboard';
                             <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 40px; border-bottom: 1px dashed var(--admin-border); pointer-events: none;"></div>
                             
                             <!-- Bars -->
+                            <?php foreach ($chartData as $cd): 
+                                // Tinggi proporsional maksimal 120px (untuk menghindari terlalu tinggi jika sedikit, kita beri min height juga)
+                                $height = max(10, ($cd['total'] / $maxVolume) * 120); 
+                                $bgColor = $cd['is_current'] ? 'var(--admin-primary)' : '#e5e7eb';
+                                $textColor = $cd['is_current'] ? 'var(--admin-text-main)' : 'var(--admin-text-muted)';
+                                $fontWeight = $cd['is_current'] ? '600' : '400';
+                            ?>
                             <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-                                <div style="width: 24px; height: 40px; background: #e5e7eb; border-radius: 4px 4px 0 0;"></div>
-                                <span style="font-size: 0.7rem; color: var(--admin-text-muted);">Jul</span>
+                                <?php if ($cd['is_current'] || $cd['total'] > 0): ?>
+                                <span style="font-size: 0.75rem; font-weight: 700; color: <?= $bgColor ?>; margin-bottom: -4px;"><?= $cd['total'] ?></span>
+                                <?php else: ?>
+                                <span style="font-size: 0.75rem; font-weight: 700; color: transparent; margin-bottom: -4px;">0</span>
+                                <?php endif; ?>
+                                <div style="width: 24px; height: <?= $height ?>px; background: <?= $bgColor ?>; border-radius: 4px 4px 0 0;" title="<?= $cd['total'] ?> Konten"></div>
+                                <span style="font-size: 0.7rem; color: <?= $textColor ?>; font-weight: <?= $fontWeight ?>;"><?= $cd['label'] ?></span>
                             </div>
-                            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-                                <div style="width: 24px; height: 60px; background: #e5e7eb; border-radius: 4px 4px 0 0;"></div>
-                                <span style="font-size: 0.7rem; color: var(--admin-text-muted);">Agt</span>
-                            </div>
-                            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-                                <div style="width: 24px; height: 50px; background: #e5e7eb; border-radius: 4px 4px 0 0;"></div>
-                                <span style="font-size: 0.7rem; color: var(--admin-text-muted);">Sep</span>
-                            </div>
-                            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-                                <span style="font-size: 0.75rem; font-weight: 700; color: var(--admin-primary); margin-bottom: -4px;">32</span>
-                                <div style="width: 24px; height: 100px; background: var(--admin-primary); border-radius: 4px 4px 0 0;"></div>
-                                <span style="font-size: 0.7rem; font-weight: 600; color: var(--admin-text-main);">Okt</span>
-                            </div>
+                            <?php endforeach; ?>
                         </div>
                     </div>
 

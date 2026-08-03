@@ -42,3 +42,52 @@
         transform: scale(1);
     }
 }
+
+/* Standard Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5);
+    backdrop-filter: blur(2px);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5vh auto;
+    padding: 32px;
+    border-radius: 12px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    position: relative;
+    animation: modalPop 0.2s ease-out;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+}
+
+.close {
+    color: #9ca3af;
+    font-size: 24px;
+    font-weight: 600;
+    cursor: pointer;
+    line-height: 1;
+    transition: 0.2s;
+}
+
+.close:hover,
+.close:focus {
+    color: #111827;
+    text-decoration: none;
+}

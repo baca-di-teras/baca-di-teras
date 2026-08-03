@@ -10,7 +10,7 @@
  * Terintegrasi dengan database bdt_pathfinder dan bdt_pathfinder_category.
  */
 
-require_once __DIR__ . '/../helpers/database.php';
+require_once __DIR__ . '/../helpers/Database.php';
 require_once __DIR__ . '/ActivityLogService.php';
 
 class PathfinderService
@@ -259,3 +259,4 @@ class PathfinderService
         return $result;
     }
 }
+

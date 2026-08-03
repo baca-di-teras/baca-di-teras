@@ -10,7 +10,7 @@ if (!defined('BASE_URL')) {
 }
 
 $libPath = defined('ROOT_PATH') ? ROOT_PATH : __DIR__ . '/../..';
-require_once $libPath . '/custom/helpers/database.php';
+require_once $libPath . '/custom/helpers/Database.php';
 require_once $libPath . '/custom/services/AuthService.php';
 
 // Cek autentikasi admin
@@ -106,3 +106,4 @@ if ($categories) {
 // Kembali ke halaman manage category
 header("Location: " . BASE_URL . "/custom/pages/pathfinder/managecategory.php?success=" . $added);
 exit;
+

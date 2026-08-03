@@ -7,7 +7,7 @@
  * Version : 1.0.0
  */
 
-require_once __DIR__ . '/../helpers/database.php';
+require_once __DIR__ . '/../helpers/Database.php';
 require_once __DIR__ . '/ActivityLogService.php';
 
 class LibraryService
@@ -157,6 +157,9 @@ class LibraryService
 
     public function deleteLibrary(int $library_id): bool
     {
+        $library = $this->getLibraryById($library_id);
+        $name = $library ? $library['name'] : "ID: $library_id";
+
         $sql = "DELETE FROM bdt_library WHERE library_id = ?";
         $stmt = $this->db->getConnection()->prepare($sql);
         if (!$stmt) return false;
@@ -166,7 +169,7 @@ class LibraryService
         $stmt->close();
 
         if ($result) {
-            $this->activityLog->log('menghapus', 'Perpustakaan', "ID: $library_id");
+            $this->activityLog->log('menghapus', 'Perpustakaan', $name);
         }
 
         return $result;
@@ -314,3 +317,4 @@ class LibraryService
         return $slug;
     }
 }
+

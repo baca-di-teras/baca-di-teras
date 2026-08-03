@@ -125,7 +125,7 @@ if (!function_exists('bdt_catalog_url')) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="<?= htmlspecialchars($pageDescription) ?>">
     <title><?= htmlspecialchars($pageTitle) ?> – Baca Di Teras</title>
-    <link rel="stylesheet" href="<?= $baseUrl ?>/custom/assets/css/catalog.css">
+    <link rel="stylesheet" href="<?= $baseUrl ?>/custom/assets/css/catalog.css?v=6">
     <link rel="stylesheet" href="<?= $baseUrl ?>/custom/assets/css/landing.css">
 </head>
 <body>
@@ -183,29 +183,47 @@ if (!function_exists('bdt_catalog_url')) {
                    method="get"
                    action="<?= $baseUrl ?>/katalog"
                    aria-label="Filter Katalog">
-                <?php if ($searchQuery !== '') : ?>
-                    <input type="hidden" name="q" value="<?= htmlspecialchars($searchQuery) ?>">
-                <?php endif; ?>
-                <?php if ($sortOrder !== 'terbaru') : ?>
-                    <input type="hidden" name="sort" value="<?= htmlspecialchars($sortOrder) ?>">
-                <?php endif; ?>
+
+                <!-- ── MOBILE TOGGLE BUTTON ────────────────── -->
+                <button class="bdt-catalog-mobile-filter-toggle"
+                        type="button"
+                        onclick="this.parentElement.classList.toggle('is-active'); document.body.classList.toggle('bdt-modal-open');"
+                        aria-label="Tampilkan / Sembunyikan Filter">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                    Filter Katalog
+                </button>
 
                 <div class="bdt-sidebar__header">
                     <h2 class="bdt-sidebar__title">Filter</h2>
-                    <a class="bdt-sidebar__reset"
-                            id="bdt-filter-reset"
-                            href="<?= $baseUrl ?>/katalog"
-                            aria-label="Atur ulang semua filter">
-                        Atur Ulang
-                    </a>
+                    <div class="bdt-sidebar__header-actions" style="display: flex; align-items: center; gap: 12px;">
+                        <button class="bdt-sidebar__reset"
+                                id="bdt-filter-reset"
+                                type="button"
+                                aria-label="Atur ulang semua filter">
+                            Atur Ulang
+                        </button>
+                        <button class="bdt-sidebar__close-mobile"
+                                type="button"
+                                onclick="document.getElementById('bdt-catalog-sidebar').classList.remove('is-active'); document.body.classList.remove('bdt-modal-open');"
+                                aria-label="Tutup Filter">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- KATEGORI -->
                 <div class="bdt-filter-group" id="bdt-filter-kategori">
                     <span class="bdt-filter-group__label">Kategori</span>
-                    <?php foreach ($categoryList as $catItem) : ?>
-                        <label class="bdt-filter-checkbox"
-                               for="bdt-cat-<?= htmlspecialchars($catItem['id']) ?>">
+                    <div id="bdt-list-kategori">
+                    <?php foreach ($categoryList as $index => $catItem) : ?>
+                        <label class="bdt-filter-checkbox <?= $index >= 10 ? 'is-hidden-filter' : '' ?>"
+                               for="bdt-cat-<?= htmlspecialchars($catItem['id']) ?>"
+                               <?= $index >= 10 ? 'style="display: none;"' : '' ?>>
                             <input type="checkbox"
                                    id="bdt-cat-<?= htmlspecialchars($catItem['id']) ?>"
                                    name="kategori[]"
@@ -214,6 +232,12 @@ if (!function_exists('bdt_catalog_url')) {
                             <?= htmlspecialchars($catItem['label']) ?>
                         </label>
                     <?php endforeach; ?>
+                    </div>
+                    <?php if (count($categoryList) > 10): ?>
+                    <button type="button" class="bdt-filter-toggle" onclick="toggleFilterList('bdt-list-kategori', this)">
+                        Selengkapnya <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+                    <?php endif; ?>
                 </div>
 
                 <!-- PERPUSTAKAAN -->
@@ -257,9 +281,11 @@ if (!function_exists('bdt_catalog_url')) {
                 <!-- PENERBIT -->
                 <div class="bdt-filter-group" id="bdt-filter-penerbit">
                     <span class="bdt-filter-group__label">Penerbit</span>
-                    <?php foreach ($publisherList as $pubItem) : ?>
-                        <label class="bdt-filter-radio"
-                               for="bdt-pub-<?= htmlspecialchars($pubItem['id']) ?>">
+                    <div id="bdt-list-penerbit">
+                    <?php foreach ($publisherList as $index => $pubItem) : ?>
+                        <label class="bdt-filter-radio <?= $index >= 10 ? 'is-hidden-filter' : '' ?>"
+                               for="bdt-pub-<?= htmlspecialchars($pubItem['id']) ?>"
+                               <?= $index >= 10 ? 'style="display: none;"' : '' ?>>
                             <input type="radio"
                                    id="bdt-pub-<?= htmlspecialchars($pubItem['id']) ?>"
                                    name="publisher"
@@ -268,6 +294,12 @@ if (!function_exists('bdt_catalog_url')) {
                             <?= htmlspecialchars($pubItem['label']) ?>
                         </label>
                     <?php endforeach; ?>
+                    </div>
+                    <?php if (count($publisherList) > 10): ?>
+                    <button type="button" class="bdt-filter-toggle" onclick="toggleFilterList('bdt-list-penerbit', this)">
+                        Selengkapnya <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+                    <?php endif; ?>
                 </div>
 
                 <button type="submit" class="bdt-catalog-search__btn bdt-catalog-filter-submit">
@@ -402,6 +434,288 @@ if (!function_exists('bdt_catalog_url')) {
 <script>
 (function () {
     'use strict';
+
+    // ── Global Toggle Function ───────────────────────────────
+    window.toggleFilterList = function(listId, btn) {
+        const container = document.getElementById(listId);
+        if (!container) return;
+        const hiddenItems = container.querySelectorAll('.is-hidden-filter');
+        const isExpanded = container.classList.contains('is-expanded');
+        
+        if (isExpanded) {
+            // Collapse
+            hiddenItems.forEach(function(el) { el.style.display = 'none'; });
+            container.classList.remove('is-expanded');
+            btn.innerHTML = 'Selengkapnya <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>';
+        } else {
+            // Expand
+            hiddenItems.forEach(function(el) { el.style.display = 'flex'; });
+            container.classList.add('is-expanded');
+            btn.innerHTML = 'Sembunyikan <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>';
+        }
+    };
+
+    // ── State ────────────────────────────────────────────────
+    const ITEMS_PER_PAGE = <?= $itemsPerPage ?>;
+
+    const state = {
+        searchQuery:      '',
+        activeCategories: [],
+        activeLibrary:    '',
+        activeAvailability: [],
+        activePublisher:  '',
+        sortOrder:        'terbaru',
+        currentPage:      1,
+    };
+
+    // ── DOM refs ─────────────────────────────────────────────
+    const gridEl       = document.getElementById('bdt-catalog-grid');
+    const countEl      = document.getElementById('bdt-count-visible');
+    const emptyEl      = document.getElementById('bdt-catalog-empty');
+    const paginationEl = document.getElementById('bdt-pagination');
+    const searchInput  = document.getElementById('bdt-search-input');
+    const sortSelect   = document.getElementById('bdt-sort-select');
+    const librarySelect= document.getElementById('bdt-filter-library-select');
+    const resetBtn     = document.getElementById('bdt-filter-reset');
+
+    const allCards     = Array.from(gridEl.querySelectorAll('.bdt-catalog-card'));
+
+    // ── Filter logic ─────────────────────────────────────────
+    function matchesFilters(card) {
+        const title    = card.dataset.title    || '';
+        const author   = card.dataset.author   || '';
+        const category = card.dataset.category || '';
+        const library  = card.dataset.perpustakaan || '';
+        const avail    = card.dataset.ketersediaan  || '';
+        const pub      = card.dataset.penerbit || '';
+
+        // Search
+        const q = state.searchQuery.toLowerCase().trim();
+        if (q && !title.includes(q) && !author.includes(q)) return false;
+
+        // Category
+        if (state.activeCategories.length > 0) {
+            if (!state.activeCategories.includes(category)) return false;
+        }
+
+        // Library
+        if (state.activeLibrary && library !== state.activeLibrary) return false;
+
+        // Availability
+        if (state.activeAvailability.length > 0) {
+            if (!state.activeAvailability.includes(avail)) return false;
+        }
+
+        // Publisher
+        if (state.activePublisher && pub !== state.activePublisher) return false;
+
+        return true;
+    }
+
+    // ── Sort logic ───────────────────────────────────────────
+    function sortCards(cards) {
+        return [...cards].sort(function (a, b) {
+            const titleA = (a.dataset.title || '').toLowerCase();
+            const titleB = (b.dataset.title || '').toLowerCase();
+            switch (state.sortOrder) {
+                case 'a-z':       return titleA.localeCompare(titleB);
+                case 'z-a':       return titleB.localeCompare(titleA);
+                case 'terpopuler':return 0; // placeholder (no popularity data)
+                default:          return 0; // 'terbaru' — keep original order
+            }
+        });
+    }
+
+    // ── Render ───────────────────────────────────────────────
+    function render() {
+        const matchingCards = sortCards(allCards.filter(matchesFilters));
+        const totalVisible  = matchingCards.length;
+        const totalPages    = Math.max(1, Math.ceil(totalVisible / ITEMS_PER_PAGE));
+
+        // Clamp page
+        if (state.currentPage > totalPages) state.currentPage = totalPages;
+
+        const startIdx = (state.currentPage - 1) * ITEMS_PER_PAGE;
+        const pageCards = matchingCards.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+
+        // Show/hide cards
+        allCards.forEach(function (card) { card.classList.add('is-hidden'); });
+        pageCards.forEach(function (card) { card.classList.remove('is-hidden'); });
+
+        // Count
+        countEl.textContent = totalVisible;
+
+        // Empty state
+        if (totalVisible === 0) {
+            emptyEl.hidden = false;
+        } else {
+            emptyEl.hidden = true;
+        }
+
+        // Pagination
+        renderPagination(totalPages);
+    }
+
+    // ── Pagination ───────────────────────────────────────────
+    function renderPagination(totalPages) {
+        if (totalPages <= 1) { paginationEl.innerHTML = ''; return; }
+
+        const currentPage = state.currentPage;
+        let html = '';
+
+        // Prev
+        html += '<button class="bdt-pagination__btn" id="bdt-page-prev" aria-label="Halaman sebelumnya"'
+              + (currentPage === 1 ? ' disabled' : '') + '>'
+              + '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>'
+              + '</button>';
+
+        // Page numbers
+        const pages = buildPageRange(currentPage, totalPages);
+        pages.forEach(function (p) {
+            if (p === '...') {
+                html += '<span class="bdt-pagination__dots" aria-hidden="true">…</span>';
+            } else {
+                html += '<button class="bdt-pagination__btn' + (p === currentPage ? ' is-active' : '')
+                      + '" data-page="' + p + '" aria-label="Halaman ' + p + '"'
+                      + (p === currentPage ? ' aria-current="page"' : '') + '>'
+                      + p + '</button>';
+            }
+        });
+
+        // Next
+        html += '<button class="bdt-pagination__btn" id="bdt-page-next" aria-label="Halaman berikutnya"'
+              + (currentPage === totalPages ? ' disabled' : '') + '>'
+              + '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>'
+              + '</button>';
+
+        paginationEl.innerHTML = html;
+
+        // Events
+        paginationEl.querySelectorAll('[data-page]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                state.currentPage = parseInt(this.dataset.page, 10);
+                render();
+                scrollToGrid();
+            });
+        });
+
+        const prevBtn = document.getElementById('bdt-page-prev');
+        const nextBtn = document.getElementById('bdt-page-next');
+
+        if (prevBtn) {
+            prevBtn.addEventListener('click', function () {
+                if (state.currentPage > 1) { state.currentPage--; render(); scrollToGrid(); }
+            });
+        }
+        if (nextBtn) {
+            nextBtn.addEventListener('click', function () {
+                if (state.currentPage < totalPages) { state.currentPage++; render(); scrollToGrid(); }
+            });
+        }
+    }
+
+    function buildPageRange(current, total) {
+        const delta = 1;
+        const range = [];
+        const rangeWithDots = [];
+
+        for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
+            range.push(i);
+        }
+
+        if (current - delta > 2) range.unshift('...');
+        if (current + delta < total - 1) range.push('...');
+
+        range.unshift(1);
+        if (total > 1) range.push(total);
+
+        return range;
+    }
+
+    function scrollToGrid() {
+        document.getElementById('bdt-catalog-topbar').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ── Event listeners ──────────────────────────────────────
+
+    // Search
+    searchInput.addEventListener('input', function () {
+        state.searchQuery  = this.value;
+        state.currentPage  = 1;
+        render();
+    });
+
+    // Sort
+    sortSelect.addEventListener('change', function () {
+        state.sortOrder   = this.value;
+        state.currentPage = 1;
+        render();
+    });
+
+    // Library
+    librarySelect.addEventListener('change', function () {
+        state.activeLibrary = this.value;
+        state.currentPage   = 1;
+        render();
+    });
+
+    // Category checkboxes
+    document.querySelectorAll('.bdt-js-filter-category').forEach(function (checkbox) {
+        checkbox.addEventListener('change', function () {
+            state.activeCategories = Array.from(
+                document.querySelectorAll('.bdt-js-filter-category:checked')
+            ).map(function (el) { return el.value; });
+            state.currentPage = 1;
+            render();
+        });
+    });
+
+    // Publisher radios
+    document.querySelectorAll('.bdt-js-filter-publisher').forEach(function (radio) {
+        radio.addEventListener('change', function () {
+            state.activePublisher = this.checked ? this.value : '';
+            state.currentPage     = 1;
+            render();
+        });
+    });
+
+    // Availability pills (toggle multi-select)
+    document.querySelectorAll('.bdt-js-filter-availability').forEach(function (pill) {
+        pill.addEventListener('click', function () {
+            const val = this.dataset.value;
+            this.classList.toggle('is-active');
+            if (this.classList.contains('is-active')) {
+                state.activeAvailability.push(val);
+            } else {
+                state.activeAvailability = state.activeAvailability.filter(function (v) { return v !== val; });
+            }
+            state.currentPage = 1;
+            render();
+        });
+    });
+
+    // Reset
+    resetBtn.addEventListener('click', function () {
+        state.searchQuery        = '';
+        state.activeCategories   = [];
+        state.activeLibrary      = '';
+        state.activeAvailability = [];
+        state.activePublisher    = '';
+        state.sortOrder          = 'terbaru';
+        state.currentPage        = 1;
+
+        searchInput.value = '';
+        sortSelect.value  = 'terbaru';
+        librarySelect.value = '';
+
+        document.querySelectorAll('.bdt-js-filter-category').forEach(function (el) { el.checked = false; });
+        document.querySelectorAll('.bdt-js-filter-publisher').forEach(function (el) { el.checked = false; });
+        document.querySelectorAll('.bdt-js-filter-availability').forEach(function (el) {
+            el.classList.remove('is-active');
+        });
+
+        render();
+    });
 
     // Bookmark toggle (visual only — no persistence yet)
     const gridEl = document.getElementById('bdt-catalog-grid');

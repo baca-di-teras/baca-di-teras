@@ -596,3 +596,4 @@ class BookService
         return array_values(array_unique($normalized));
     }
 }
+

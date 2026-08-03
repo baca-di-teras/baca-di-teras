@@ -46,11 +46,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ];
 
     // Handle Upload
-    if (isset($_FILES['cover_file']) && $_FILES['cover_file']['error'] !== UPLOAD_ERR_NO_FILE) {
+    if (isset($_FILES['cover_file']) && !empty($_FILES['cover_file']['name'][0])) {
         try {
-            $uploadedPath = UploadHelper::uploadArticleCover($_FILES['cover_file']);
-            if ($uploadedPath) {
-                $data['cover_image'] = $uploadedPath;
+            $uploadedPaths = UploadHelper::uploadMultipleArticleCovers($_FILES['cover_file']);
+            if (!empty($uploadedPaths)) {
+                $data['cover_image'] = $uploadedPaths[0];
+                if (count($uploadedPaths) > 1) {
+                    $additional = array_slice($uploadedPaths, 1);
+                    $data['additional_images'] = json_encode($additional);
+                }
+            } else {
+                $data['cover_image'] = '/custom/assets/images/news-small.png';
             }
         } catch (Exception $e) {
             $errorMsg = $e->getMessage();
@@ -63,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($articleService->createArticle($data)) {
             $slug = empty($data['slug']) ? strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $data['title']))) : $data['slug'];
             $slug = preg_replace('/-+/', '-', $slug);
-            header("Location: " . BASE_URL . "/portal-admin/artikel?success=upload&slug=" . urlencode($slug) . "&cat=" . urlencode($data['category']));
+            header("Location: " . BASE_URL . "/portal-admin/artikel?success=upload&slug=" . urlencode($slug) . "&cat=" . urlencode($data['category']) . "&status=" . urlencode($data['status']));
             exit;
         } else {
             $errorMsg = 'Gagal menyimpan artikel. Pastikan isian sudah benar.';
@@ -112,6 +118,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </style>
     <!-- Quill JS CSS -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <style>
+        .ql-editor img {
+            max-width: 100%;
+        }
+    </style>
 </head>
 <body>
 
@@ -143,8 +154,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="card">
                             <h2 class="card-title">Konten Utama</h2>
                             <div class="form-group">
-                                <label class="form-label" style="display: flex; justify-content: space-between;">Judul Artikel <span id="titleCharCount" style="color: #6b7280; font-weight: normal;">0/120</span></label>
-                                <input type="text" id="titleInput" name="title" class="form-control" required placeholder="Masukkan judul..." maxlength="120">
+                                <label class="form-label" style="display: flex; justify-content: space-between;">Judul Artikel <span id="titleCharCount" style="color: #6b7280; font-weight: normal;">0/180</span></label>
+                                <input type="text" id="titleInput" name="title" class="form-control" required placeholder="Masukkan judul..." maxlength="180">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Slug (Opsional)</label>
@@ -156,7 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Isi Artikel</label>
-                                <textarea name="body" id="bodyHidden" style="display:none;" required></textarea>
+                                <textarea name="body" id="bodyHidden" style="display:none;"></textarea>
                                 <div id="editor-container" style="min-height: 400px; background: white;"></div>
                             </div>
                         </div>
@@ -188,26 +199,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                             <div class="form-group">
                                 <label class="form-label">Tanggal Publikasi</label>
-                                <input type="datetime-local" name="publish_date" class="form-control">
+                                <input type="datetime-local" name="publish_date" class="form-control" value="<?= date('Y-m-d\TH:i') ?>">
                             </div>
                             
                             <div class="form-group">
-                                <label class="form-label">Foto Sampul (Cover Image)</label>
+                                <label class="form-label">Foto (Satu atau Lebih, Foto Pertama menjadi Cover)</label>
                                 <div class="upload-area" id="uploadArea">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" class="upload-icon">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
-                                    <div class="upload-text">Klik atau Tarik foto ke sini</div>
-                                    <div class="upload-hint">Maksimal 2MB (JPEG, PNG, WEBP)</div>
-                                    <input type="file" name="cover_file" id="coverFileInput" accept="image/jpeg, image/png, image/webp, image/gif">
+                                    <div class="upload-text">Klik atau Tarik foto ke sini (bisa lebih dari satu)</div>
+                                    <div class="upload-hint">Maksimal 2MB per foto (JPEG, PNG, WEBP)</div>
+                                    <input type="file" name="cover_file[]" id="coverFileInput" accept="image/jpeg, image/png, image/webp, image/gif" multiple>
                                 </div>
-                                <div class="upload-preview" id="uploadPreview">
-                                    <img src="" alt="Preview" id="previewImg">
-                                    <button type="button" class="remove-preview" id="btnRemovePreview" title="Hapus Foto">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
+                                <div class="upload-preview" id="uploadPreview" style="display: none;">
+                                    <div id="previewImagesContainer" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+                                    <div style="display: flex; gap: 12px; margin-top: 16px;">
+                                        <button type="button" class="btn-outline" id="btnAddMorePhotos" style="flex: 1;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                            Tambah Foto
+                                        </button>
+                                        <button type="button" class="btn-outline-danger" id="btnRemovePreview" style="flex: 1;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            Ganti Semua Foto
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -376,11 +392,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         uploadArea.addEventListener('drop', handleDrop, false);
+        let allSelectedFiles = []; // Track all files
 
         function handleDrop(e) {
             const dt = e.dataTransfer;
             const files = dt.files;
-            coverFileInput.files = files;
             handleFiles(files);
         }
 
@@ -388,37 +404,120 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             handleFiles(this.files);
         });
 
-        function handleFiles(files) {
+        function handleFiles(files, append = false) {
             if (files.length === 0) return;
-            const file = files[0];
             
-            // Validasi di sisi client
-            if (file.size > 2 * 1024 * 1024) {
-                showCustomAlert('Ukuran foto terlalu besar. Maksimal 2MB.');
-                coverFileInput.value = '';
-                return;
+            if (!append) {
+                allSelectedFiles = [];
             }
             
-            if (!file.type.startsWith('image/')) {
-                showCustomAlert('Tipe file tidak didukung. Harap unggah gambar.');
-                coverFileInput.value = '';
-                return;
-            }
+            Array.from(files).forEach((file) => {
+                // Validasi di sisi client
+                if (file.size > 2 * 1024 * 1024) {
+                    showCustomAlert(`Ukuran foto ${file.name} terlalu besar. Maksimal 2MB.`);
+                    return;
+                }
+                
+                if (!file.type.startsWith('image/')) {
+                    showCustomAlert(`Tipe file ${file.name} tidak didukung. Harap unggah gambar.`);
+                    return;
+                }
+                allSelectedFiles.push(file);
+            });
 
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onloadend = function() {
-                previewImg.src = reader.result;
-                uploadArea.style.display = 'none';
-                uploadPreview.style.display = 'block';
-            }
+            // Update file input using DataTransfer
+            const dt = new DataTransfer();
+            allSelectedFiles.forEach(f => dt.items.add(f));
+            coverFileInput.files = dt.files;
+
+            renderPreviews();
         }
 
+        function renderPreviews() {
+            const previewContainer = document.getElementById('previewImagesContainer');
+            previewContainer.innerHTML = '';
+            
+            if (allSelectedFiles.length === 0) {
+                uploadArea.style.display = 'block';
+                uploadPreview.style.display = 'none';
+                coverFileInput.value = '';
+                return;
+            }
+
+            allSelectedFiles.forEach((file, index) => {
+                const wrap = document.createElement('div');
+                wrap.style.position = 'relative';
+                wrap.style.display = 'inline-block';
+                
+                const img = document.createElement('img');
+                img.style.width = '120px';
+                img.style.height = '80px';
+                img.style.objectFit = 'cover';
+                img.style.borderRadius = '4px';
+                img.style.border = index === 0 ? '2px solid var(--admin-primary)' : '1px solid var(--admin-border)';
+                img.title = index === 0 ? 'Cover Image' : 'Tambahan';
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.innerHTML = '×';
+                removeBtn.style.position = 'absolute';
+                removeBtn.style.top = '4px';
+                removeBtn.style.right = '4px';
+                removeBtn.style.width = '20px';
+                removeBtn.style.height = '20px';
+                removeBtn.style.borderRadius = '50%';
+                removeBtn.style.background = 'rgba(239, 68, 68, 0.9)';
+                removeBtn.style.color = 'white';
+                removeBtn.style.border = 'none';
+                removeBtn.style.cursor = 'pointer';
+                removeBtn.style.display = 'flex';
+                removeBtn.style.alignItems = 'center';
+                removeBtn.style.justifyContent = 'center';
+                removeBtn.style.fontSize = '14px';
+                removeBtn.style.lineHeight = '1';
+                removeBtn.style.padding = '0';
+                removeBtn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+                
+                removeBtn.addEventListener('click', function() {
+                    allSelectedFiles.splice(index, 1);
+                    const dt = new DataTransfer();
+                    allSelectedFiles.forEach(f => dt.items.add(f));
+                    coverFileInput.files = dt.files;
+                    renderPreviews();
+                });
+                
+                wrap.appendChild(img);
+                wrap.appendChild(removeBtn);
+                previewContainer.appendChild(wrap);
+
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onloadend = function() {
+                    img.src = reader.result;
+                }
+            });
+
+            uploadArea.style.display = 'none';
+            uploadPreview.style.display = 'block';
+        }
+
+        document.getElementById('btnAddMorePhotos').addEventListener('click', function() {
+            const tempInput = document.createElement('input');
+            tempInput.type = 'file';
+            tempInput.multiple = true;
+            tempInput.accept = "image/jpeg, image/png, image/webp, image/gif";
+            tempInput.addEventListener('change', function() {
+                handleFiles(this.files, true);
+            });
+            tempInput.click();
+        });
+
         btnRemovePreview.addEventListener('click', function() {
+            allSelectedFiles = [];
             coverFileInput.value = '';
-            previewImg.src = '';
+            document.getElementById('previewImagesContainer').innerHTML = '';
             uploadPreview.style.display = 'none';
-            uploadArea.style.display = 'flex';
+            uploadArea.style.display = 'block';
         });
 
         // Slug Autogeneration & Title Char Count Logic
@@ -430,7 +529,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (titleInput) {
             if (titleCharCount) {
                 titleInput.addEventListener("input", function() {
-                    titleCharCount.innerText = this.value.length + '/120';
+                    titleCharCount.innerText = this.value.length + '/180';
                 });
             }
             if (slugInput) {
@@ -452,23 +551,178 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </script>
     
     <!-- Quill JS -->
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    <script>window.Quill = Quill;</script>
+    <script src="https://cdn.jsdelivr.net/npm/quill-image-resize-module@3.0.0/image-resize.min.js"></script>
+    <script src="https://unpkg.com/quill-magic-url@3.0.0/dist/index.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            // Handler for custom image upload
+            function selectLocalImage() {
+                const input = document.createElement('input');
+                input.setAttribute('type', 'file');
+                input.setAttribute('accept', 'image/*');
+                input.click();
+
+                input.onchange = () => {
+                    const file = input.files[0];
+                    if (/^image\//.test(file.type)) {
+                        uploadImageToServer(file);
+                    } else {
+                        showCustomAlert('Anda hanya bisa mengunggah file gambar.');
+                    }
+                };
+            }
+
+            function createProgressImage(percentage) {
+                const canvas = document.createElement('canvas');
+                canvas.width = 600;
+                canvas.height = 400;
+                const ctx = canvas.getContext('2d');
+                
+                // Background
+                ctx.fillStyle = '#1f2937';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Text
+                ctx.fillStyle = '#f3f4f6';
+                ctx.font = 'bold 48px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(percentage + '%', canvas.width / 2, canvas.height / 2 - 10);
+                
+                // Subtext
+                ctx.fillStyle = '#9ca3af';
+                ctx.font = '24px Inter, sans-serif';
+                ctx.fillText('Mengunggah...', canvas.width / 2, canvas.height / 2 + 40);
+                
+                return canvas.toDataURL('image/jpeg', 0.8);
+            }
+
+            function uploadImageToServer(file) {
+                const range = quill.getSelection(true);
+                let index = range ? range.index : 0;
+                
+                let currentSrc = createProgressImage(0);
+                quill.insertEmbed(index, 'image', currentSrc);
+                quill.setSelection(index + 1);
+
+                let uploadingImg = null;
+                setTimeout(() => {
+                    const imgs = document.getElementById('editor-container').querySelectorAll('img');
+                    for (let img of imgs) {
+                        if (img.getAttribute('src') === currentSrc || img.src === currentSrc) {
+                            uploadingImg = img;
+                            break;
+                        }
+                    }
+                }, 50);
+
+                const fd = new FormData();
+                fd.append('file', file);
+                fd.append('type', 'image');
+                fd.append('base_url', '<?= BASE_URL ?>');
+
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', '<?= BASE_URL ?>/custom/pages/admin/upload_media.php', true);
+                
+                xhr.upload.onprogress = function(e) {
+                    if (e.lengthComputable) {
+                        const percent = Math.round((e.loaded / e.total) * 100);
+                        const newSrc = createProgressImage(percent);
+                        
+                        if (uploadingImg && document.body.contains(uploadingImg)) {
+                            uploadingImg.src = newSrc;
+                        } else {
+                            const imgs = document.getElementById('editor-container').querySelectorAll('img');
+                            for (let img of imgs) {
+                                if (img.getAttribute('src') === currentSrc || img.src === currentSrc) {
+                                    uploadingImg = img;
+                                    uploadingImg.src = newSrc;
+                                    break;
+                                }
+                            }
+                        }
+                        currentSrc = newSrc;
+                    }
+                };
+                
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        try {
+                            const result = JSON.parse(xhr.responseText);
+                            if (result.success && result.url) {
+                                if (uploadingImg && document.body.contains(uploadingImg)) {
+                                    uploadingImg.src = result.url;
+                                } else {
+                                    const imgs = document.getElementById('editor-container').querySelectorAll('img');
+                                    for (let img of imgs) {
+                                        if (img.getAttribute('src') === currentSrc || img.src === currentSrc) {
+                                            img.src = result.url;
+                                            break;
+                                        }
+                                    }
+                                }
+                            } else {
+                                removePlaceholder(currentSrc);
+                                showCustomAlert(result.error || 'Gagal mengunggah gambar.');
+                            }
+                        } catch (e) {
+                            removePlaceholder(currentSrc);
+                            showCustomAlert('Terjadi kesalahan saat memproses respons.');
+                        }
+                    } else {
+                        removePlaceholder(currentSrc);
+                        showCustomAlert('Terjadi kesalahan saat mengunggah gambar.');
+                    }
+                };
+                
+                xhr.onerror = function() {
+                    removePlaceholder(currentSrc);
+                    showCustomAlert('Terjadi kesalahan jaringan.');
+                };
+                
+                xhr.send(fd);
+            }
+
+            function removePlaceholder(src) {
+                const imgs = document.getElementById('editor-container').querySelectorAll('img');
+                for (let img of imgs) {
+                    if (img.getAttribute('src') === src || img.src === src) {
+                        const blot = Quill.find(img);
+                        if (blot) {
+                            const idx = quill.getIndex(blot);
+                            quill.deleteText(idx, 1);
+                        } else {
+                            img.remove();
+                        }
+                        break;
+                    }
+                }
+            }
+
             // Inisialisasi Quill Editor
             var quill = new Quill('#editor-container', {
                 theme: 'snow',
                 placeholder: 'Isi artikel...',
                 modules: {
-                    toolbar: [
-                        [{ 'header': [1, 2, 3, false] }],
-                        ['bold', 'italic', 'underline', 'strike'],
-                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                        [{ 'align': [] }],
-                        ['link'],
-                        ['clean']
-                    ]
+                    magicUrl: true,
+                    imageResize: {
+                        displaySize: true
+                    },
+                    toolbar: {
+                        container: [
+                            [{ 'header': [1, 2, 3, false] }],
+                            ['bold', 'italic', 'underline', 'strike'],
+                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                            [{ 'align': [] }],
+                            ['link', 'image'],
+                            ['clean']
+                        ],
+                        handlers: {
+                            image: selectLocalImage
+                        }
+                    }
                 }
             });
 
@@ -553,7 +807,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 bodyHidden.value = quill.root.innerHTML;
                 if (quill.getText().trim().length === 0) {
                     e.preventDefault();
-                    alert("Isi artikel tidak boleh kosong!");
+                    showCustomAlert("Isi artikel tidak boleh kosong!");
                 }
             });
         });

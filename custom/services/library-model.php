@@ -14,7 +14,7 @@
  *   - item          (eksemplar koleksi)
  *
  * Usage:
- *   require_once __DIR__ . '/../helpers/database.php';
+ *   require_once __DIR__ . '/../helpers/Database.php';
  *   require_once __DIR__ . '/../services/library-model.php';
  *
  *   $libraryModel = new LibraryModel();
@@ -22,7 +22,7 @@
  *   $library      = $libraryModel->getBySlug('perpustakaan-utama');
  */
 
-require_once __DIR__ . '/../helpers/database.php';
+require_once __DIR__ . '/../helpers/Database.php';
 
 class LibraryModel
 {
@@ -383,3 +383,4 @@ class LibraryModel
         );
     }
 }
+

@@ -158,7 +158,10 @@ $baseUrl = defined('BASE_URL') ? BASE_URL : '';
             line-height: 1.3;
             color: #1a1a2e;
             text-decoration: none;
-            display: block;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
             margin-bottom: 12px;
             transition: color 0.2s;
         }
@@ -192,8 +195,8 @@ $baseUrl = defined('BASE_URL') ? BASE_URL : '';
         }
         .bdt-article-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 28px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
         }
         .bdt-article-card {
             background: #fff;
@@ -244,7 +247,10 @@ $baseUrl = defined('BASE_URL') ? BASE_URL : '';
             line-height: 1.4;
             color: #1a1a2e;
             text-decoration: none;
-            display: block;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
             margin-bottom: 8px;
             transition: color 0.2s;
         }
@@ -301,14 +307,24 @@ $baseUrl = defined('BASE_URL') ? BASE_URL : '';
         }
         .bdt-article-empty h3 { font-size: 1.25rem; margin-bottom: 8px; color: #555; }
 
+        @media (max-width: 1024px) {
+            .bdt-article-grid { grid-template-columns: repeat(3, 1fr); }
+        }
         @media (max-width: 900px) {
             .bdt-article-featured { grid-template-columns: 1fr; }
             .bdt-article-featured__img { height: 220px; }
             .bdt-article-featured__body { padding: 24px; }
-            .bdt-article-grid { grid-template-columns: 1fr 1fr; }
         }
         @media (max-width: 600px) {
-            .bdt-article-grid { grid-template-columns: 1fr; }
+            .bdt-article-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+            .bdt-article-author { display: none !important; }
+            
+            /* Make text sizes slightly smaller for 2-column mobile layout */
+            .bdt-article-card__title { font-size: 0.9rem; margin-bottom: 4px; }
+            .bdt-article-card__excerpt { font-size: 0.75rem; -webkit-line-clamp: 2; margin-bottom: 12px; }
+            .bdt-article-card__meta { font-size: 0.7rem; }
+            .bdt-article-card__body { padding: 12px; }
+            .bdt-article-card__img-wrap { height: 120px; }
         }
     </style>
 </head>
@@ -384,7 +400,7 @@ $baseUrl = defined('BASE_URL') ? BASE_URL : '';
                         <?= ArticleService::formatDate($heroArticle['publish_date']) ?>
                     </span>
                     <?php if (!empty($heroArticle['author_name'])) : ?>
-                    <span>
+                    <span class="bdt-article-author">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -444,7 +460,7 @@ $baseUrl = defined('BASE_URL') ? BASE_URL : '';
                             <?= ArticleService::formatDate($art['publish_date']) ?>
                         </span>
                         <?php if (!empty($art['author_name'])) : ?>
-                        <span style="margin-left: 12px;">
+                        <span class="bdt-article-author" style="margin-left: 12px;">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -486,3 +502,4 @@ $baseUrl = defined('BASE_URL') ? BASE_URL : '';
 <?php include $libPath . '/custom/components/footer.php'; ?>
 </body>
 </html>
+
