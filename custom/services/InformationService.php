@@ -7,7 +7,7 @@
  * Version : 1.0.0
  */
 
-require_once __DIR__ . '/../helpers/database.php';
+require_once __DIR__ . '/../helpers/Database.php';
 
 class InformationService
 {
@@ -208,3 +208,4 @@ class InformationService
         return $info;
     }
 }
+

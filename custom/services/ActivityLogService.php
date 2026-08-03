@@ -9,7 +9,7 @@ if (!defined('BASE_URL')) {
 }
 
 $libPath = defined('ROOT_PATH') ? ROOT_PATH : __DIR__ . '/../..';
-require_once $libPath . '/custom/helpers/database.php';
+require_once $libPath . '/custom/helpers/Database.php';
 
 class ActivityLogService
 {
@@ -63,3 +63,4 @@ class ActivityLogService
         return $this->db->fetchAll($sql, 'i', [$limit]);
     }
 }
+

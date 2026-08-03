@@ -148,4 +148,44 @@ class UploadHelper
         $baseUrl = defined('BASE_URL') ? BASE_URL : '/baca-di-teras';
         return rtrim($baseUrl, '/') . '/' . trim($uploadDir, '/') . '/' . $fileName;
     }
+
+    /**
+     * Upload multiple article cover images
+     *
+     * @param array $fileArrays Data from $_FILES['input_name'] where multiple is enabled
+     * @param string $uploadDir Relative path from BASE_URL
+     * @return array Array of saved file paths
+     * @throws Exception Jika validasi gagal
+     */
+    public static function uploadMultipleArticleCovers(array $fileArrays, string $uploadDir = '/custom/uploads/articles/'): array
+    {
+        $uploadedPaths = [];
+        $fileCount = count($fileArrays['name']);
+        
+        for ($i = 0; $i < $fileCount; $i++) {
+            if ($fileArrays['error'][$i] === UPLOAD_ERR_NO_FILE) {
+                continue; // Skip empty uploads
+            }
+
+            // Create a pseudo $_FILES array structure for single file
+            $singleFile = [
+                'name' => $fileArrays['name'][$i],
+                'type' => $fileArrays['type'][$i],
+                'tmp_name' => $fileArrays['tmp_name'][$i],
+                'error' => $fileArrays['error'][$i],
+                'size' => $fileArrays['size'][$i],
+            ];
+
+            try {
+                $path = self::uploadArticleCover($singleFile, $uploadDir);
+                if ($path) {
+                    $uploadedPaths[] = $path;
+                }
+            } catch (Exception $e) {
+                throw new Exception("File '" . $fileArrays['name'][$i] . "' gagal diunggah: " . $e->getMessage());
+            }
+        }
+
+        return $uploadedPaths;
+    }
 }

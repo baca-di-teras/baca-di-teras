@@ -1,272 +1,337 @@
-/* custom/assets/css/produk.css */
-.produk-page {
-    background-color: #fcfbf9;
-    padding-top: 100px;
-    padding-bottom: 60px;
+/**
+ * CSS untuk Halaman Galeri Produk
+ * Abstract Scattered Masonry Design
+ */
+
+ :root {
+    --produk-primary: #1b5e20;
+    --produk-secondary: #4caf50;
+    --produk-bg: #fcfbf9;
+    --produk-card-bg: #ffffff;
+    --produk-text-dark: #1f2937;
+    --produk-text-light: #6b7280;
+    --produk-border: #e5e7eb;
+    --produk-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+    --produk-shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --produk-radius: 16px;
+    --produk-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.produk-page {
+    background-color: var(--produk-bg);
+}
+
+/* Header */
 .produk-header {
     text-align: center;
-    margin-bottom: 48px;
-    padding: 0 20px;
+    padding: 60px 20px 20px;
+    margin-bottom: 20px;
 }
 
 .produk-title {
-    color: var(--color-primary-dark, #064e3b);
-    font-size: 2.25rem;
-    font-weight: 700;
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--produk-primary);
     margin: 0;
+    letter-spacing: -0.025em;
+    position: relative;
+    display: inline-block;
 }
 
-.produk-container {
+.produk-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 4px;
+    background: var(--produk-secondary);
+    border-radius: 2px;
+}
+
+/* Container */
+.produk-stack-container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 24px;
+    padding: 20px 20px 80px;
     display: flex;
     flex-direction: column;
-    gap: 48px;
+    gap: 80px;
+    overflow-x: hidden; /* prevent horizontal scroll on desktop from overlapping items */
 }
 
-/* Base Grid untuk setiap item produk */
-.produk-item {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-auto-rows: minmax(180px, auto);
-    gap: 16px;
+/* Row (Baris Produk) */
+.produk-stack-row {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    min-height: 350px;
 }
 
-/* Elemen-elemen dalam produk */
-.produk-img-large {
-    border-radius: 16px;
-    overflow: hidden;
+/* Item Dasar */
+.stack-item {
+    position: relative;
+    border-radius: var(--produk-radius);
+    /* Gunakan trick delay z-index saat kursor keluar agar tidak 'menabrak' (clipping) ke belakang layar */
+    transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s, box-shadow 0.5s, z-index 0s 0.5s;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    cursor: pointer;
+    background: #fff;
 }
 
-.produk-img-large img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    transition: transform 0.5s ease;
-}
-
-.produk-img-large:hover img {
-    transform: scale(1.05);
-}
-
-.produk-img-small {
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-.produk-img-small img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    transition: transform 0.3s ease;
-}
-
-.produk-img-small:hover img {
-    transform: scale(1.05);
-}
-
-/* Text Card */
-.produk-card {
-    background: #ffffff;
-    border-radius: 16px;
-    padding: 32px 24px;
+/* Kartu Info */
+.stack-text-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.7);
+    padding: 40px;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    justify-content: center;
+    width: 380px;
+    flex-shrink: 0;
 }
 
-.produk-group {
-    background: #e6f2e9;
-    color: #166534;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    padding: 6px 12px;
-    border-radius: 99px;
+.stack-badge {
     display: inline-block;
-    width: fit-content;
+    padding: 6px 12px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    border-radius: 20px;
     margin-bottom: 16px;
+    align-self: flex-start;
+    text-transform: uppercase;
     letter-spacing: 0.05em;
 }
 
-.produk-name {
-    color: #166534;
-    font-size: 1.5rem;
+.stack-title {
+    font-size: 2rem;
     font-weight: 800;
+    color: var(--produk-text-dark);
     margin: 0 0 16px 0;
     line-height: 1.2;
 }
 
-.produk-desc {
-    color: #4b5563;
-    font-size: 0.9rem;
-    line-height: 1.6;
+.stack-desc {
+    color: var(--produk-text-light);
+    line-height: 1.7;
+    font-size: 1rem;
     margin: 0;
+    /* Limit lines */
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
-/* Green Icon Box */
-.produk-icon-box {
-    background: #166534;
-    border-radius: 12px;
+/* Kartu Gambar */
+.stack-img {
+    width: 320px;
+    flex-shrink: 0;
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.stack-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.stack-img-badge {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    padding: 6px 14px;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px);
+    z-index: 10;
+}
+
+/* --- OVERLAP LOGIC --- */
+@media (min-width: 992px) {
+    
+    /* Ganjil (Kiri ke Kanan) */
+    .stack-left {
+        flex-direction: row;
+        justify-content: flex-start;
+        padding-left: 50px;
+    }
+    .stack-left .stack-item {
+        margin-left: -120px;
+    }
+    .stack-left .stack-item:first-child {
+        margin-left: 0;
+    }
+
+    /* Genap (Kanan ke Kiri) */
+    .stack-right {
+        flex-direction: row-reverse;
+        justify-content: flex-start;
+        padding-right: 50px;
+    }
+    .stack-right .stack-item {
+        margin-right: -120px;
+    }
+    .stack-right .stack-item:first-child {
+        margin-right: 0;
+    }
+
+    /* Z-Index defaults */
+    .produk-stack-row .stack-item:nth-child(1) { z-index: 40; }
+    .produk-stack-row .stack-item:nth-child(2) { z-index: 30; }
+    .produk-stack-row .stack-item:nth-child(3) { z-index: 20; }
+    .produk-stack-row .stack-item:nth-child(4) { z-index: 10; }
+
+    /* Natural Rotation */
+    .produk-stack-row .stack-img:nth-child(2) { transform: rotate(3deg) translateY(10px); }
+    .produk-stack-row .stack-img:nth-child(3) { transform: rotate(-4deg) translateY(5px); }
+    .produk-stack-row .stack-img:nth-child(4) { transform: rotate(2deg) translateY(15px); }
+    
+    /* Hover Effects */
+    .produk-stack-row:hover .stack-item {
+        /* Saat row di-hover, item lain redup untuk fokus */
+        opacity: 0.85; 
+    }
+    
+    .produk-stack-row .stack-item:hover {
+        z-index: 100 !important;
+        /* Tarik ke atas cukup jauh (translateY) agar tidak menabrak sebelum membesar */
+        transform: rotate(0deg) scale(1.08) translateY(-30px) !important;
+        opacity: 1;
+        box-shadow: 0 30px 50px -15px rgba(0,0,0,0.3);
+        /* Z-index langsung berubah saat masuk hover (delay 0s) */
+        transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s, box-shadow 0.5s, z-index 0s 0s;
+    }
+}
+
+/* --- MOBILE & TABLET LAYOUT (Carousel/Scroll Snap) --- */
+@media (max-width: 991px) {
+    .produk-stack-container {
+        gap: 40px;
+        padding: 20px 0 60px; /* remove horizontal padding for full bleed scroll */
+    }
+    .produk-stack-row {
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: visible;
+        padding: 20px;
+        scroll-snap-type: x mandatory;
+        scroll-padding: 20px;
+        -webkit-overflow-scrolling: touch;
+        gap: 20px; /* spacing instead of negative margin */
+        padding-bottom: 40px; /* room for shadow */
+    }
+    /* Hide scrollbar */
+    .produk-stack-row::-webkit-scrollbar { display: none; }
+    .produk-stack-row { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    .stack-item {
+        scroll-snap-align: start;
+        width: 85vw; /* take up most of the screen */
+        max-width: 320px;
+    }
+    .stack-img {
+        height: 400px;
+    }
+    
+    /* Reset all translations and rotations */
+    .stack-left, .stack-right {
+        flex-direction: row; /* force LTR on mobile for scrolling naturally */
+    }
+    .stack-left .stack-item, .stack-right .stack-item {
+        margin-left: 0;
+        margin-right: 0;
+    }
+    .produk-stack-row .stack-img {
+        transform: none !important;
+    }
+    .produk-stack-row .stack-item:hover {
+        transform: translateY(-5px) !important; /* simple hover for mobile if any */
+        box-shadow: 0 15px 30px -10px rgba(0,0,0,0.15);
+    }
+}
+
+/* --- LIGHTBOX MODAL --- */
+.produk-lightbox {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    padding-top: 50px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.produk-lightbox.show {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 1;
+}
+
+.produk-lightbox .lightbox-content {
+    margin: auto;
+    display: block;
+    max-width: 90%;
+    max-height: 85vh;
+    border-radius: var(--produk-radius);
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+    animation: zoomIn 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.produk-lightbox .lightbox-close {
+    position: absolute;
+    top: 30px;
+    right: 40px;
     color: #fff;
-    transition: background 0.2s;
+    font-size: 40px;
+    font-weight: bold;
+    transition: 0.3s;
+    cursor: pointer;
+    z-index: 10000;
 }
-.produk-icon-box:hover {
-    background: #14532d;
+
+.produk-lightbox .lightbox-close:hover,
+.produk-lightbox .lightbox-close:focus {
+    color: #ccc;
+    text-decoration: none;
+    cursor: pointer;
 }
-.produk-icon-box svg {
-    width: 32px;
-    height: 32px;
+
+@keyframes zoomIn {
+    from {transform: scale(0.9); opacity: 0;}
+    to {transform: scale(1); opacity: 1;}
 }
+
 .produk-icon-box-light {
-    background: #eef2ed;
-    color: #166534;
-}
-.produk-icon-box-light:hover {
-    background: #e2e8e0;
+    background: var(--produk-secondary);
 }
 
-/* LAYOUT PATTERNS */
-
-/* Pattern A: Large Image Left */
-.layout-a .produk-img-large {
-    grid-column: 1 / 3;
-    grid-row: 1 / 3;
-}
-.layout-a .produk-img-small-1 {
-    grid-column: 3 / 4;
-    grid-row: 1 / 2;
-}
-.layout-a .produk-card {
-    grid-column: 4 / 5;
-    grid-row: 1 / 3; /* Lebar dan tinggi dinamis */
-}
-.layout-a .produk-img-small-2 {
-    grid-column: 3 / 4;
-    grid-row: 2 / 3;
-}
-.layout-a .produk-icon-box {
-    grid-column: 4 / 5;
-    grid-row: 2 / 3; 
-    /* Namun jika card rowspan 2, icon box tdk perlu, 
-       atau card rowspan 1, icon box row 2 */
-}
-/* Revisi Pattern A untuk mirip Tas Pustaka */
-.layout-a .produk-card {
-    grid-column: 4 / 5;
-    grid-row: 1 / 2;
-}
-.layout-a .produk-icon-box {
-    grid-column: 4 / 5;
-    grid-row: 2 / 3;
+.produk-icon-box svg {
+    width: 64px;
+    height: 64px;
+    opacity: 0.8;
 }
 
-
-/* Pattern B: Large Image Center */
-.layout-b .produk-card {
-    grid-column: 1 / 2;
-    grid-row: 1 / 2;
-}
-.layout-b .produk-img-large {
-    grid-column: 2 / 4;
-    grid-row: 1 / 3;
-}
-.layout-b .produk-img-small-1 {
-    grid-column: 4 / 5;
-    grid-row: 1 / 2;
-}
-.layout-b .produk-img-small-2 {
-    grid-column: 4 / 5;
-    grid-row: 2 / 3;
-}
-
-/* Pattern C: Large Image Left, Different blocks */
-.layout-c .produk-img-large {
-    grid-column: 1 / 3;
-    grid-row: 1 / 3;
-}
-.layout-c .produk-img-small-1 {
-    grid-column: 3 / 4;
-    grid-row: 1 / 2;
-}
-.layout-c .produk-card {
-    grid-column: 4 / 5;
-    grid-row: 1 / 3;
-}
-.layout-c .produk-icon-box {
-    grid-column: 3 / 4;
-    grid-row: 2 / 3;
-}
-
-/* Fallbacks jika gambar tidak lengkap */
-.produk-placeholder {
-    background: #e5e7eb;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #9ca3af;
-    font-size: 0.8rem;
-}
-
-/* Responsive Design */
-@media (max-width: 1024px) {
-    .produk-item {
-        grid-template-columns: repeat(2, 1fr);
-        grid-auto-rows: auto;
-    }
-    
-    .layout-a .produk-img-large,
-    .layout-b .produk-img-large,
-    .layout-c .produk-img-large {
-        grid-column: 1 / 3;
-        grid-row: auto;
-        aspect-ratio: 16/9;
-    }
-    
-    .layout-a .produk-card,
-    .layout-b .produk-card,
-    .layout-c .produk-card {
-        grid-column: 1 / 3;
-        grid-row: auto;
-    }
-    
-    .layout-a .produk-img-small-1,
-    .layout-a .produk-img-small-2,
-    .layout-b .produk-img-small-1,
-    .layout-b .produk-img-small-2,
-    .layout-c .produk-img-small-1,
-    .layout-c .produk-img-small-2 {
-        grid-column: span 1;
-        grid-row: auto;
-        aspect-ratio: 1;
-    }
-    
-    .layout-a .produk-icon-box,
-    .layout-b .produk-icon-box,
-    .layout-c .produk-icon-box {
-        grid-column: span 1;
-        grid-row: auto;
-    }
-}
-
-@media (max-width: 640px) {
-    .produk-item {
-        grid-template-columns: 1fr;
-    }
-    .produk-item > * {
-        grid-column: 1 / -1 !important;
-        grid-row: auto !important;
-    }
-    .produk-img-small-1, .produk-img-small-2, .produk-icon-box {
-        aspect-ratio: 21/9;
-    }
+.produk-icon-box:hover {
+    transform: scale(1.05) rotate(5deg);
 }

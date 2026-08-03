@@ -13,7 +13,7 @@
  *   - biblio (resensi buku)
  *
  * Usage:
- *   require_once __DIR__ . '/../helpers/database.php';
+ *   require_once __DIR__ . '/../helpers/Database.php';
  *   require_once __DIR__ . '/../services/article-model.php';
  *
  *   $articleModel = new ArticleModel();
@@ -21,7 +21,7 @@
  *   $article      = $articleModel->getBySlug('festival-baca-2026');
  */
 
-require_once __DIR__ . '/../helpers/database.php';
+require_once __DIR__ . '/../helpers/Database.php';
 
 class ArticleModel
 {
@@ -620,3 +620,4 @@ class ArticleModel
         return trim($slug, '-');
     }
 }
+

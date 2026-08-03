@@ -12,12 +12,17 @@ $admin_active_page = 'info';
 $errorMsg = '';
 
 $info_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-$info = $infoService->getInformationById($info_id);
-if (!$info || $info['id_name'] !== 'tata_tertib_header') {
-    header("Location: " . BASE_URL . "/portal-admin/informasi");
-    exit;
+$info = null;
+
+if ($info_id > 0) {
+    $info = $infoService->getInformationById($info_id);
+    if (!$info || $info['id_name'] !== 'tata_tertib_header') {
+        header("Location: " . BASE_URL . "/portal-admin/informasi");
+        exit;
+    }
 }
-$extra = json_decode($info['extra_data'], true) ?: [];
+
+$extra = $info ? (json_decode($info['extra_data'], true) ?: []) : [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $extraData = [
@@ -34,9 +39,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'sort_order' => 0
     ];
 
-    if ($infoService->updateInformation($info_id, $data)) {
+    $success = false;
+    if ($info_id > 0) {
+        $success = $infoService->updateInformation($info_id, $data);
+    } else {
+        $success = $infoService->createInformation($data);
+    }
+
+    if ($success) {
         header("Location: " . BASE_URL . "/portal-admin/informasi"); exit;
-    } else { $errorMsg = 'Gagal memperbarui data.'; }
+    } else { 
+        $errorMsg = 'Gagal menyimpan data.'; 
+    }
 }
 ?>
 <!DOCTYPE html>

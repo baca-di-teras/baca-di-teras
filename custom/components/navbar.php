@@ -129,11 +129,15 @@ $navItems = [
             </a>
 
             <!-- Login Keanggotaan Button -->
-            <a href="<?= htmlspecialchars($baseUrl . '/login') ?>"
+            <a href="<?= htmlspecialchars($baseUrl . '/slims/index.php?p=member') ?>"
                id="bdt-navbar-login"
                class="bdt-navbar__btn-login"
                aria-label="Login Keanggotaan">
-                Login Keanggotaan
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                Masuk
             </a>
         </div>
 
@@ -171,7 +175,7 @@ $navItems = [
                     <span class="bdt-navbar__mobile-link bdt-mobile-dropdown-toggle<?= $isDropdownActive ? ' active' : '' ?>">
                         <?= htmlspecialchars($item['label']) ?>
                     </span>
-                    <ul class="bdt-mobile-dropdown-menu">
+                    <ul class="bdt-mobile-dropdown-menu" style="display: none;">
                         <?php foreach ($item['children'] as $child) : ?>
                         <li>
                             <a href="<?= htmlspecialchars($child['href']) ?>"
@@ -219,10 +223,10 @@ $navItems = [
                 </svg>
                 Kontak
             </a>
-            <a href="<?= htmlspecialchars($baseUrl . '/login') ?>"
+            <a href="<?= htmlspecialchars($baseUrl . '/slims/index.php?p=member') ?>"
                id="bdt-mobile-login"
                class="bdt-navbar__btn-login--mobile">
-                Login Keanggotaan
+                Masuk
             </a>
         </div>
 
@@ -263,6 +267,22 @@ $navItems = [
             hamburger.setAttribute('aria-expanded', 'false');
             hamburger.setAttribute('aria-label', 'Buka menu navigasi');
         }
+    });
+
+    // Dropdown toggle mobile
+    var mobileDropdownToggles = document.querySelectorAll('.bdt-mobile-dropdown-toggle');
+    mobileDropdownToggles.forEach(function(toggle) {
+        toggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            var parentLi = this.closest('.bdt-mobile-dropdown');
+            var menu = parentLi.querySelector('.bdt-mobile-dropdown-menu');
+            parentLi.classList.toggle('is-open');
+            if (parentLi.classList.contains('is-open')) {
+                menu.style.display = 'block';
+            } else {
+                menu.style.display = 'none';
+            }
+        });
     });
 
     // Tutup mobile menu saat resize ke desktop

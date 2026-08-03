@@ -164,8 +164,12 @@ document.addEventListener("DOMContentLoaded", function() {
         if (pendingForm) {
             const form = pendingForm;
             form.removeAttribute('onsubmit');
+            const loader = document.getElementById('bdt-global-loader');
+            if (loader) loader.style.display = 'flex';
             form.submit();
         } else if (pendingUrl) {
+            const loader = document.getElementById('bdt-global-loader');
+            if (loader) loader.style.display = 'flex';
             window.location.href = pendingUrl;
         }
         closeConfirmModal();
@@ -247,6 +251,7 @@ document.addEventListener("DOMContentLoaded", function() {
             url.searchParams.delete('error');
             url.searchParams.delete('slug');
             url.searchParams.delete('cat');
+            url.searchParams.delete('status');
             window.history.replaceState({}, document.title, url);
         }
     });
@@ -271,11 +276,14 @@ document.addEventListener("DOMContentLoaded", function() {
         else autoMsg = 'Operasi berhasil diselesaikan.';
         
         if (urlParams.has('slug') && urlParams.has('cat')) {
-            const slug = urlParams.get('slug');
-            const cat = urlParams.get('cat');
-            const isNews = ['berita', 'kegiatan', 'pengumuman'].includes(cat);
-            const routePrefix = isNews ? '/berita/' : '/artikel/';
-            autoPreviewUrl = "<?= BASE_URL ?>" + routePrefix + slug;
+            const status = urlParams.get('status');
+            if (!status || status === 'published') {
+                const slug = urlParams.get('slug');
+                const cat = urlParams.get('cat');
+                const isNews = ['berita', 'kegiatan', 'pengumuman'].includes(cat);
+                const routePrefix = isNews ? '/berita/' : '/artikel/';
+                autoPreviewUrl = "<?= BASE_URL ?>" + routePrefix + slug;
+            }
         }
     }
     else if (urlParams.has('error')) {

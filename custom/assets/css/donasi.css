@@ -36,7 +36,7 @@
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: rgba(255,255,255,0.75);
+    color: rgba(255, 255, 255, 0.75);
     margin: 0 0 12px;
 }
 
@@ -50,7 +50,7 @@
 .donasi-hero__desc {
     font-size: 0.95rem;
     line-height: 1.75;
-    color: rgba(255,255,255,0.9);
+    color: rgba(255, 255, 255, 0.9);
     margin: 0 0 16px;
     max-width: 560px;
 }
@@ -66,7 +66,7 @@
     padding: 20px;
     width: 240px;
     flex-shrink: 0;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
 }
 
 .donasi-hero__qr-img {
@@ -112,7 +112,7 @@
     padding: 56px 0;
 }
 
-.donasi-section + .donasi-section {
+.donasi-section+.donasi-section {
     padding-top: 0;
 }
 

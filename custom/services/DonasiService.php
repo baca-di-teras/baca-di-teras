@@ -10,7 +10,7 @@
  * Terintegrasi dengan tabel bdt_donatur dan bdt_donasi_partner.
  */
 
-require_once __DIR__ . '/../helpers/database.php';
+require_once __DIR__ . '/../helpers/Database.php';
 
 class DonasiService
 {
@@ -259,3 +259,4 @@ class DonasiService
         return $affected > 0;
     }
 }
+

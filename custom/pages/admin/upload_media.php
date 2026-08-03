@@ -9,12 +9,13 @@ require_once ROOT_PATH . '/custom/helpers/UploadHelper.php';
 
 header('Content-Type: application/json');
 
-// Auth Check (only authenticated admins/contributors)
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+if (isset($_POST['base_url']) && !defined('BASE_URL')) {
+    define('BASE_URL', $_POST['base_url']);
 }
+
+// Auth Check (only authenticated admins/contributors)
 $auth = new AuthService();
-if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['super_admin', 'admin', 'kontributor'])) {
+if (!$auth->hasRole(['super_admin', 'admin', 'kontributor'])) {
     http_response_code(403);
     echo json_encode(['error' => 'Akses ditolak.']);
     exit;

@@ -183,6 +183,7 @@ $admin_active_page = 'donasi';
                                     </form>
                                 </td>
                                 <td style="padding:14px 16px; text-align:right;">
+                                    <a href="<?= BASE_URL ?>/portal-admin/donasi/edit-donatur?id=<?= $d['donatur_id'] ?>" style="color:var(--admin-primary); text-decoration:none; font-size:0.9rem; font-weight:500; margin-right:12px;">Edit</a>
                                     <form method="post" style="display:inline;" onsubmit="return confirm('Hapus donatur ini?')">
                                         <input type="hidden" name="action" value="delete_donatur">
                                         <input type="hidden" name="donatur_id" value="<?= $d['donatur_id'] ?>">
@@ -254,6 +255,7 @@ $admin_active_page = 'donasi';
                                     </form>
                                 </td>
                                 <td style="padding:14px 16px; text-align:right;">
+                                    <a href="<?= BASE_URL ?>/portal-admin/donasi/edit-partner?id=<?= $p['partner_id'] ?>" style="color:var(--admin-primary); text-decoration:none; font-size:0.9rem; font-weight:500; margin-right:12px;">Edit</a>
                                     <form method="post" style="display:inline;" onsubmit="return confirm('Hapus partner ini?')">
                                         <input type="hidden" name="action" value="delete_partner">
                                         <input type="hidden" name="partner_id" value="<?= $p['partner_id'] ?>">
