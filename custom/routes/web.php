@@ -83,6 +83,9 @@ $router->get('/informasi', 'custom/pages/informasi.php');
 $router->get('/kontak',    'custom/pages/contact.php');
 $router->get('/donasi',    'custom/pages/donasi.php');
 $router->get('/produk',    'custom/pages/produk.php');
+$router->get('/media',     'custom/pages/media.php');   
+$router->redirect('/rilis-media', BASE_URL . '/media', 302);
+$router->redirect('/rilis', BASE_URL . '/media', 302);
 
 // ============================================================
 // PATHFINDER
@@ -99,6 +102,9 @@ $router->get('/portal-admin', 'custom/pages/admin/dashboard.php');
 $router->get('/portal-admin/artikel', 'custom/pages/admin/manage_article.php');
 $router->get('/portal-admin/artikel/create', 'custom/pages/admin/create_article.php');
 $router->get('/portal-admin/artikel/edit', 'custom/pages/admin/edit_article.php');
+$router->get('/portal-admin/media', 'custom/pages/admin/manage_media.php');
+$router->get('/portal-admin/media/tambah', 'custom/pages/admin/create_media.php');
+$router->get('/portal-admin/media/edit', 'custom/pages/admin/edit_media.php');
 $router->get('/portal-admin/perpustakaan', 'custom/pages/admin/manage_library.php');
 $router->get('/portal-admin/perpustakaan/create', 'custom/pages/admin/create_library.php');
 $router->get('/portal-admin/perpustakaan/edit', 'custom/pages/admin/edit_library.php');
