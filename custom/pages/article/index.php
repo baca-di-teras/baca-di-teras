@@ -24,7 +24,12 @@ $articleService = new ArticleService();
 
 // Filter kategori dari query string
 $activeCategory = $_GET['kategori'] ?? '';
-if ($activeCategory && !in_array($activeCategory, ArticleService::CATEGORIES, true)) {
+$articleCategories = array_filter(
+    ArticleService::CATEGORY_LABELS,
+    static fn ($label, $key): bool => $key !== 'berita',
+    ARRAY_FILTER_USE_BOTH
+);
+if ($activeCategory && (!isset($articleCategories[$activeCategory]) || !in_array($activeCategory, ArticleService::CATEGORIES, true))) {
     $activeCategory = '';
 }
 
@@ -32,7 +37,7 @@ if ($activeCategory && !in_array($activeCategory, ArticleService::CATEGORIES, tr
 $perPage  = 9;
 $page     = max(1, (int)($_GET['halaman'] ?? 1));
 $offset   = ($page - 1) * $perPage;
-$total    = $articleService->countPublished($activeCategory);
+$total    = $articleService->countPublishedArticles($activeCategory);
 $maxPage  = (int) ceil($total / $perPage);
 
 // Ambil artikel hero (featured)

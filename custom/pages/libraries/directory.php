@@ -52,6 +52,7 @@ foreach ($dbLibraries as $lib) {
         'hours'       => 'Sesuai jadwal operasional', // Simplifikasi, idealnya dari relasi hour
         'badge'       => $lib['badge'] ?? '',
         'metric'      => number_format((int)($lib['total_koleksi'] ?? 0)) . ' buku',
+        'image'       => BASE_URL . ($lib['thumbnail_image'] ?: '/custom/assets/images/library-teras-utama.jpg'),
         'image_alt'   => 'Ruang baca ' . $lib['name'],
         'href'        => BASE_URL . '/perpustakaan/' . $lib['slug']
     ];

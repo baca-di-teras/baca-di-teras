@@ -123,7 +123,7 @@ $libraries = $libraryService->getAllLibraries();
                                 <td><?= (int)$lib['sort_order'] ?></td>
                                 <td style="text-align: right;">
                                     <a href="<?= BASE_URL ?>/portal-admin/perpustakaan/edit?id=<?= $lib['library_id'] ?>" class="btn-action btn-edit" title="Edit">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                     </a>
                                     <form action="<?= BASE_URL ?>/portal-admin/perpustakaan" method="POST" style="display: inline-block;" onsubmit="return confirm('Yakin ingin menghapus perpustakaan ini?');">
                                         <input type="hidden" name="action" value="delete">

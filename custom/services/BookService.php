@@ -49,31 +49,7 @@ class BookService
      */
     public function getLatest(int $limit = 6): array
     {
-        $rows = $this->db->fetchAll(
-            'SELECT
-                b.biblio_id,
-                b.title,
-                b.isbn_issn,
-                b.image,
-                b.input_date,
-                b.promoted,
-                b.call_number,
-                GROUP_CONCAT(a.author_name ORDER BY ba.level SEPARATOR ", ") AS author,
-                p.publisher_name AS publisher,
-                b.publish_year
-             FROM biblio b
-             LEFT JOIN biblio_author ba ON b.biblio_id  = ba.biblio_id AND ba.level = 1
-             LEFT JOIN mst_author    a  ON ba.author_id = a.author_id
-             LEFT JOIN mst_publisher p  ON b.publisher_id = p.publisher_id
-             WHERE b.opac_hide = 0
-             GROUP BY b.biblio_id
-             ORDER BY b.input_date DESC
-             LIMIT ?',
-            'i',
-            [$limit]
-        );
-
-        return array_map([$this, 'formatBook'], $rows);
+        return $this->getCatalog(['sort' => 'terbaru'], $limit, 0);
     }
 
     /**
@@ -126,16 +102,32 @@ class BookService
      */
     public function getCatalog(array $filters = [], int $limit = 12, int $offset = 0): array
     {
-        $conditions = ['b.opac_hide = 0'];
+        $conditions = [
+            'b.opac_hide = 0',
+            'lib.status = "aktif"',
+        ];
         $types      = '';
         $params     = [];
 
         // Filter pencarian teks
         if (!empty($filters['q'])) {
-            $conditions[] = '(b.title LIKE ? OR a.author_name LIKE ? OR p.publisher_name LIKE ?)';
+            $conditions[] = '(b.title LIKE ? OR b.isbn_issn LIKE ? OR a.author_name LIKE ? OR p.publisher_name LIKE ?)';
             $likeQ  = '%' . $filters['q'] . '%';
-            $types .= 'sss';
-            $params = array_merge($params, [$likeQ, $likeQ, $likeQ]);
+            $types .= 'ssss';
+            $params = array_merge($params, [$likeQ, $likeQ, $likeQ, $likeQ]);
+        }
+
+        $categoryIds = $this->normalizeIntList($filters['category'] ?? []);
+        if (!empty($categoryIds)) {
+            $placeholders = implode(',', array_fill(0, count($categoryIds), '?'));
+            $conditions[] = "EXISTS (
+                SELECT 1
+                FROM biblio_topic btf
+                WHERE btf.biblio_id = b.biblio_id
+                  AND btf.topic_id IN ({$placeholders})
+            )";
+            $types .= str_repeat('i', count($categoryIds));
+            $params = array_merge($params, $categoryIds);
         }
 
         // Filter lokasi perpustakaan
@@ -145,23 +137,40 @@ class BookService
             $params[]     = $filters['location'];
         }
 
+        if (!empty($filters['publisher']) && (int) $filters['publisher'] > 0) {
+            $conditions[] = 'b.publisher_id = ?';
+            $types       .= 'i';
+            $params[]     = (int) $filters['publisher'];
+        }
+
         // Filter status ketersediaan
-        if (!empty($filters['status'])) {
-            if ($filters['status'] === 'tersedia') {
-                $conditions[] = 'i.item_status_id = "AVL"';
-            } elseif ($filters['status'] === 'dipinjam') {
-                $conditions[] = 'i.item_status_id = "LO"';
+        $statusList = $this->normalizeStringList($filters['status'] ?? []);
+        if (!empty($statusList)) {
+            $statusConditions = [];
+            if (in_array('tersedia', $statusList, true)) {
+                $statusConditions[] = 'i.item_status_id = "AVL"';
+            }
+            if (in_array('dipinjam', $statusList, true)) {
+                $statusConditions[] = 'i.item_status_id = "LO"';
+            }
+            if (in_array('dipesan', $statusList, true)) {
+                $statusConditions[] = 'EXISTS (SELECT 1 FROM reserve rsv WHERE rsv.biblio_id = b.biblio_id)';
+            }
+            if (!empty($statusConditions)) {
+                $conditions[] = '(' . implode(' OR ', $statusConditions) . ')';
             }
         }
 
         $where = implode(' AND ', $conditions);
 
-        // Tambahkan JOIN item jika ada filter lokasi/status
-        $itemJoin = (!empty($filters['location']) || !empty($filters['status']))
-            ? 'JOIN item i ON b.biblio_id = i.biblio_id'
-            : 'LEFT JOIN item i ON b.biblio_id = i.biblio_id';
+        $orderBy = match ($filters['sort'] ?? 'terbaru') {
+            'a-z'       => 'b.title ASC, b.biblio_id ASC',
+            'z-a'       => 'b.title DESC, b.biblio_id DESC',
+            'terpopuler'=> 'total_eksemplar DESC, b.title ASC',
+            default     => 'b.input_date DESC, b.biblio_id DESC',
+        };
 
-        $sql = "SELECT DISTINCT
+        $sql = "SELECT
                     b.biblio_id,
                     b.title,
                     b.isbn_issn,
@@ -171,15 +180,31 @@ class BookService
                     b.call_number,
                     GROUP_CONCAT(DISTINCT a.author_name ORDER BY ba.level SEPARATOR ', ') AS author,
                     p.publisher_name AS publisher,
-                    b.publish_year
+                    b.publisher_id,
+                    b.publish_year,
+                    GROUP_CONCAT(DISTINCT t.topic ORDER BY bt.level, t.topic SEPARATOR ', ') AS topics,
+                    SUBSTRING_INDEX(GROUP_CONCAT(DISTINCT t.topic ORDER BY bt.level, t.topic SEPARATOR '||'), '||', 1) AS primary_topic,
+                    GROUP_CONCAT(DISTINCT lib.slug ORDER BY lib.sort_order, lib.name SEPARATOR ',') AS library_slugs,
+                    GROUP_CONCAT(DISTINCT lib.name ORDER BY lib.sort_order, lib.name SEPARATOR ', ') AS library_names,
+                    GROUP_CONCAT(DISTINCT i.location_id ORDER BY i.location_id SEPARATOR ',') AS location_ids,
+                    MIN(lib.slug) AS library_slug,
+                    MIN(lib.name) AS library_name,
+                    COUNT(DISTINCT i.item_id) AS total_eksemplar,
+                    COUNT(DISTINCT CASE WHEN i.item_status_id = 'AVL' THEN i.item_id END) AS tersedia,
+                    COUNT(DISTINCT CASE WHEN i.item_status_id = 'LO' THEN i.item_id END) AS dipinjam,
+                    COUNT(DISTINCT r.reserve_id) AS dipesan
                 FROM biblio b
                 LEFT JOIN biblio_author ba ON b.biblio_id  = ba.biblio_id AND ba.level = 1
                 LEFT JOIN mst_author    a  ON ba.author_id = a.author_id
                 LEFT JOIN mst_publisher p  ON b.publisher_id = p.publisher_id
-                {$itemJoin}
+                LEFT JOIN biblio_topic bt ON b.biblio_id = bt.biblio_id
+                LEFT JOIN mst_topic t ON bt.topic_id = t.topic_id
+                JOIN item i ON b.biblio_id = i.biblio_id
+                JOIN bdt_library lib ON lib.slims_location_id = i.location_id
+                LEFT JOIN reserve r ON r.biblio_id = b.biblio_id
                 WHERE {$where}
                 GROUP BY b.biblio_id
-                ORDER BY b.input_date DESC
+                ORDER BY {$orderBy}
                 LIMIT ? OFFSET ?";
 
         $types  .= 'ii';
@@ -197,15 +222,31 @@ class BookService
      */
     public function countCatalog(array $filters = []): int
     {
-        $conditions = ['b.opac_hide = 0'];
+        $conditions = [
+            'b.opac_hide = 0',
+            'lib.status = "aktif"',
+        ];
         $types      = '';
         $params     = [];
 
         if (!empty($filters['q'])) {
-            $conditions[] = '(b.title LIKE ? OR a.author_name LIKE ?)';
+            $conditions[] = '(b.title LIKE ? OR b.isbn_issn LIKE ? OR a.author_name LIKE ? OR p.publisher_name LIKE ?)';
             $likeQ  = '%' . $filters['q'] . '%';
-            $types .= 'ss';
-            $params = array_merge($params, [$likeQ, $likeQ]);
+            $types .= 'ssss';
+            $params = array_merge($params, [$likeQ, $likeQ, $likeQ, $likeQ]);
+        }
+
+        $categoryIds = $this->normalizeIntList($filters['category'] ?? []);
+        if (!empty($categoryIds)) {
+            $placeholders = implode(',', array_fill(0, count($categoryIds), '?'));
+            $conditions[] = "EXISTS (
+                SELECT 1
+                FROM biblio_topic btf
+                WHERE btf.biblio_id = b.biblio_id
+                  AND btf.topic_id IN ({$placeholders})
+            )";
+            $types .= str_repeat('i', count($categoryIds));
+            $params = array_merge($params, $categoryIds);
         }
 
         if (!empty($filters['location'])) {
@@ -214,17 +255,39 @@ class BookService
             $params[]     = $filters['location'];
         }
 
+        if (!empty($filters['publisher']) && (int) $filters['publisher'] > 0) {
+            $conditions[] = 'b.publisher_id = ?';
+            $types       .= 'i';
+            $params[]     = (int) $filters['publisher'];
+        }
+
+        $statusList = $this->normalizeStringList($filters['status'] ?? []);
+        if (!empty($statusList)) {
+            $statusConditions = [];
+            if (in_array('tersedia', $statusList, true)) {
+                $statusConditions[] = 'i.item_status_id = "AVL"';
+            }
+            if (in_array('dipinjam', $statusList, true)) {
+                $statusConditions[] = 'i.item_status_id = "LO"';
+            }
+            if (in_array('dipesan', $statusList, true)) {
+                $statusConditions[] = 'EXISTS (SELECT 1 FROM reserve rsv WHERE rsv.biblio_id = b.biblio_id)';
+            }
+            if (!empty($statusConditions)) {
+                $conditions[] = '(' . implode(' OR ', $statusConditions) . ')';
+            }
+        }
+
         $where    = implode(' AND ', $conditions);
-        $itemJoin = !empty($filters['location'])
-            ? 'JOIN item i ON b.biblio_id = i.biblio_id'
-            : 'LEFT JOIN item i ON b.biblio_id = i.biblio_id';
 
         $count = $this->db->fetchScalar(
             "SELECT COUNT(DISTINCT b.biblio_id)
              FROM biblio b
              LEFT JOIN biblio_author ba ON b.biblio_id  = ba.biblio_id AND ba.level = 1
              LEFT JOIN mst_author    a  ON ba.author_id = a.author_id
-             {$itemJoin}
+             LEFT JOIN mst_publisher p ON b.publisher_id = p.publisher_id
+             JOIN item i ON b.biblio_id = i.biblio_id
+             JOIN bdt_library lib ON lib.slims_location_id = i.location_id
              WHERE {$where}",
             $types,
             $params
@@ -408,11 +471,18 @@ class BookService
     private function formatBook(array $row): array
     {
         $biblioId = (int) $row['biblio_id'];
+        $baseUrl  = defined('BASE_URL') ? BASE_URL : '';
 
         // URL cover: gunakan gambar SLiMS jika ada, fallback ke placeholder
-        $coverImage = !empty($row['image'])
-            ? $this->coverBaseUrl . $row['image']
-            : (defined('BASE_URL') ? BASE_URL : '') . '/custom/assets/images/book-placeholder.png';
+        $imageFile = trim((string) ($row['image'] ?? ''));
+        $imageName = $imageFile !== '' ? basename($imageFile) : '';
+        $imagePath = defined('ROOT_PATH') && $imageName !== ''
+            ? ROOT_PATH . '/slims/images/docs/' . $imageName
+            : '';
+
+        $coverImage = ($imageName !== '' && $imagePath !== '' && is_file($imagePath))
+            ? $this->coverBaseUrl . rawurlencode($imageName)
+            : $baseUrl . '/custom/assets/images/book-cover-1.png';
 
         // URL halaman detail — gunakan biblio_id sebagai identifier
         $detailHref = '/katalog/' . $biblioId;
@@ -444,9 +514,15 @@ class BookService
     public function getCategories(): array
     {
         $rows = $this->db->fetchAll(
-            'SELECT topic_id AS id, topic AS label 
-             FROM mst_topic 
-             ORDER BY topic ASC 
+            'SELECT DISTINCT t.topic_id AS id, t.topic AS label
+             FROM mst_topic t
+             JOIN biblio_topic bt ON bt.topic_id = t.topic_id
+             JOIN biblio b ON b.biblio_id = bt.biblio_id
+             JOIN item i ON i.biblio_id = b.biblio_id
+             JOIN bdt_library lib ON lib.slims_location_id = i.location_id
+             WHERE b.opac_hide = 0
+               AND lib.status = "aktif"
+             ORDER BY t.topic ASC
              LIMIT 100'
         );
         return $rows;
@@ -461,9 +537,16 @@ class BookService
     public function getPublishers(): array
     {
         $rows = $this->db->fetchAll(
-            'SELECT publisher_id AS id, publisher_name AS label 
-             FROM mst_publisher 
-             ORDER BY publisher_name ASC 
+            'SELECT DISTINCT p.publisher_id AS id, p.publisher_name AS label
+             FROM mst_publisher p
+             JOIN biblio b ON b.publisher_id = p.publisher_id
+             JOIN item i ON i.biblio_id = b.biblio_id
+             JOIN bdt_library lib ON lib.slims_location_id = i.location_id
+             WHERE b.opac_hide = 0
+               AND lib.status = "aktif"
+               AND p.publisher_name IS NOT NULL
+               AND p.publisher_name != ""
+             ORDER BY p.publisher_name ASC
              LIMIT 100'
         );
         return $rows;
@@ -484,6 +567,33 @@ class BookService
              LIMIT 100'
         );
         return $rows;
+    }
+
+    private function normalizeIntList(mixed $value): array
+    {
+        $values = is_array($value) ? $value : [$value];
+        $normalized = [];
+        foreach ($values as $item) {
+            $intValue = (int) $item;
+            if ($intValue > 0) {
+                $normalized[] = $intValue;
+            }
+        }
+        return array_values(array_unique($normalized));
+    }
+
+    private function normalizeStringList(mixed $value): array
+    {
+        $values = is_array($value) ? $value : [$value];
+        $allowed = ['tersedia', 'dipesan', 'dipinjam'];
+        $normalized = [];
+        foreach ($values as $item) {
+            $stringValue = trim((string) $item);
+            if (in_array($stringValue, $allowed, true)) {
+                $normalized[] = $stringValue;
+            }
+        }
+        return array_values(array_unique($normalized));
     }
 }
 

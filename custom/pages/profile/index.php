@@ -43,6 +43,7 @@ $villageName = $profile['village_name'] ?? 'Desa Teras';
 $tagline     = $profile['tagline']     ?? 'Portal Literasi Digital Desa Teras';
 $description = $profile['description'] ?? 'Baca Di Teras adalah portal literasi digital Desa Teras, Boyolali.';
 $sejarah     = $profile['sejarah']     ?? '';
+$sejarah     = preg_replace('/jaringan\s+\d+\s+perpustakaan/i', 'jaringan ' . (int)($stats['totalPerpustakaan'] ?? 0) . ' perpustakaan', $sejarah);
 $address     = trim(implode(', ', array_filter([
     $profile['address']  ?? 'Jl. Raya Teras',
     $profile['district'] ?? 'Teras',

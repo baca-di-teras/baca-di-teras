@@ -11,6 +11,7 @@ Folder ini berisi seluruh dokumentasi teknis proyek **Baca Di Teras**, yaitu por
 | UI_GUIDELINE.md | Panduan desain antarmuka, komponen, warna, tipografi, spacing, dan layout. |
 | GIT_WORKFLOW.md | Aturan penggunaan Git, branching strategy, pull request, code review, dan commit convention. |
 | DATABASE.md | Dokumentasi database, ERD, tabel tambahan, serta relasi dengan database SLiMS. |
+| DATA_MIGRATION.md | Rencana dan implementasi migrasi data 4 perpustakaan sekolah, termasuk source entity, offset, mapping, dan verifikasi. |
 | API.md | Dokumentasi API internal, endpoint, format request/response, serta integrasi Indonesia OneSearch. |
 
 ---
@@ -56,8 +57,9 @@ Semua pengembangan Baca Di Teras ditempatkan pada folder `custom/`, meliputi:
 2. GIT_WORKFLOW.md
 3. UI_GUIDELINE.md
 4. DATABASE.md
-5. API.md
-6. SRS.md
+5. DATA_MIGRATION.md
+6. API.md
+7. SRS.md
 
 ---
 

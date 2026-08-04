@@ -28,14 +28,47 @@ require_once $libPath . '/custom/services/LibraryService.php';
 $bookService    = new BookService();
 $libraryService = new LibraryService();
 
-// Ambil semua buku untuk client-side filtering (max 1000 untuk performa)
-$catalogBookList = $bookService->getCatalog([], 1000, 0);
+$baseUrl = defined('BASE_URL') ? BASE_URL : '';
+
+$searchQuery    = trim((string) ($_GET['q'] ?? ''));
+$categoryFilter = $_GET['kategori'] ?? [];
+$categoryFilter = is_array($categoryFilter) ? $categoryFilter : [$categoryFilter];
+$categoryFilter = array_values(array_filter(array_map('intval', $categoryFilter)));
+$locationFilter = trim((string) ($_GET['location'] ?? ''));
+$statusFilter   = $_GET['status'] ?? [];
+$statusFilter   = is_array($statusFilter) ? $statusFilter : [$statusFilter];
+$statusFilter   = array_values(array_intersect(array_map('strval', $statusFilter), ['tersedia', 'dipesan', 'dipinjam']));
+$publisherFilter = max(0, (int) ($_GET['publisher'] ?? 0));
+$sortOrder       = (string) ($_GET['sort'] ?? 'terbaru');
+if (!in_array($sortOrder, ['terbaru', 'terpopuler', 'a-z', 'z-a'], true)) {
+    $sortOrder = 'terbaru';
+}
+
+$itemsPerPage = 12;
+$page         = max(1, (int) ($_GET['halaman'] ?? 1));
+$filters      = [
+    'q'         => $searchQuery,
+    'category'  => $categoryFilter,
+    'location'  => $locationFilter,
+    'status'    => $statusFilter,
+    'publisher' => $publisherFilter,
+    'sort'      => $sortOrder,
+];
+
+$totalBuku = $bookService->countCatalog($filters);
+$maxPage   = max(1, (int) ceil($totalBuku / $itemsPerPage));
+$page      = min($page, $maxPage);
+$offset    = ($page - 1) * $itemsPerPage;
+
+$catalogBookList = $bookService->getCatalog($filters, $itemsPerPage, $offset);
+$visibleStart    = $totalBuku === 0 ? 0 : $offset + 1;
+$visibleEnd      = min($offset + count($catalogBookList), $totalBuku);
 
 // Ambil daftar perpustakaan untuk filter
 $libraries = $libraryService->getAllActive();
 $libraryFilterList = [['id' => '', 'label' => 'Semua Perpustakaan']];
 foreach ($libraries as $lib) {
-    $libraryFilterList[] = ['id' => $lib['slug'], 'label' => $lib['name']];
+    $libraryFilterList[] = ['id' => $lib['slims_location_id'], 'label' => $lib['name']];
 }
 
 // Daftar Kategori dari database
@@ -57,15 +90,33 @@ $sortOptionList = [
 $activePage        = 'perpustakaan';
 $pageTitle         = 'Katalog Buku';
 $pageDescription   = 'Jelajahi ribuan koleksi buku perpustakaan digital Desa Teras. Filter berdasarkan kategori, ketersediaan, penerbit, dan perpustakaan.';
-$itemsPerPage      = 6;
-$totalBuku         = count($catalogBookList);
-$baseUrl           = defined('BASE_URL') ? BASE_URL : '';
 
-// Encode data buku ke JSON untuk digunakan JavaScript
-$bookListJson = json_encode(
-    array_values($catalogBookList),
-    JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE
-);
+if (!function_exists('bdt_catalog_url')) {
+    function bdt_catalog_url(array $overrides = []): string
+    {
+        global $baseUrl, $searchQuery, $categoryFilter, $locationFilter, $statusFilter, $publisherFilter, $sortOrder;
+
+        $query = [
+            'q'         => $searchQuery,
+            'kategori'  => $categoryFilter,
+            'location'  => $locationFilter,
+            'status'    => $statusFilter,
+            'publisher' => $publisherFilter ?: '',
+            'sort'      => $sortOrder !== 'terbaru' ? $sortOrder : '',
+        ];
+
+        foreach ($overrides as $key => $value) {
+            $query[$key] = $value;
+        }
+
+        $query = array_filter($query, static function ($value): bool {
+            return !(is_array($value) ? count($value) === 0 : $value === '' || $value === null);
+        });
+
+        $queryString = http_build_query($query);
+        return $baseUrl . '/katalog' . ($queryString ? '?' . $queryString : '');
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -91,9 +142,10 @@ $bookListJson = json_encode(
 
     <form class="bdt-catalog-search"
           id="bdt-catalog-search-form"
+          action="<?= $baseUrl ?>/katalog"
+          method="get"
           role="search"
-          aria-label="Cari buku"
-          onsubmit="return false;">
+          aria-label="Cari buku">
         <div class="bdt-catalog-search__icon" aria-hidden="true">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                  fill="none" stroke="currentColor" stroke-width="2"
@@ -107,6 +159,7 @@ $bookListJson = json_encode(
                name="q"
                class="bdt-catalog-search__input"
                placeholder="Cari berdasarkan judul, penulis, atau ISBN..."
+               value="<?= htmlspecialchars($searchQuery) ?>"
                autocomplete="off"
                aria-label="Kata kunci pencarian">
         <button type="submit"
@@ -125,8 +178,10 @@ $bookListJson = json_encode(
         <div class="bdt-catalog-layout">
 
             <!-- ── SIDEBAR FILTER ──────────────────────────── -->
-            <aside class="bdt-catalog-sidebar"
+            <form class="bdt-catalog-sidebar"
                    id="bdt-catalog-sidebar"
+                   method="get"
+                   action="<?= $baseUrl ?>/katalog"
                    aria-label="Filter Katalog">
 
                 <!-- ── MOBILE TOGGLE BUTTON ────────────────── -->
@@ -171,9 +226,9 @@ $bookListJson = json_encode(
                                <?= $index >= 10 ? 'style="display: none;"' : '' ?>>
                             <input type="checkbox"
                                    id="bdt-cat-<?= htmlspecialchars($catItem['id']) ?>"
-                                   name="kategori"
-                                   value="<?= htmlspecialchars($catItem['label']) ?>"
-                                   class="bdt-js-filter-category">
+                                   name="kategori[]"
+                                   value="<?= htmlspecialchars($catItem['id']) ?>"
+                                   <?= in_array((int) $catItem['id'], $categoryFilter, true) ? 'checked' : '' ?>>
                             <?= htmlspecialchars($catItem['label']) ?>
                         </label>
                     <?php endforeach; ?>
@@ -190,9 +245,11 @@ $bookListJson = json_encode(
                     <span class="bdt-filter-group__label">Perpustakaan</span>
                     <select class="bdt-filter-select bdt-js-filter-library"
                             id="bdt-filter-library-select"
+                            name="location"
                             aria-label="Filter berdasarkan perpustakaan">
                         <?php foreach ($libraryFilterList as $libOption) : ?>
-                            <option value="<?= htmlspecialchars($libOption['id']) ?>">
+                            <option value="<?= htmlspecialchars($libOption['id']) ?>"
+                                    <?= $locationFilter === (string) $libOption['id'] ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($libOption['label']) ?>
                             </option>
                         <?php endforeach; ?>
@@ -203,24 +260,21 @@ $bookListJson = json_encode(
                 <div class="bdt-filter-group" id="bdt-filter-ketersediaan">
                     <span class="bdt-filter-group__label">Ketersediaan</span>
                     <div class="bdt-filter-pills" role="group" aria-label="Filter ketersediaan">
-                        <button class="bdt-filter-pill bdt-js-filter-availability"
-                                id="bdt-pill-tersedia"
-                                data-value="tersedia"
-                                type="button">
+                        <label class="bdt-filter-pill <?= in_array('tersedia', $statusFilter, true) ? 'is-active' : '' ?>"
+                               id="bdt-pill-tersedia">
+                            <input type="checkbox" name="status[]" value="tersedia" <?= in_array('tersedia', $statusFilter, true) ? 'checked' : '' ?>>
                             Tersedia Sekarang
-                        </button>
-                        <button class="bdt-filter-pill bdt-js-filter-availability"
-                                id="bdt-pill-dipesan"
-                                data-value="dipesan"
-                                type="button">
+                        </label>
+                        <label class="bdt-filter-pill <?= in_array('dipesan', $statusFilter, true) ? 'is-active' : '' ?>"
+                               id="bdt-pill-dipesan">
+                            <input type="checkbox" name="status[]" value="dipesan" <?= in_array('dipesan', $statusFilter, true) ? 'checked' : '' ?>>
                             Dipesan
-                        </button>
-                        <button class="bdt-filter-pill bdt-js-filter-availability"
-                                id="bdt-pill-dipinjam"
-                                data-value="dipinjam"
-                                type="button">
+                        </label>
+                        <label class="bdt-filter-pill <?= in_array('dipinjam', $statusFilter, true) ? 'is-active' : '' ?>"
+                               id="bdt-pill-dipinjam">
+                            <input type="checkbox" name="status[]" value="dipinjam" <?= in_array('dipinjam', $statusFilter, true) ? 'checked' : '' ?>>
                             Dipinjam
-                        </button>
+                        </label>
                     </div>
                 </div>
 
@@ -234,9 +288,9 @@ $bookListJson = json_encode(
                                <?= $index >= 10 ? 'style="display: none;"' : '' ?>>
                             <input type="radio"
                                    id="bdt-pub-<?= htmlspecialchars($pubItem['id']) ?>"
-                                   name="penerbit"
-                                   value="<?= htmlspecialchars($pubItem['label']) ?>"
-                                   class="bdt-js-filter-publisher">
+                                   name="publisher"
+                                   value="<?= htmlspecialchars($pubItem['id']) ?>"
+                                   <?= (int) $pubItem['id'] === $publisherFilter ? 'checked' : '' ?>>
                             <?= htmlspecialchars($pubItem['label']) ?>
                         </label>
                     <?php endforeach; ?>
@@ -248,7 +302,11 @@ $bookListJson = json_encode(
                     <?php endif; ?>
                 </div>
 
-            </aside>
+                <button type="submit" class="bdt-catalog-search__btn bdt-catalog-filter-submit">
+                    Terapkan Filter
+                </button>
+
+            </form>
 
             <!-- ── MAIN CONTENT ───────────────────────────── -->
             <div class="bdt-catalog-main">
@@ -256,25 +314,43 @@ $bookListJson = json_encode(
                 <!-- Topbar -->
                 <div class="bdt-catalog-topbar" id="bdt-catalog-topbar">
                     <p class="bdt-catalog-topbar__info" id="bdt-catalog-count" aria-live="polite">
-                        Menampilkan <strong id="bdt-count-visible"><?= $totalBuku ?></strong>
-                        dari <strong><?= $totalBuku ?></strong> buku
+                        Menampilkan <strong id="bdt-count-visible"><?= $visibleStart ?>-<?= $visibleEnd ?></strong>
+                        dari <strong><?= number_format($totalBuku, 0, ',', '.') ?></strong> buku
                     </p>
 
-                    <div class="bdt-catalog-topbar__sort">
+                    <form class="bdt-catalog-topbar__sort" action="<?= $baseUrl ?>/katalog" method="get">
+                        <?php if ($searchQuery !== '') : ?>
+                            <input type="hidden" name="q" value="<?= htmlspecialchars($searchQuery) ?>">
+                        <?php endif; ?>
+                        <?php foreach ($categoryFilter as $categoryId) : ?>
+                            <input type="hidden" name="kategori[]" value="<?= (int) $categoryId ?>">
+                        <?php endforeach; ?>
+                        <?php if ($locationFilter !== '') : ?>
+                            <input type="hidden" name="location" value="<?= htmlspecialchars($locationFilter) ?>">
+                        <?php endif; ?>
+                        <?php foreach ($statusFilter as $statusValue) : ?>
+                            <input type="hidden" name="status[]" value="<?= htmlspecialchars($statusValue) ?>">
+                        <?php endforeach; ?>
+                        <?php if ($publisherFilter > 0) : ?>
+                            <input type="hidden" name="publisher" value="<?= (int) $publisherFilter ?>">
+                        <?php endif; ?>
                         <label class="bdt-catalog-topbar__sort-label"
                                for="bdt-sort-select">
                             Urutkan:
                         </label>
                         <select class="bdt-catalog-topbar__sort-select"
+                                name="sort"
                                 id="bdt-sort-select"
+                                onchange="this.form.submit()"
                                 aria-label="Urutkan buku">
                             <?php foreach ($sortOptionList as $sortOption) : ?>
-                                <option value="<?= htmlspecialchars($sortOption['id']) ?>">
+                                <option value="<?= htmlspecialchars($sortOption['id']) ?>"
+                                        <?= $sortOrder === $sortOption['id'] ? 'selected' : '' ?>>
                                     <?= htmlspecialchars($sortOption['label']) ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
-                    </div>
+                    </form>
                 </div>
 
                 <!-- Book Grid -->
@@ -287,8 +363,9 @@ $bookListJson = json_encode(
                         <?php include __DIR__ . '/../../components/book-card-catalog.php'; ?>
                     <?php endforeach; ?>
 
-                    <!-- Empty state (hidden by default, shown by JS) -->
-                    <div class="bdt-catalog-empty" id="bdt-catalog-empty" hidden aria-live="polite">
+                    <!-- Empty state -->
+                    <?php if (empty($catalogBookList)) : ?>
+                    <div class="bdt-catalog-empty" id="bdt-catalog-empty" aria-live="polite">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                              fill="none" stroke="currentColor" stroke-width="1.5"
                              stroke-linecap="round" stroke-linejoin="round"
@@ -301,6 +378,7 @@ $bookListJson = json_encode(
                             Coba ubah kata kunci atau reset filter pencarian.
                         </p>
                     </div>
+                    <?php endif; ?>
 
                 </div>
 
@@ -308,7 +386,37 @@ $bookListJson = json_encode(
                 <nav class="bdt-pagination"
                      id="bdt-pagination"
                      aria-label="Halaman katalog">
-                    <!-- Diisi oleh JavaScript -->
+                    <?php if ($maxPage > 1) : ?>
+                        <?php if ($page > 1) : ?>
+                            <a class="bdt-pagination__btn" id="bdt-page-prev" href="<?= htmlspecialchars(bdt_catalog_url(['halaman' => $page - 1])) ?>" aria-label="Halaman sebelumnya">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+                            </a>
+                        <?php endif; ?>
+                        <?php
+                            $pageStart = max(1, $page - 2);
+                            $pageEnd   = min($maxPage, $page + 2);
+                        ?>
+                        <?php if ($pageStart > 1) : ?>
+                            <a class="bdt-pagination__btn" href="<?= htmlspecialchars(bdt_catalog_url(['halaman' => 1])) ?>">1</a>
+                            <?php if ($pageStart > 2) : ?><span class="bdt-pagination__dots">...</span><?php endif; ?>
+                        <?php endif; ?>
+                        <?php for ($pageNumber = $pageStart; $pageNumber <= $pageEnd; $pageNumber++) : ?>
+                            <a class="bdt-pagination__btn <?= $pageNumber === $page ? 'is-active' : '' ?>"
+                               href="<?= htmlspecialchars(bdt_catalog_url(['halaman' => $pageNumber])) ?>"
+                               <?= $pageNumber === $page ? 'aria-current="page"' : '' ?>>
+                                <?= $pageNumber ?>
+                            </a>
+                        <?php endfor; ?>
+                        <?php if ($pageEnd < $maxPage) : ?>
+                            <?php if ($pageEnd < $maxPage - 1) : ?><span class="bdt-pagination__dots">...</span><?php endif; ?>
+                            <a class="bdt-pagination__btn" href="<?= htmlspecialchars(bdt_catalog_url(['halaman' => $maxPage])) ?>"><?= $maxPage ?></a>
+                        <?php endif; ?>
+                        <?php if ($page < $maxPage) : ?>
+                            <a class="bdt-pagination__btn" id="bdt-page-next" href="<?= htmlspecialchars(bdt_catalog_url(['halaman' => $page + 1])) ?>" aria-label="Halaman berikutnya">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+                            </a>
+                        <?php endif; ?>
+                    <?php endif; ?>
                 </nav>
 
             </div>
@@ -321,7 +429,7 @@ $bookListJson = json_encode(
 <?php include __DIR__ . '/../../components/footer.php'; ?>
 
 <!-- ============================================================
-     JAVASCRIPT — Client-side filter, sort & pagination
+     JAVASCRIPT — Bookmark visual toggle
      ============================================================ -->
 <script>
 (function () {
@@ -610,6 +718,8 @@ $bookListJson = json_encode(
     });
 
     // Bookmark toggle (visual only — no persistence yet)
+    const gridEl = document.getElementById('bdt-catalog-grid');
+    if (!gridEl) return;
     gridEl.addEventListener('click', function (e) {
         const btn = e.target.closest('.bdt-catalog-card__bookmark');
         if (btn) {
@@ -620,10 +730,6 @@ $bookListJson = json_encode(
             if (path) path.setAttribute('fill', isSaved ? 'currentColor' : 'none');
         }
     });
-
-    // ── Init ─────────────────────────────────────────────────
-    render();
-
 }());
 </script>
 

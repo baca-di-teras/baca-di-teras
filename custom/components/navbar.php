@@ -8,7 +8,7 @@
  *
  * Usage   : <?php include 'custom/components/navbar.php'; ?>
  *
- * @param string $activePage  Set active menu. Options: 'beranda', 'profil-desa',
+ * @param string $activePage  Set active menu. Options: 'beranda', 'profil',
  *                            'perpustakaan', 'berita', 'artikel', 'informasi'
  *                            Example: <?php $activePage = 'beranda'; ?>
  */

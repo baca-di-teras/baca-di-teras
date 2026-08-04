@@ -35,6 +35,25 @@ $bookImage    = $bookData['image']    ?? '';
 $bookHref     = $bookData['href']     ?? '#';
 $baseUrl      = defined('BASE_URL') ? BASE_URL : '';
 
+if (!function_exists('bdt_book_card_url')) {
+    function bdt_book_card_url(string $href, string $baseUrl): string
+    {
+        if ($href === '#') {
+            return $href;
+        }
+        if (str_starts_with($href, 'http://') || str_starts_with($href, 'https://')) {
+            return $href;
+        }
+        $baseUrl = rtrim($baseUrl, '/');
+        if ($baseUrl !== '' && ($href === $baseUrl || str_starts_with($href, $baseUrl . '/'))) {
+            return $href;
+        }
+        return $baseUrl . '/' . ltrim($href, '/');
+    }
+}
+
+$bookHrefUrl = bdt_book_card_url((string) $bookHref, $baseUrl);
+
 // Jika image sudah URL penuh (http/https atau path /baca-di-teras/slims/...)
 // jangan prefiks baseUrl lagi
 $bookImageSrc = (str_starts_with($bookImage, 'http') || str_starts_with($bookImage, '/'))
@@ -76,7 +95,7 @@ if ($bookBadge === 'Baru') {
         <?php endif; ?>
 
         <h3 class="bdt-book-card__title">
-            <a href="<?= htmlspecialchars($baseUrl . $bookHref) ?>"
+            <a href="<?= htmlspecialchars($bookHrefUrl) ?>"
                id="bdt-book-title-<?= htmlspecialchars($bookId) ?>"
                style="color: inherit; text-decoration: none;">
                 <?= htmlspecialchars($bookTitle) ?>
@@ -89,7 +108,7 @@ if ($bookBadge === 'Baru') {
             </p>
         <?php endif; ?>
 
-        <a href="<?= htmlspecialchars($baseUrl . $bookHref) ?>"
+        <a href="<?= htmlspecialchars($bookHrefUrl) ?>"
            id="bdt-book-link-<?= htmlspecialchars($bookId) ?>"
            class="bdt-book-card__link"
            aria-label="Pinjam buku <?= htmlspecialchars($bookTitle) ?>">

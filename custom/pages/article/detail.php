@@ -40,6 +40,12 @@ if (!$article) {
     exit;
 }
 
+if (($article['category'] ?? '') === 'berita') {
+    http_response_code(404);
+    require $libPath . '/custom/pages/404.php';
+    exit;
+}
+
 // Catat kunjungan
 $articleService->recordView((int) $article['article_id']);
 
