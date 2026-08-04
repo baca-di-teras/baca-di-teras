@@ -34,10 +34,11 @@ if ($activeCategory && (!isset($articleCategories[$activeCategory]) || !in_array
 }
 
 // Pagination sederhana
-$perPage  = 9;
+$perPage  = 8;
 $page     = max(1, (int)($_GET['halaman'] ?? 1));
+$searchQuery = $_GET['cari'] ?? '';
 $offset   = ($page - 1) * $perPage;
-$total    = $articleService->countPublishedArticles($activeCategory);
+$total    = $articleService->countPublished($activeCategory, $searchQuery);
 $maxPage  = (int) ceil($total / $perPage);
 
 // Ambil artikel hero (featured)
@@ -46,9 +47,9 @@ $excludeId   = $heroArticle['article_id'] ?? 0;
 
 // Ambil artikel
 if ($activeCategory) {
-    $articles = $articleService->getByCategory($activeCategory, $perPage, $offset, $excludeId);
+    $articles = $articleService->getByCategory($activeCategory, $perPage, $offset, $excludeId, $searchQuery);
 } else {
-    $articles = $articleService->getPublished($perPage, $offset, $excludeId);
+    $articles = $articleService->getPublished($perPage, $offset, $excludeId, $searchQuery);
 }
 
 $baseUrl = defined('BASE_URL') ? BASE_URL : '';
@@ -346,24 +347,35 @@ $baseUrl = defined('BASE_URL') ? BASE_URL : '';
 <main class="bdt-article-main" id="bdt-article-main">
     <div class="bdt-container">
 
-        <!-- Category Filter -->
-        <div class="bdt-category-filter" id="bdt-category-filter" role="navigation" aria-label="Filter kategori">
-            <a href="<?= $baseUrl ?>/artikel"
-               class="bdt-category-filter__chip <?= $activeCategory === '' ? 'bdt-category-filter__chip--active' : '' ?>"
-               id="bdt-filter-semua">Semua</a>
-            <?php foreach (ArticleService::ARTICLE_CATEGORIES as $key) : 
-                $label = ArticleService::CATEGORY_LABELS[$key] ?? $key;
-            ?>
-            <a href="<?= $baseUrl ?>/artikel?kategori=<?= urlencode($key) ?>"
-               class="bdt-category-filter__chip <?= $activeCategory === $key ? 'bdt-category-filter__chip--active' : '' ?>"
-               id="bdt-filter-<?= htmlspecialchars($key) ?>">
-                <?= htmlspecialchars($label) ?>
-            </a>
-            <?php endforeach; ?>
+        <!-- Category Filter & Search -->
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 40px; gap: 16px;">
+            <div class="bdt-category-filter" id="bdt-category-filter" role="navigation" aria-label="Filter kategori" style="margin-bottom: 0;">
+                <a href="<?= $baseUrl ?>/artikel"
+                   class="bdt-category-filter__chip <?= $activeCategory === '' ? 'bdt-category-filter__chip--active' : '' ?>"
+                   id="bdt-filter-semua">Semua</a>
+                <?php foreach (ArticleService::ARTICLE_CATEGORIES as $key) : 
+                    $label = ArticleService::CATEGORY_LABELS[$key] ?? $key;
+                ?>
+                <a href="<?= $baseUrl ?>/artikel?kategori=<?= urlencode($key) ?>"
+                   class="bdt-category-filter__chip <?= $activeCategory === $key ? 'bdt-category-filter__chip--active' : '' ?>"
+                   id="bdt-filter-<?= htmlspecialchars($key) ?>">
+                    <?= htmlspecialchars($label) ?>
+                </a>
+                <?php endforeach; ?>
+            </div>
+
+            <!-- Search Form -->
+            <form method="GET" action="<?= $baseUrl ?>/artikel" style="display: flex; gap: 8px;">
+                <?php if ($activeCategory): ?>
+                    <input type="hidden" name="kategori" value="<?= htmlspecialchars($activeCategory) ?>">
+                <?php endif; ?>
+                <input type="text" name="cari" value="<?= htmlspecialchars($searchQuery) ?>" placeholder="Cari artikel..." style="padding: 10px 16px; border: 1.5px solid #e0e0e0; border-radius: 100px; outline: none; font-family: inherit; font-size: 0.9rem; min-width: 250px;">
+                <button type="submit" style="padding: 10px 20px; background: #2d6a4f; color: white; border: none; border-radius: 100px; font-weight: 600; cursor: pointer;">Cari</button>
+            </form>
         </div>
 
-        <!-- Featured (hanya tampil di halaman 1 tanpa filter) -->
-        <?php if ($heroArticle && $page === 1 && $activeCategory === '') : ?>
+        <!-- Featured (hanya tampil di halaman 1 tanpa filter dan tanpa pencarian) -->
+        <?php if ($heroArticle && $page === 1 && $activeCategory === '' && $searchQuery === '') : ?>
         <article class="bdt-article-featured" id="bdt-article-featured">
             <?php 
                 $heroImg = $heroArticle['cover_image'] ?? '/custom/assets/images/news-featured.png';
@@ -482,8 +494,13 @@ $baseUrl = defined('BASE_URL') ? BASE_URL : '';
                 <?php if ($p === $page) : ?>
                 <span class="active" aria-current="page"><?= $p ?></span>
                 <?php else : ?>
-                <a href="<?= $baseUrl ?>/artikel?halaman=<?= $p ?><?= $activeCategory ? '&kategori=' . urlencode($activeCategory) : '' ?>"
-                   id="bdt-page-<?= $p ?>"><?= $p ?></a>
+                <?php 
+                    $qs = ['halaman' => $p];
+                    if ($activeCategory) $qs['kategori'] = $activeCategory;
+                    if ($searchQuery) $qs['cari'] = $searchQuery;
+                    $qsString = http_build_query($qs);
+                ?>
+                <a href="<?= $baseUrl ?>/artikel?<?= $qsString ?>" id="bdt-page-<?= $p ?>"><?= $p ?></a>
                 <?php endif; ?>
             <?php endfor; ?>
         </nav>

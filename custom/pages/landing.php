@@ -40,31 +40,32 @@ $libraryList  = $libraryService->getFeatured(5);
 $stats        = $libraryService->getOverallStats();
 $bookList     = $bookService->getLatest(6);
 
-$featuredNews = $newsService->getFeaturedNews();
-$newsList     = $newsService->getRecentNews(4, 0); // Fetch 4 to account for potential duplicates
+$allFeatured = $newsService->getAllFeaturedNews();
+$featuredNewsList = array_slice($allFeatured, 0, 2);
+$newsList = $newsService->getRecentNews(6, 0); // Fetch 6 to account for potential duplicates
 
-// Fallback jika tidak ada featured news
-if (!$featuredNews && !empty($newsList)) {
-    $featuredNews = array_shift($newsList);
+// Fallback jika tidak cukup featured news
+while (count($featuredNewsList) < 2 && !empty($newsList)) {
+    $featuredNewsList[] = array_shift($newsList);
 }
 
-// Hapus duplikasi jika featured news muncul di recent news
-if ($featuredNews) {
+// Hapus duplikasi
+if (!empty($featuredNewsList)) {
+    $featuredIds = array_column($featuredNewsList, 'article_id');
     foreach ($newsList as $k => $news) {
-        if ($news['article_id'] == $featuredNews['article_id']) {
+        if (in_array($news['article_id'], $featuredIds)) {
             unset($newsList[$k]);
-            break;
         }
     }
 }
-// Pastikan newsList hanya berisi 3 item
-$newsList = array_slice($newsList, 0, 3);
+// Pastikan newsList berisi 3 item untuk sidebar kanan
+$newsList = array_slice(array_values($newsList), 0, 3);
 
 $featureList  = $villageService->getFeatures();
 $articleTotal = $articleService->countPublished();
 
-if ($featuredNews === null) {
-    $featuredNews = $newsList[0] ?? [
+if (empty($featuredNewsList)) {
+    $featuredNewsList[] = [
         'title' => 'Kegiatan Literasi Desa Teras',
         'slug' => '',
         'excerpt' => 'Ikuti perkembangan terbaru seputar kegiatan literasi dan program perpustakaan Desa Teras.',
@@ -413,58 +414,62 @@ if ($featuredNews === null) {
 
         <div class="bdt-news__grid">
 
-            <!-- Featured News -->
-            <article class="bdt-news-card--featured" id="bdt-news-featured">
-                <div class="bdt-news-card__image-wrap">
-                    <img src="<?= htmlspecialchars($featuredNews['image'] ?? BASE_URL . '/custom/assets/images/news-featured.png') ?>"
-                         alt="<?= htmlspecialchars($featuredNews['title']) ?>"
-                         class="bdt-news-card__image"
-                         loading="lazy"
-                         width="640" height="360">
-                </div>
-                <div class="bdt-news-card__body">
-                    <span class="bdt-news-card__category-tag">
-                        <?= htmlspecialchars($featuredNews['category']) ?>
-                    </span>
-                    <a href="<?= BASE_URL ?>/berita/<?= htmlspecialchars($featuredNews['slug'] ?? '') ?>"
-                       id="bdt-news-featured-title"
-                       class="bdt-news-card__title">
-                        <?= htmlspecialchars($featuredNews['title']) ?>
-                    </a>
-                    <p class="bdt-news-card__excerpt">
-                        <?= htmlspecialchars($featuredNews['excerpt']) ?>
-                    </p>
-                    <div class="bdt-news-card__meta">
-                        <span class="bdt-news-card__meta-item">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                 fill="none" stroke="currentColor" stroke-width="2"
-                                 stroke-linecap="round" stroke-linejoin="round"
-                                 aria-hidden="true">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                                <line x1="16" y1="2" x2="16" y2="6"/>
-                                <line x1="8" y1="2" x2="8" y2="6"/>
-                                <line x1="3" y1="10" x2="21" y2="10"/>
-                            </svg>
-                            <?php
-                                require_once (defined('ROOT_PATH') ? ROOT_PATH : __DIR__ . '/../..') . '/custom/services/ArticleService.php';
-                            ?>
-                            <?= ArticleService::formatDate($featuredNews['date'] ?? $featuredNews['publish_date'] ?? null) ?>
-                        </span>
-                        <span class="bdt-news-card__meta-item">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                 fill="none" stroke="currentColor" stroke-width="2"
-                                 stroke-linecap="round" stroke-linejoin="round"
-                                 aria-hidden="true">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                                <circle cx="12" cy="7" r="4"/>
-                            </svg>
-                            <?= htmlspecialchars($featuredNews['author_name'] ?? $featuredNews['author'] ?? 'Admin') ?>
-                        </span>
+            <!-- Featured News (Kiri) -->
+            <div class="bdt-news__featured-col">
+                <?php foreach ($featuredNewsList as $fIndex => $fNews) : ?>
+                <article class="bdt-news-card--featured" id="bdt-news-featured-<?= $fIndex + 1 ?>">
+                    <div class="bdt-news-card__image-wrap">
+                        <img src="<?= htmlspecialchars($fNews['image'] ?? BASE_URL . '/custom/assets/images/news-featured.png') ?>"
+                             alt="<?= htmlspecialchars($fNews['title']) ?>"
+                             class="bdt-news-card__image"
+                             loading="lazy"
+                             width="640" height="360">
                     </div>
-                </div>
-            </article>
+                    <div class="bdt-news-card__body">
+                        <span class="bdt-news-card__category-tag">
+                            <?= htmlspecialchars($fNews['category']) ?>
+                        </span>
+                        <a href="<?= BASE_URL ?>/berita/<?= htmlspecialchars($fNews['slug'] ?? '') ?>"
+                           id="bdt-news-featured-title-<?= $fIndex + 1 ?>"
+                           class="bdt-news-card__title">
+                            <?= htmlspecialchars($fNews['title']) ?>
+                        </a>
+                        <p class="bdt-news-card__excerpt">
+                            <?= htmlspecialchars($fNews['excerpt']) ?>
+                        </p>
+                        <div class="bdt-news-card__meta">
+                            <span class="bdt-news-card__meta-item">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                     fill="none" stroke="currentColor" stroke-width="2"
+                                     stroke-linecap="round" stroke-linejoin="round"
+                                     aria-hidden="true">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                    <line x1="16" y1="2" x2="16" y2="6"/>
+                                    <line x1="8" y1="2" x2="8" y2="6"/>
+                                    <line x1="3" y1="10" x2="21" y2="10"/>
+                                </svg>
+                                <?php
+                                    require_once (defined('ROOT_PATH') ? ROOT_PATH : __DIR__ . '/../..') . '/custom/services/ArticleService.php';
+                                ?>
+                                <?= ArticleService::formatDate($fNews['date'] ?? $fNews['publish_date'] ?? null) ?>
+                            </span>
+                            <span class="bdt-news-card__meta-item">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                     fill="none" stroke="currentColor" stroke-width="2"
+                                     stroke-linecap="round" stroke-linejoin="round"
+                                     aria-hidden="true">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="12" cy="7" r="4"/>
+                                </svg>
+                                <?= htmlspecialchars($fNews['author_name'] ?? $fNews['author'] ?? 'Admin') ?>
+                            </span>
+                        </div>
+                    </div>
+                </article>
+                <?php endforeach; ?>
+            </div>
 
-            <!-- News Sidebar -->
+            <!-- News Sidebar (Kanan) -->
             <div class="bdt-news__sidebar">
                 <?php foreach ($newsList as $newsIndex => $newsItem) : ?>
                     <article class="bdt-news-card--small"

@@ -42,6 +42,9 @@ body {
     background-color: var(--color-white);
     margin: 0;
 }
+html, body {
+    overflow-x: hidden;
+}
 
 /* ---------- Utilities ---------- */
 .bdt-container {
@@ -753,6 +756,12 @@ body {
     gap: 24px;
 }
 
+.bdt-news__featured-col {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
 /* Featured news card */
 .bdt-news-card--featured {
     background-color: var(--color-white);
@@ -1221,6 +1230,13 @@ body {
 
     .bdt-stats__item {
         padding: 20px 16px;
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+    }
+    
+    .bdt-stats__number {
+        font-size: 22px;
     }
 
     .bdt-library-grid {

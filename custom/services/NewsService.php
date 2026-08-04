@@ -138,22 +138,35 @@ class NewsService
      *
      * @return int
      */
-    public function countNews(string $category = ''): int
+    public function countNews(string $category = '', string $search = ''): int
     {
+        $params = [];
+        $types = '';
+        $sql = 'SELECT COUNT(*) 
+                FROM bdt_article 
+                WHERE status = "published" 
+                  AND (publish_date IS NULL OR publish_date <= NOW())';
+
         if ($category) {
-            $sql = 'SELECT COUNT(*) 
-                    FROM bdt_article 
-                    WHERE status = "published" 
-                      AND category = ?
-                      AND (publish_date IS NULL OR publish_date <= NOW())';
-            return (int) $this->db->fetchScalar($sql, 's', [$category]);
+            $sql .= ' AND category = ?';
+            $params[] = $category;
+            $types .= 's';
         } else {
-            $sql = 'SELECT COUNT(*) 
-                    FROM bdt_article 
-                    WHERE status = "published" 
-                      AND category IN ("berita", "kegiatan", "pengumuman")
-                      AND (publish_date IS NULL OR publish_date <= NOW())';
+            $sql .= ' AND category IN ("berita", "kegiatan", "pengumuman")';
+        }
+
+        if ($search) {
+            $sql .= ' AND (title LIKE ? OR excerpt LIKE ?)';
+            $searchParam = "%$search%";
+            $params[] = $searchParam;
+            $params[] = $searchParam;
+            $types .= 'ss';
+        }
+
+        if (empty($params)) {
             return (int) $this->db->fetchScalar($sql);
+        } else {
+            return (int) $this->db->fetchScalar($sql, $types, $params);
         }
     }
 
@@ -164,78 +177,61 @@ class NewsService
      * @param int $offset
      * @return array
      */
-    public function getRecentNews(int $limit = 9, int $offset = 0, string $category = '', array $excludeIds = []): array
+    public function getRecentNews(int $limit = 9, int $offset = 0, string $category = '', array $excludeIds = [], string $search = ''): array
     {
-        $excludeCondition = '';
         $params = [];
         $types = '';
+        
+        $sql = 'SELECT
+                    a.article_id,
+                    a.title,
+                    a.slug,
+                    a.excerpt,
+                    a.body,
+                    a.cover_image AS image,
+                    a.category,
+                    a.is_featured,
+                    a.publish_date AS date,
+                    u.name AS author,
+                    u.role AS author_role,
+                    l.name AS library_name
+                FROM bdt_article a
+                LEFT JOIN bdt_admins u ON a.created_by = u.id
+                LEFT JOIN bdt_library l ON a.library_id = l.library_id
+                WHERE a.status = "published"
+                  AND (a.publish_date IS NULL OR a.publish_date <= NOW())';
+
+        if ($category) {
+            $sql .= ' AND a.category = ?';
+            $params[] = $category;
+            $types .= 's';
+        } else {
+            $sql .= ' AND a.category IN ("berita", "kegiatan", "pengumuman")';
+        }
 
         if (!empty($excludeIds)) {
             $placeholders = implode(',', array_fill(0, count($excludeIds), '?'));
-            $excludeCondition = " AND a.article_id NOT IN ($placeholders)";
+            $sql .= " AND a.article_id NOT IN ($placeholders)";
             foreach ($excludeIds as $id) {
                 $params[] = $id;
                 $types .= 'i';
             }
         }
 
-        if ($category) {
-            array_unshift($params, $category);
-            $types = 's' . $types;
-            $params[] = $limit;
-            $params[] = $offset;
-            $types .= 'ii';
-
-            $sql = 'SELECT
-                        a.article_id,
-                        a.title,
-                        a.slug,
-                        a.excerpt,
-                        a.body,
-                        a.cover_image AS image,
-                        a.category,
-                        a.is_featured,
-                        a.publish_date AS date,
-                        u.name AS author,
-                        u.role AS author_role,
-                        l.name AS library_name
-                    FROM bdt_article a
-                    LEFT JOIN bdt_admins u ON a.created_by = u.id
-                    LEFT JOIN bdt_library l ON a.library_id = l.library_id
-                    WHERE a.status = "published"
-                      AND a.category = ?' . $excludeCondition . '
-                      AND (a.publish_date IS NULL OR a.publish_date <= NOW())
-                    ORDER BY a.publish_date DESC
-                    LIMIT ? OFFSET ?';
-            return $this->db->fetchAll($sql, $types, $params);
-        } else {
-            $params[] = $limit;
-            $params[] = $offset;
-            $types .= 'ii';
-
-            $sql = 'SELECT
-                        a.article_id,
-                        a.title,
-                        a.slug,
-                        a.excerpt,
-                        a.body,
-                        a.cover_image AS image,
-                        a.category,
-                        a.is_featured,
-                        a.publish_date AS date,
-                        u.name AS author,
-                        u.role AS author_role,
-                        l.name AS library_name
-                    FROM bdt_article a
-                    LEFT JOIN bdt_admins u ON a.created_by = u.id
-                    LEFT JOIN bdt_library l ON a.library_id = l.library_id
-                    WHERE a.status = "published"
-                      AND a.category IN ("berita", "kegiatan", "pengumuman")' . $excludeCondition . '
-                      AND (a.publish_date IS NULL OR a.publish_date <= NOW())
-                    ORDER BY a.publish_date DESC
-                    LIMIT ? OFFSET ?';
-            return $this->db->fetchAll($sql, $types, $params);
+        if ($search) {
+            $sql .= ' AND (a.title LIKE ? OR a.excerpt LIKE ?)';
+            $searchParam = "%$search%";
+            $params[] = $searchParam;
+            $params[] = $searchParam;
+            $types .= 'ss';
         }
+
+        $sql .= ' ORDER BY a.publish_date DESC LIMIT ? OFFSET ?';
+        $params[] = $limit;
+        $params[] = $offset;
+        $types .= 'ii';
+
+        return $this->db->fetchAll($sql, $types, $params);
     }
 
     /**

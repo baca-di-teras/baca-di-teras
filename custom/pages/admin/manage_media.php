@@ -87,7 +87,7 @@ function getMediaBadgeClass($category) {
         .admin-table tr:last-child td { border-bottom: none; }
         .admin-table tr:hover { background-color: #f9fafb; }
         
-        .badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
         .badge-published { background: #dcfce7; color: #166534; }
         .badge-draft { background: #fef3c7; color: #92400e; }
         .badge-nasional { background: #ffebee; color: #c62828; }

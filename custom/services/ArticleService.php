@@ -146,40 +146,90 @@ class ArticleService
         }
     }
 
-    public function countPublished(string $category = ''): int
+    public function countPublished(string $category = '', string $search = ''): int
     {
+        $params = [];
+        $types = '';
+        $sql = "SELECT COUNT(*) FROM bdt_article WHERE status = 'published'";
+
         if ($category) {
-            $sql = "SELECT COUNT(*) FROM bdt_article WHERE status = 'published' AND category = ?";
-            return (int) $this->db->fetchScalar($sql, 's', [$category]);
+            $sql .= " AND category = ?";
+            $params[] = $category;
+            $types .= 's';
         } else {
-            $sql = "SELECT COUNT(*) FROM bdt_article WHERE status = 'published' AND category IN ('resensi', 'literasi', 'lainnya')";
+            $sql .= " AND category IN ('resensi', 'literasi', 'lainnya')";
+        }
+
+        if ($search) {
+            $sql .= " AND (title LIKE ? OR excerpt LIKE ?)";
+            $searchParam = "%$search%";
+            $params[] = $searchParam;
+            $params[] = $searchParam;
+            $types .= 'ss';
+        }
+
+        if (empty($params)) {
             return (int) $this->db->fetchScalar($sql);
+        } else {
+            return (int) $this->db->fetchScalar($sql, $types, $params);
         }
     }
 
-    public function getPublished(int $limit = 9, int $offset = 0, int $excludeId = 0): array
+    public function getPublished(int $limit = 9, int $offset = 0, int $excludeId = 0, string $search = ''): array
     {
+        $params = [$excludeId];
+        $types = 'i';
+        
         $sql = "SELECT a.*, l.name AS library_name, u.name AS author_name, u.role AS author_role 
                 FROM bdt_article a 
                 LEFT JOIN bdt_library l ON a.library_id = l.library_id 
                 LEFT JOIN bdt_admins u ON a.created_by = u.id 
                 WHERE a.status = 'published' 
                 AND a.category IN ('resensi', 'literasi', 'lainnya')
-                AND a.article_id != ?
-                ORDER BY a.is_pinned DESC, a.publish_date DESC LIMIT ? OFFSET ?";
-        return $this->db->fetchAll($sql, 'iii', [$excludeId, $limit, $offset]);
+                AND a.article_id != ?";
+                
+        if ($search) {
+            $sql .= " AND (a.title LIKE ? OR a.excerpt LIKE ?)";
+            $searchParam = "%$search%";
+            $params[] = $searchParam;
+            $params[] = $searchParam;
+            $types .= 'ss';
+        }
+
+        $sql .= " ORDER BY a.is_pinned DESC, a.publish_date DESC LIMIT ? OFFSET ?";
+        $params[] = $limit;
+        $params[] = $offset;
+        $types .= 'ii';
+
+        return $this->db->fetchAll($sql, $types, $params);
     }
 
-    public function getByCategory(string $category, int $limit = 9, int $offset = 0, int $excludeId = 0): array
+    public function getByCategory(string $category, int $limit = 9, int $offset = 0, int $excludeId = 0, string $search = ''): array
     {
+        $params = [$category, $excludeId];
+        $types = 'si';
+        
         $sql = "SELECT a.*, l.name AS library_name, u.name AS author_name, u.role AS author_role 
                 FROM bdt_article a 
                 LEFT JOIN bdt_library l ON a.library_id = l.library_id 
                 LEFT JOIN bdt_admins u ON a.created_by = u.id 
                 WHERE a.status = 'published' AND a.category = ? 
-                AND a.article_id != ?
-                ORDER BY a.is_pinned DESC, a.publish_date DESC LIMIT ? OFFSET ?";
-        return $this->db->fetchAll($sql, 'siii', [$category, $excludeId, $limit, $offset]);
+                AND a.article_id != ?";
+                
+        if ($search) {
+            $sql .= " AND (a.title LIKE ? OR a.excerpt LIKE ?)";
+            $searchParam = "%$search%";
+            $params[] = $searchParam;
+            $params[] = $searchParam;
+            $types .= 'ss';
+        }
+
+        $sql .= " ORDER BY a.is_pinned DESC, a.publish_date DESC LIMIT ? OFFSET ?";
+        $params[] = $limit;
+        $params[] = $offset;
+        $types .= 'ii';
+
+        return $this->db->fetchAll($sql, $types, $params);
     }
 
     public function getHeroArticle(string $category = ''): ?array
