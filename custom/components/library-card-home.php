@@ -29,7 +29,7 @@ if (!isset($libraryData) || !is_array($libraryData)) {
 $cardId        = $libraryData['slug']            ?? $libraryData['id']        ?? 'library';
 $cardName      = $libraryData['name']            ?? 'Perpustakaan';
 $cardAddress   = $libraryData['address']         ?? '';
-$cardImage     = $libraryData['thumbnail_image'] ?? $libraryData['image']     ?? '';
+$cardImage     = $libraryData['cover_image'] ?? $libraryData['thumbnail_image'] ?? $libraryData['image'] ?? '';
 $cardBadge     = $libraryData['badge']           ?? null;
 $cardTotalBuku = isset($libraryData['total_koleksi'])
     ? number_format((int)$libraryData['total_koleksi'], 0, ',', '.') . ' Koleksi'

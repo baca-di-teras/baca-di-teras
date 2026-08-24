@@ -172,6 +172,11 @@ $baseUrl = defined('BASE_URL') ? BASE_URL : '';
             color: #666;
             line-height: 1.7;
             margin-bottom: 20px;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
         .bdt-article-featured__meta {
             display: flex;

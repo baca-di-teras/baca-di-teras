@@ -75,9 +75,8 @@ class UploadHelper
             throw new Exception("Gagal menyimpan file ke server.");
         }
 
-        // Return path absolut relatif dari BASE_URL, contoh: /baca-di-teras/custom/uploads/articles/namafile.jpg
-        $baseUrl = defined('BASE_URL') ? BASE_URL : '/baca-di-teras';
-        return rtrim($baseUrl, '/') . '/' . trim($uploadDir, '/') . '/' . $fileName;
+        // Return path absolut relatif dari root aplikasi (tanpa BASE_URL)
+        return '/' . trim($uploadDir, '/') . '/' . $fileName;
     }
 
     /**
@@ -145,8 +144,8 @@ class UploadHelper
             throw new Exception("Gagal menyimpan file ke server.");
         }
 
-        $baseUrl = defined('BASE_URL') ? BASE_URL : '/baca-di-teras';
-        return rtrim($baseUrl, '/') . '/' . trim($uploadDir, '/') . '/' . $fileName;
+        // Return path absolut relatif dari root aplikasi (tanpa BASE_URL)
+        return '/' . trim($uploadDir, '/') . '/' . $fileName;
     }
 
     /**

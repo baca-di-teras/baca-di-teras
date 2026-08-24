@@ -451,7 +451,25 @@ $tags          = $article['tags'] ?? [];
             p, blockquote, ul, ol { page-break-inside: avoid; }
             a { text-decoration: none !important; color: #000 !important; }
         }
+
     </style>
+    <!-- Structured Data Artikel -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": <?= json_encode($article['title']) ?>,
+      "image": [
+        <?= json_encode($absoluteCoverImage) ?>
+      ],
+      "datePublished": <?= json_encode(date('c', strtotime($article['publish_date'] ?? $article['created_at']))) ?>,
+      "dateModified": <?= json_encode(date('c', strtotime($article['updated_at'] ?? $article['created_at']))) ?>,
+      "author": [{
+          "@type": "Person",
+          "name": <?= json_encode($article['author_name'] ?? 'Admin Desa Teras') ?>
+      }]
+    }
+    </script>
 </head>
 <body>
 <?php include $libPath . '/custom/components/navbar.php'; ?>

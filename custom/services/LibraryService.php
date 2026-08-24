@@ -23,19 +23,19 @@ class LibraryService
 
     public function getAllLibraries(): array
     {
-        $sql = "SELECT * FROM bdt_library ORDER BY sort_order ASC, library_id DESC";
+        $sql = "SELECT * FROM bdt_library ORDER BY created_at DESC, library_id DESC";
         return $this->db->fetchAll($sql);
     }
 
     public function getAllActive(): array
     {
-        $sql = "SELECT * FROM bdt_library WHERE status = 'aktif' ORDER BY sort_order ASC, name ASC";
+        $sql = "SELECT * FROM bdt_library WHERE status = 'aktif' ORDER BY created_at DESC, name ASC";
         return $this->db->fetchAll($sql);
     }
 
-    public function getFeatured(int $limit = 3): array
+    public function getFeatured(int $limit = 6): array
     {
-        $sql = "SELECT * FROM bdt_library WHERE status = 'aktif' AND badge IS NOT NULL ORDER BY sort_order ASC LIMIT ?";
+        $sql = "SELECT * FROM bdt_library WHERE status = 'aktif' ORDER BY created_at DESC LIMIT ?";
         return $this->db->fetchAll($sql, 'i', [$limit]);
     }
 
@@ -69,10 +69,10 @@ class LibraryService
         return $library;
     }
 
-    public function createLibrary(array $data): bool
+    public function createLibrary(array $data): int|false
     {
-        $sql = "INSERT INTO bdt_library (slims_location_id, slug, name, tagline, badge, status, address, village, phone, email, whatsapp, google_maps_url, latitude, longitude, cover_image, description, sort_order) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO bdt_library (slims_location_id, slug, name, tagline, badge, status, address, village, phone, email, whatsapp, google_maps_url, latitude, longitude, cover_image, description) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         $stmt = $this->db->getConnection()->prepare($sql);
         if (!$stmt) return false;
@@ -93,28 +93,50 @@ class LibraryService
         $longitude = $data['longitude'] ?? null;
         $cover_image = $data['cover_image'] ?? null;
         $description = $data['description'] ?? null;
-        $sort_order = $data['sort_order'] ?? 0;
 
-        $stmt->bind_param('ssssssssssssddssi', 
+        $stmt->bind_param('ssssssssssssddss', 
             $slims_location_id, $slug, $name, $tagline, $badge, $status, 
             $address, $village, $phone, $email, $whatsapp, $google_maps_url, 
-            $latitude, $longitude, $cover_image, $description, $sort_order
+            $latitude, $longitude, $cover_image, $description
         );
         
         $result = $stmt->execute();
         $stmt->close();
         
         if ($result) {
+            $insertId = $stmt->insert_id;
             $this->activityLog->log('menambahkan', 'Perpustakaan', $name);
+            return $insertId;
         }
 
-        return $result;
+        return false;
+    }
+
+    public function saveHours(int $libraryId, array $hoursData): bool
+    {
+        // Hapus jam lama
+        $this->db->execute('DELETE FROM bdt_library_hour WHERE library_id = ?', 'i', [$libraryId]);
+
+        $sql = "INSERT INTO bdt_library_hour (library_id, day_of_week, is_open, open_time, close_time) VALUES (?, ?, ?, ?, ?)";
+        $stmt = $this->db->getConnection()->prepare($sql);
+        if (!$stmt) return false;
+
+        foreach ($hoursData as $day => $data) {
+            $isOpen = isset($data['is_closed']) && $data['is_closed'] === '1' ? 0 : 1;
+            $openTime = !empty($data['open']) ? $data['open'] : null;
+            $closeTime = !empty($data['close']) ? $data['close'] : null;
+            
+            $stmt->bind_param('iiiss', $libraryId, $day, $isOpen, $openTime, $closeTime);
+            $stmt->execute();
+        }
+        $stmt->close();
+        return true;
     }
 
     public function updateLibrary(int $library_id, array $data): bool
     {
         $sql = "UPDATE bdt_library 
-                SET slims_location_id = ?, slug = ?, name = ?, tagline = ?, badge = ?, status = ?, address = ?, village = ?, phone = ?, email = ?, whatsapp = ?, google_maps_url = ?, latitude = ?, longitude = ?, cover_image = ?, description = ?, sort_order = ? 
+                SET slims_location_id = ?, slug = ?, name = ?, tagline = ?, badge = ?, status = ?, address = ?, village = ?, phone = ?, email = ?, whatsapp = ?, google_maps_url = ?, latitude = ?, longitude = ?, cover_image = ?, description = ? 
                 WHERE library_id = ?";
         
         $stmt = $this->db->getConnection()->prepare($sql);
@@ -136,12 +158,11 @@ class LibraryService
         $longitude = $data['longitude'] ?? null;
         $cover_image = $data['cover_image'] ?? null;
         $description = $data['description'] ?? null;
-        $sort_order = $data['sort_order'] ?? 0;
 
-        $stmt->bind_param('ssssssssssssddssii', 
+        $stmt->bind_param('ssssssssssssddssi', 
             $slims_location_id, $slug, $name, $tagline, $badge, $status, 
             $address, $village, $phone, $email, $whatsapp, $google_maps_url, 
-            $latitude, $longitude, $cover_image, $description, $sort_order,
+            $latitude, $longitude, $cover_image, $description,
             $library_id
         );
         
@@ -256,7 +277,7 @@ class LibraryService
               LIMIT 1',
             'ii',
             [$libraryId, $todayDow]
-        );
+        ) ?: false;
     }
 
     public function countActiveItems(string $locationId): int

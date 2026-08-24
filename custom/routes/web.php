@@ -30,6 +30,7 @@ if (!isset($router) || !($router instanceof Router)) {
 // ============================================================
 
 $router->get('/', 'custom/pages/landing.php');
+$router->get('/sitemap.xml', 'custom/pages/sitemap.php');
 
 // ============================================================
 // PROFIL DESA

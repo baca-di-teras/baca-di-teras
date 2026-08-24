@@ -142,8 +142,16 @@ body { font-family: var(--font-base); color: var(--color-text-body); margin: 0; 
     max-width: 640px;
 }
 .bdt-lib-hero__desc {
-    font-size: 15px; color: rgba(255,255,255,.8);
+    font-size: 15px; color: rgba(255,255,255,.9);
     max-width: 540px; line-height: 1.7; margin: 0;
+}
+.bdt-lib-hero__desc-overlay {
+    background: rgba(0, 0, 0, 0.4);
+    padding: 16px 20px;
+    border-radius: 8px;
+    backdrop-filter: blur(4px);
+    margin-top: 16px;
+    border: 1px solid rgba(255,255,255,0.1);
 }
 
 /* ============================================================
@@ -185,6 +193,28 @@ body { font-family: var(--font-base); color: var(--color-text-body); margin: 0; 
 .bdt-info-card__title {
     font-size: 15px; font-weight: 700; color: var(--color-text-dark);
     margin: 0 0 16px;
+}
+
+/* Contact Info inside Facility Card */
+.bdt-facility-contact {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px dashed var(--color-border);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.bdt-facility-contact__item {
+    font-size: 13.5px;
+    color: var(--color-text-body);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.bdt-facility-contact__item svg {
+    color: var(--color-primary);
+    flex-shrink: 0;
 }
 
 /* Fasilitas list */

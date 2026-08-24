@@ -393,6 +393,23 @@ $categoryLabel = ArticleService::CATEGORY_LABELS[$news['category']] ?? $news['ca
             .bdt-article-body { font-size: 0.95rem; line-height: 1.7; }
         }
     </style>
+    <!-- Structured Data Berita -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "NewsArticle",
+      "headline": <?= json_encode($news['title']) ?>,
+      "image": [
+        <?= json_encode($absoluteCoverImage) ?>
+      ],
+      "datePublished": <?= json_encode(date('c', strtotime($news['publish_date'] ?? $news['created_at']))) ?>,
+      "dateModified": <?= json_encode(date('c', strtotime($news['updated_at'] ?? $news['created_at']))) ?>,
+      "author": [{
+          "@type": "Person",
+          "name": <?= json_encode($news['author_name'] ?? 'Admin Desa Teras') ?>
+      }]
+    }
+    </script>
 </head>
 <body>
 <?php include $libPath . '/custom/components/navbar.php'; ?>

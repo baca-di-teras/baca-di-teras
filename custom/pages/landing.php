@@ -36,7 +36,7 @@ $articleService = new ArticleService();
 $villageService = new VillageService();
 
 // Data untuk setiap seksi landing page
-$libraryList  = $libraryService->getFeatured(5);
+$libraryList  = $libraryService->getFeatured(6);
 $stats        = $libraryService->getOverallStats();
 $bookList     = $bookService->getLatest(6);
 
@@ -63,6 +63,8 @@ $newsList = array_slice(array_values($newsList), 0, 3);
 
 $featureList  = $villageService->getFeatures();
 $articleTotal = $articleService->countPublished();
+$newsTotal    = $newsService->countNews();
+$totalMedia   = $articleTotal + $newsTotal;
 
 if (empty($featuredNewsList)) {
     $featuredNewsList[] = [
@@ -70,7 +72,7 @@ if (empty($featuredNewsList)) {
         'slug' => '',
         'excerpt' => 'Ikuti perkembangan terbaru seputar kegiatan literasi dan program perpustakaan Desa Teras.',
         'image' => BASE_URL . '/custom/assets/images/news-featured.png',
-        'category' => 'berita',
+        'category' => 'berita', 
         'date' => null,
         'author' => 'Admin',
     ];
@@ -246,7 +248,7 @@ if (empty($featuredNewsList)) {
                     </svg>
                 </div>
                 <div>
-                    <p class="bdt-stats__number"><?= number_format((int)$articleTotal, 0, ',', '.') ?></p>
+                    <p class="bdt-stats__number"><?= number_format((int)$totalMedia, 0, ',', '.') ?></p>
                     <p class="bdt-stats__label">Artikel &amp; Berita</p>
                 </div>
             </div>

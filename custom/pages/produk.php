@@ -46,6 +46,34 @@ function getLayoutClass($index) {
         * { box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; }
     </style>
+    <?php
+    $itemListElements = [];
+    $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+    $baseUrlFull = $protocol . '://' . $_SERVER['HTTP_HOST'] . BASE_URL;
+    foreach ($produks as $index => $p) {
+        $imgUrl = '';
+        if (!empty($p['image_1'])) {
+            $imgUrl = strpos($p['image_1'], 'http') === 0 ? $p['image_1'] : $baseUrlFull . '/' . ltrim($p['image_1'], '/');
+        }
+        $itemListElements[] = [
+            "@type" => "ListItem",
+            "position" => $index + 1,
+            "item" => [
+                "@type" => "Product",
+                "name" => $p['title'],
+                "description" => $p['description'],
+                "image" => $imgUrl
+            ]
+        ];
+    }
+    ?>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "itemListElement": <?= json_encode($itemListElements) ?>
+    }
+    </script>
 </head>
 <body class="produk-page">
     <?php include __DIR__ . '/../components/navbar.php'; ?>
